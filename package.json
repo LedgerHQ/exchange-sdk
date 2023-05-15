@@ -7,6 +7,8 @@
     "type-check": "tsc"
   },
   "dependencies": {
+    "@ledgerhq/wallet-api-client": "0.15.3",
+    "bignumber.js": "^9.0.2",
     "next": "latest",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
