@@ -1,42 +1,42 @@
 {
-  "id": "multibuy",
+  "id": "swapWeb",
   "name": "Swap",
-  "private": false,
-  "url": "http://localhost:3000/",
-  "homepageUrl": "http://localhost:3000/",
+  "url": "http://localhost:3000",
+  "homepageUrl": "http://localhost:3000",
   "icon": "",
   "platform": "all",
   "apiVersion": "^1.0.0 || ~0.0.1",
   "manifestVersion": "1",
   "branch": "experimental",
   "categories": [
-    "exchange",
-    "buy"
+    "swap"
   ],
-  "currencies": [
-    "ethereum",
-    "bitcoin",
-    "algorand"
-  ],
+  "currencies": "*",
   "content": {
     "shortDescription": {
-      "en": "Purchase Bitcoin, Ethereum and more crypto with a selection of providers."
+      "en": "Swap web app"
     },
     "description": {
-      "en": "Purchase Bitcoin, Ethereum and more crypto with a selection of providers."
+      "en": "Swap web app"
     }
   },
   "permissions": [
-    {
-      "method": "account.request",
-      "params": {
-        "currencies": [
-          "ethereum",
-          "bitcoin",
-          "algorand"
-        ]
-      }
-    }
+    "account.list",
+    "account.receive",
+    "account.request",
+    "currency.list",
+    "device.close",
+    "device.exchange",
+    "device.transport",
+    "message.sign",
+    "transaction.sign",
+    "transaction.signAndBroadcast",
+    "storage.set",
+    "storage.get",
+    "bitcoin.getXPub",
+    "wallet.capabilities",
+    "wallet.userId",
+    "wallet.info"
   ],
   "domains": [
     "https://*"
