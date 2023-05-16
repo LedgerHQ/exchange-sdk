@@ -4,13 +4,15 @@ import BigNumber from "bignumber.js";
 export type SwapInfo = {
   quoteId: string;
   fromAddressId: string;
-  payinAddress: string;
   toAddressId: string;
   fromAmount: BigInt;
   toAmount: BigInt;
   fromCurrency: string;
   toCurrency: string;
-}
+  feeStrategy: FeeStrategy,
+};
+
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST";
 
 // Should be available from the WalletAPI (zod :( )
 const ExchangeType = {
@@ -57,12 +59,14 @@ export class ExchangeSDK {
   readonly providerId: string;
 
   private transport: WindowMessageTransport;
-  private walletAPI: WalletAPIClient;
+  readonly walletAPI: WalletAPIClient;
 
-  constructor(providerId: string) {
+  constructor(providerId: string, transport?: WindowMessageTransport) {
     this.providerId = providerId;
-    this.transport = new WindowMessageTransport();
-    this.transport.connect();
+    if (!transport) {
+      this.transport = new WindowMessageTransport();
+      this.transport.connect();
+    }
     this.walletAPI = new WalletAPIClient(this.transport);
   }
 
@@ -73,21 +77,27 @@ export class ExchangeSDK {
     console.log("== Nonce retrieved:", nonce);
 
     // 2 - Ask for payload creation
+    // This step has to call the Ledger's Swap Backend
     const binaryPayload: Buffer = Buffer.from("fffff", "hex");
     const signature: Buffer = Buffer.from("fffff", "hex");
+    const payinAddress = "0xdea2666a99047861880b5db08e63cf959f07406f";
 
     // 3 - Send payload
     const tx = await this.walletAPI.exchange.completeSwap({
       provider: this.providerId,
       fromAccountId: info.fromAddressId,
       toAccountId: info.toAddressId,
-      transaction: this.createTransaction(info.payinAddress, info.fromAmount),
+      transaction: this.createTransaction(payinAddress, info.fromAmount),
       binaryPayload,
       signature,
-      feeStrategy: "SLOW"
+      feeStrategy: info.feeStrategy,
     }).catch((error: Error) => {throw new SignatureStepError(error)});
     console.log("== Transaction sent:", tx);
     console.log("*** End Swap ***");
+  }
+
+  disconnect() {
+    this.transport.disconnect();
   }
 
   private createTransaction(recipient: string, amount: BigInt): Transaction {
