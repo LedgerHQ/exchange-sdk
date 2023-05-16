@@ -3,11 +3,11 @@ import BigNumber from "bignumber.js";
 import axios from "axios";
 
 export type SwapInfo = {
-  quoteId: string;
+  quoteId?: string;
   fromAddressId: string;
   toAddressId: string;
   fromAmount: BigInt;
-  toAmount: BigInt;
+  toAmount?: BigInt;
   fromCurrency: string;
   toCurrency: string;
   feeStrategy: FeeStrategy,
@@ -78,7 +78,7 @@ export class ExchangeSDK {
     console.log("== Nonce retrieved:", nonce);
 
     // 2 - Ask for payload creation
-    const res = await axios.post("https://swap.aws.stg.ldg-tech.com/v5/", {
+    const res = await axios.post("https://swap.aws.stg.ldg-tech.com/v5", {
       provider: info.provider,
       from: info.fromCurrency,
       to: info.toCurrency,
