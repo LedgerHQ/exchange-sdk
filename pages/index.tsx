@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
 import { ExchangeSDK } from "../exchangeSDK";
-import { Account, WalletAPIClient, WindowMessageTransport } from "@ledgerhq/wallet-api-client";
+import { Account } from "@ledgerhq/wallet-api-client";
 
 const IndexPage = (props) => {
   const searchParams = useSearchParams();
@@ -29,18 +29,14 @@ const IndexPage = (props) => {
   }, []);
 
 
-  const listAccounts = async () => {
+  const listAccounts = useCallback(async () => {
     console.log("Search for all accounts");
     const result = await exchangeSDK.current?.walletAPI.account.list();
 
-    console.log("Result:", result);
-
-    console.log("All accounts:", allAccounts);
     if (result) {
       setAllAccounts(result);
     }
-    console.log("All accounts:", allAccounts);
-  };
+  }, [exchangeSDK]);
 
   const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) => setFromAccount(event.target.value);
   const handleToAccount = (event: React.ChangeEvent<HTMLInputElement>) => setToAccount(event.target.value);
@@ -59,7 +55,7 @@ const IndexPage = (props) => {
       feeStrategy: "SLOW"
     });
 
-  }, [provider]);
+  }, [provider, fromAccount, toAccount]);
 
   return (
     <Layout title="Swap Web App Example">
