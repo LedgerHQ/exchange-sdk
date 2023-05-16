@@ -1,5 +1,6 @@
 import { Transaction, WalletAPIClient, WindowMessageTransport } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
+import axios from "axios";
 
 export type SwapInfo = {
   quoteId: string;
@@ -77,7 +78,15 @@ export class ExchangeSDK {
     console.log("== Nonce retrieved:", nonce);
 
     // 2 - Ask for payload creation
-    // This step has to call the Ledger's Swap Backend
+    const res = await axios.post("https://swap.aws.stg.ldg-tech.com/v5/", {
+      provider: info.provider,
+      from: info.fromCurrency,
+      to: info.toCurrency,
+      address: info.toAddressId,
+      refundAddress: info.fromAddressId,
+      amountFrom: info.fromAmount.toString(),
+    })
+
     const binaryPayload: Buffer = Buffer.from("fffff", "hex");
     const signature: Buffer = Buffer.from("fffff", "hex");
     const payinAddress = "0xdea2666a99047861880b5db08e63cf959f07406f";
