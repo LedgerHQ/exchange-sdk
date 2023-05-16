@@ -85,7 +85,7 @@ export class ExchangeSDK {
       address: info.toAddressId,
       refundAddress: info.fromAddressId,
       amountFrom: info.fromAmount.toString(),
-    })
+    }).catch((error: Error) => { throw new ExchangeError(error) });
 
     const binaryPayload: Buffer = Buffer.from("fffff", "hex");
     const signature: Buffer = Buffer.from("fffff", "hex");
