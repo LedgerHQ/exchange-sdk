@@ -4,11 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
 import { ExchangeSDK } from "../exchangeSDK";
-import {
-  Account,
-  WalletAPIClient,
-  WindowMessageTransport,
-} from "@ledgerhq/wallet-api-client";
+
+import { Account } from "@ledgerhq/wallet-api-client";
 
 const IndexPage = (props) => {
   const searchParams = useSearchParams();
@@ -32,18 +29,14 @@ const IndexPage = (props) => {
     };
   }, []);
 
-  const listAccounts = async () => {
+  const listAccounts = useCallback(async () => {
     console.log("Search for all accounts");
     const result = await exchangeSDK.current?.walletAPI.account.list();
 
-    console.log("Result:", result);
-
-    console.log("All accounts:", allAccounts);
     if (result) {
       setAllAccounts(result);
     }
-    console.log("All accounts:", allAccounts);
-  };
+  }, [exchangeSDK]);
 
   const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
     setFromAccount(event.target.value);
@@ -55,14 +48,10 @@ const IndexPage = (props) => {
 
     exchangeSDK.current.swap({
       quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
-      fromAddressId: fromAccount,
-      toAddressId: toAccount,
+      fromAccountId: fromAccount,
+      toAccountId: toAccount,
       fromAmount: BigInt("100"),
-      toAmount: BigInt("100"),
-      fromCurrency: "ethereum/erc20/usd__coin",
-      toCurrency: "bitcoin",
       feeStrategy: "SLOW",
-      provider,
     });
   }, [provider]);
 
@@ -70,16 +59,12 @@ const IndexPage = (props) => {
   const exchangeRate = searchParams.get("exchangeRate");
 
   const onLLSwap = useCallback(() => {
-    const fromCurrency = searchParams.get("fromCurrency");
-    const toCurrency = searchParams.get("toCurrency");
     const toAddressId = searchParams.get("toAddressId");
     const fromAddressId = searchParams.get("fromAddressId");
     const fromAmount = searchParams.get("fromAmount");
 
     const params = {
       provider,
-      fromCurrency,
-      toCurrency,
       fromAddressId,
       toAddressId,
       fromAmount,
