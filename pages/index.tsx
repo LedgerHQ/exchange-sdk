@@ -46,12 +46,9 @@ const IndexPage = (props) => {
 
     exchangeSDK.current.swap({
       quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
-      fromAddressId: fromAccount,
-      toAddressId: toAccount,
+      fromAccountId: fromAccount,
+      toAccountId: toAccount,
       fromAmount: BigInt("100"),
-      toAmount:  BigInt("100"),
-      fromCurrency: "ethereum/erc20/usd__coin",
-      toCurrency: "bitcoin",
       feeStrategy: "SLOW"
     });
 
