@@ -59,14 +59,14 @@ const IndexPage = (props) => {
   const exchangeRate = searchParams.get("exchangeRate");
 
   const onLLSwap = useCallback(() => {
-    const toAddressId = searchParams.get("toAddressId");
-    const fromAddressId = searchParams.get("fromAddressId");
+    const toAccountId = searchParams.get("toAccountId");
+    const fromAccountId = searchParams.get("fromAccountId");
     const fromAmount = searchParams.get("fromAmount");
 
     const params = {
       provider,
-      fromAddressId,
-      toAddressId,
+      fromAccountId,
+      toAccountId,
       fromAmount,
       feeStrategy: "SLOW", // What happend if the fees are personalise
     };

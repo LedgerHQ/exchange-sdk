@@ -75,6 +75,7 @@ export class ExchangeSDK {
     const { fromAccount, toAccount } = await this.retrieveUserAccounts({fromAccountId, toAccountId});
     console.log(fromAccount);
     console.log(toAccount);
+    const fromCurrency = await this.walletAPI.currency.list({currencyIds: [fromAccount.currency]});
 
     console.log("*** Start Swap ***");
     // 1 - Ask for deviceTransactionId
@@ -101,11 +102,16 @@ export class ExchangeSDK {
     const { binaryPayload, signature, payinAddress } = this.parseSwapBackendInfo(res.data);
 
     // 3 - Send payload
+    const transaction = this.createTransaction({
+      payinAddress,
+      fromAmount,
+      family: fromCurrency.family,
+    });
     const tx = await this.walletAPI.exchange.completeSwap({
       provider: this.providerId,
       fromAccountId,
       toAccountId,
-      transaction: this.createTransaction(payinAddress, fromAmount),
+      transaction,
       binaryPayload,
       signature,
       feeStrategy: feeStrategy,
@@ -135,10 +141,9 @@ export class ExchangeSDK {
     };
   }
 
-  private createTransaction(recipient: string, amount: BigInt): Transaction {
-    //TODO: find a way to dynamically fill the `family` info
+  private createTransaction({recipient, amount, family}:{recipient: string, amount: BigInt, family: string}): Transaction {
     return {
-      family: "ethereum",
+      family,
       amount: new BigNumber(amount.toString()),
       recipient,
     }
