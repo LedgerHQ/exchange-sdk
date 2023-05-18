@@ -5,25 +5,6 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "rules": {
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
-      {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }
-    ]
-  },
-  "overrides": [
-    // Only uses Testing Library lint rules in React Testing Library test files
-    {
-      "files": [
-        "**/__tests__/**/*.[jt]s?(x)",
-        "**/?(*.)+(spec|test).[jt]s?(x)"
-      ],
-      "excludedFiles": ["**/e2e/**"],
-      "extends": []
-    }
-  ]
+  "rules": {},
+  "overrides": []
 }
