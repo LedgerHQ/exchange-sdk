@@ -16,11 +16,8 @@ const IndexPage = (props) => {
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
 
-  const provider = searchParams.get("provider");
-
   useEffect(() => {
-    const providerId = provider || "changelly";
-    exchangeSDK.current = new ExchangeSDK(providerId);
+    exchangeSDK.current = new ExchangeSDK();
 
     // Cleanup the Ledger Live API on component unmount
     return () => {
@@ -52,8 +49,9 @@ const IndexPage = (props) => {
       toAccountId: toAccount,
       fromAmount: BigInt("100"),
       feeStrategy: "SLOW",
+      provider: "changelly",
     });
-  }, [provider]);
+  }, [fromAccount, toAccount]);
 
   // const transaction = searchParams.get("transaction");
   const exchangeRate = searchParams.get("exchangeRate");
@@ -62,18 +60,23 @@ const IndexPage = (props) => {
     const toAccountId = searchParams.get("toAccountId");
     const fromAccountId = searchParams.get("fromAccountId");
     const fromAmount = searchParams.get("fromAmount");
+    const feeStrategy = searchParams.get("feeStrategy");
+    const quoteId = searchParams.get("quoteId");
+    const provider = searchParams.get("provider");
 
     const params = {
       provider,
       fromAccountId,
       toAccountId,
       fromAmount,
-      feeStrategy: "SLOW", // What happend if the fees are personalise
+      provider,
+      feeStrategy, // What happend if the fees are personalise (CUSTOM mode)
+      quoteId: quoteId === "undefined" ? undefined : quoteId, //pending to test
     };
 
-    const exchange = new ExchangeSDK(provider);
+    const exchange = new ExchangeSDK();
     exchangeSDK.current.swap(params);
-  }, [provider]);
+  }, [searchParams]);
 
   return (
     <Layout title="Swap Web App Example">
