@@ -113,7 +113,7 @@ export class ExchangeSDK {
       to: toAccount.currency,
       address: toAccount.address,
       refundAddress: fromAccount.address,
-      amountFrom: fromAmount.toString(),
+      amountFrom: fromAmountpn.toString(),
       // swapId: quoteId, //pending ask GUilhem
       // rateId: quoteId,
       quoteId: quoteId,

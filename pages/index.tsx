@@ -7,7 +7,7 @@ import { ExchangeSDK } from "../exchangeSDK";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 
-const IndexPage = (props) => {
+const IndexPage = () => {
   const searchParams = useSearchParams();
 
   const exchangeSDK = useRef<ExchangeSDK>();
@@ -53,9 +53,6 @@ const IndexPage = (props) => {
     });
   }, [fromAccount, toAccount]);
 
-  // const transaction = searchParams.get("transaction");
-  const exchangeRate = searchParams.get("exchangeRate");
-
   const onLLSwap = useCallback(() => {
     const toAccountId = searchParams.get("toAccountId");
     const fromAccountId = searchParams.get("fromAccountId");
@@ -74,7 +71,6 @@ const IndexPage = (props) => {
       quoteId: quoteId === "undefined" ? undefined : quoteId, //pending to test
     };
 
-    const exchange = new ExchangeSDK();
     exchangeSDK.current.swap(params);
   }, [searchParams]);
 
