@@ -1,22 +1,47 @@
-import { Account, Transaction, WalletAPIClient, WindowMessageTransport } from "@ledgerhq/wallet-api-client";
+import {
+  Account,
+  Transaction,
+  WalletAPIClient,
+  WindowMessageTransport,
+} from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import axios from "axios";
 
 export type SwapInfo = {
-  quoteId: string;
+  quoteId?: string;
   fromAccountId: string;
   toAccountId: string;
   fromAmount: BigInt;
-  feeStrategy: FeeStrategy,
+  feeStrategy: FeeStrategy;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST";
+
+type UserAccounts = { fromAccount: Account; toAccount: Account };
+
+type SwapBackendResponse = {
+  provider: string;
+  swapId: string;
+  apiExtraFee: number;
+  apiFee: number;
+  refundAddress: string;
+  amountExpectedFrom: number;
+  amountExpectedTo: number;
+  status: string;
+  from: string;
+  to: string;
+  payinAddress: string;
+  payoutAddress: string;
+  createdAt: string; // ISO-8601
+  binaryPayload: string;
+  signature: string;
+};
 
 // Should be available from the WalletAPI (zod :( )
 const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
-  SWAP: "SWAP"
+  SWAP: "SWAP",
 } as const;
 
 class ExchangeError extends Error {
@@ -49,8 +74,6 @@ class SignatureStepError extends ExchangeError {
   }
 }
 
-type UserAccounts = {fromAccount: Account; toAccount: Account};
-
 /**
  *
  */
@@ -61,8 +84,7 @@ export class ExchangeSDK {
   private transport: WindowMessageTransport;
   readonly walletAPI: WalletAPIClient;
 
-  constructor(providerId: string, transport?: WindowMessageTransport) {
-    this.providerId = providerId;
+  constructor(transport?: WindowMessageTransport) {
     if (!transport) {
       this.transport = new WindowMessageTransport();
       this.transport.connect();
@@ -71,45 +93,78 @@ export class ExchangeSDK {
   }
 
   async swap(info: SwapInfo) {
-    const { fromAccountId, toAccountId, fromAmount, feeStrategy } = info;
-    const { fromAccount, toAccount } = await this.retrieveUserAccounts({fromAccountId, toAccountId});
+    const {
+      fromAccountId,
+      toAccountId,
+      fromAmount,
+      feeStrategy,
+      provider,
+      quoteId,
+    } = info;
+    const { fromAccount, toAccount } = await this.retrieveUserAccounts({
+      fromAccountId,
+      toAccountId,
+    });
     console.log(fromAccount);
     console.log(toAccount);
+    const [fromCurrency] = await this.walletAPI.currency.list({
+      currencyIds: [fromAccount.currency],
+    });
 
     console.log("*** Start Swap ***");
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.walletAPI.exchange.start(ExchangeType.SWAP).catch((error: Error) => {throw new NonceStepError(error)});
+    const deviceTransactionId = await this.walletAPI.exchange
+      .start(ExchangeType.SWAP)
+      .catch((error: Error) => {
+        throw new NonceStepError(error);
+      });
     console.log("== DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
     const axiosClient = axios.create({
       headers: {
-        'Access-Control-Allow-Origin': "*"
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+    const res = await axiosClient.post(
+      "https://swap.aws.stg.ldg-tech.com/v5/swap",
+      {
+        provider,
+        deviceTransactionId,
+        from: fromAccount.currency,
+        to: toAccount.currency,
+        address: toAccount.address,
+        refundAddress: fromAccount.address,
+        amountFrom: fromAmount.toString(),
+        rateId: quoteId,
       }
-    });
-    const res = await axiosClient.post("https://swap.aws.stg.ldg-tech.com/v5/swap", {
-      provider: this.providerId,
-      deviceTransactionId,
-      from: fromAccount.currency,
-      to: toAccount.currency,
-      address: toAccount.address,
-      refundAddress: fromAccount.address,
-      amountFrom: fromAmount.toString(),
-    });
+    );
+
     console.log("Backend result:", res);
     // const response: SwapBackendResponse = res.data;
-    const { binaryPayload, signature, payinAddress } = this.parseSwapBackendInfo(res.data);
+    const { binaryPayload, signature, payinAddress } =
+      this.parseSwapBackendInfo(res.data);
 
     // 3 - Send payload
-    const tx = await this.walletAPI.exchange.completeSwap({
-      provider: this.providerId,
-      fromAccountId,
-      toAccountId,
-      transaction: this.createTransaction(payinAddress, fromAmount),
-      binaryPayload,
-      signature,
-      feeStrategy: feeStrategy,
-    }).catch((error: Error) => {throw new SignatureStepError(error)});
+    const transaction = this.createTransaction({
+      recipient: payinAddress,
+      amount: fromAmount,
+      family: fromCurrency.family,
+    });
+
+    const tx = await this.walletAPI.exchange
+      .completeSwap({
+        provider,
+        fromAccountId,
+        toAccountId,
+        transaction,
+        binaryPayload,
+        signature,
+        feeStrategy,
+      })
+      .catch((error: Error) => {
+        throw new SignatureStepError(error);
+      });
     console.log("== Transaction sent:", tx);
     console.log("*** End Swap ***");
   }
@@ -118,16 +173,23 @@ export class ExchangeSDK {
     this.transport.disconnect();
   }
 
-  private async retrieveUserAccounts(accounts: {fromAccountId: string; toAccountId: string}): Promise<UserAccounts> {
+  private async retrieveUserAccounts(accounts: {
+    fromAccountId: string;
+    toAccountId: string;
+  }): Promise<UserAccounts> {
     const { fromAccountId, toAccountId } = accounts;
     const allAccounts = await this.walletAPI.account.list();
     return {
       fromAccount: allAccounts.find((value) => value.id === fromAccountId),
-      toAccount: allAccounts.find((value) => value.id === toAccountId)
-    }
+      toAccount: allAccounts.find((value) => value.id === toAccountId),
+    };
   }
 
-  private parseSwapBackendInfo(response: SwapBackendResponse): {binaryPayload: Buffer; signature: Buffer; payinAddress: string;} {
+  private parseSwapBackendInfo(response: SwapBackendResponse): {
+    binaryPayload: Buffer;
+    signature: Buffer;
+    payinAddress: string;
+  } {
     return {
       binaryPayload: Buffer.from(response.binaryPayload, "hex"),
       signature: Buffer.from(response.signature, "hex"),
@@ -135,30 +197,19 @@ export class ExchangeSDK {
     };
   }
 
-  private createTransaction(recipient: string, amount: BigInt): Transaction {
-    //TODO: find a way to dynamically fill the `family` info
+  private createTransaction({
+    recipient,
+    amount,
+    family,
+  }: {
+    recipient: string;
+    amount: BigInt;
+    family: string;
+  }): Transaction {
     return {
-      family: "ethereum",
+      family,
       amount: new BigNumber(amount.toString()),
       recipient,
-    }
+    };
   }
 }
-
-type SwapBackendResponse = {
-  "provider": string;
-  "swapId": string;
-  "apiExtraFee": number;
-  "apiFee": number;
-  "refundAddress": string;
-  "amountExpectedFrom": number;
-  "amountExpectedTo": number;
-  "status": string;
-  "from": string;
-  "to": string;
-  "payinAddress": string;
-  "payoutAddress": string;
-  "createdAt": string;// ISO-8601
-  "binaryPayload": string;
-  "signature": string;
-};
