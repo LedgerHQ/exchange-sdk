@@ -58,7 +58,8 @@ const IndexPage = () => {
     const fromAccountId = searchParams.get("fromAccountId");
     const fromAmount = searchParams.get("fromAmount");
     const feeStrategy = searchParams.get("feeStrategy");
-    const quoteId = searchParams.get("quoteId");
+    const quoteId = decodeURIComponent(searchParams.get("quoteId"));
+
     const provider = searchParams.get("provider");
 
     const params = {

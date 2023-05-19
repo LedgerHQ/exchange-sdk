@@ -136,9 +136,7 @@ export class ExchangeSDK {
         address: toAccount.address,
         refundAddress: fromAccount.address,
         amountFrom: fromAmount.toString(),
-        // swapId: quoteId, //pending ask GUilhem
-        // rateId: quoteId,
-        quoteId: quoteId,
+        rateId: quoteId,
       }
     );
 
@@ -151,7 +149,7 @@ export class ExchangeSDK {
     const transaction = this.createTransaction({
       recipient: payinAddress,
       amount: fromAmount,
-      family: fromCurrency.parent,
+      family: fromCurrency.family,
     });
 
     const tx = await this.walletAPI.exchange
