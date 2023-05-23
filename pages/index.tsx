@@ -48,18 +48,20 @@ const IndexPage = () => {
     setFeeSelected(event.target.value);
 
   const onSwap = useCallback(() => {
-    console.log("Fee selected", feeSelected);
     exchangeSDK.current
       .swap({
         quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
         fromAccountId: fromAccount,
         toAccountId: toAccount,
         fromAmount: BigInt(amount),
-        feeStrategy: feeSelected,
+        feeStrategy: feeSelected as FeeStrategy,
       })
       .catch((err) => {
-        console.error(err);
-        alert(err);
+        console.error(
+          "%cExchangeSDK error:",
+          "background: #7f0000; color: #fff",
+          err
+        );
       });
   }, [amount, fromAccount, toAccount, feeSelected]);
 

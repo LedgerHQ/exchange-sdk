@@ -1,9 +1,8 @@
 export class ExchangeError extends Error {
-  readonly nestedError: Error | undefined;
   constructor(nestedError?: Error, message?: string) {
     super(message);
     this.name = "ExchangeError";
-    this.nestedError = nestedError;
+    this.cause = nestedError;
   }
 }
 
