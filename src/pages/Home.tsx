@@ -1,0 +1,158 @@
+import { Button } from "@ledgerhq/react-ui";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Layout from "../components/Layout";
+import { useSearchParams } from "next/navigation";
+import { ExchangeSDK, FeeStrategy } from "../exchangeSDK";
+
+import { Account } from "@ledgerhq/wallet-api-client";
+
+const HomePage = () => {
+  const searchParams = useSearchParams();
+
+  const exchangeSDK = useRef<ExchangeSDK>();
+
+  const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
+  const [amount, setAmount] = useState("");
+  const [fromAccount, setFromAccount] = useState("");
+  const [toAccount, setToAccount] = useState("");
+  const [feeSelected, setFeeSelected] = useState("");
+
+  useEffect(() => {
+    const providerId = "changelly";
+    exchangeSDK.current = new ExchangeSDK(providerId);
+
+    // Cleanup the Ledger Live API on component unmount
+    return () => {
+      exchangeSDK.current.disconnect();
+      exchangeSDK.current = undefined;
+    };
+  }, []);
+
+  const listAccounts = useCallback(async () => {
+    console.log("Search for all accounts");
+    const result = await exchangeSDK.current?.walletAPI.account.list();
+
+    if (result) {
+      setAllAccounts(result);
+    }
+  }, [exchangeSDK]);
+
+  const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setAmount(event.target.value);
+  const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setFromAccount(event.target.value);
+  const handleToAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setToAccount(event.target.value);
+  const handleFee = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setFeeSelected(event.target.value);
+
+  const onSwap = useCallback(() => {
+    console.log("Fee selected", feeSelected);
+    exchangeSDK.current
+      .swap({
+        quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
+        fromAccountId: fromAccount,
+        toAccountId: toAccount,
+        fromAmount: BigInt(amount),
+        feeStrategy: feeSelected,
+      })
+      .catch((err) => {
+        console.error(err);
+        alert(err);
+      });
+  }, [amount, fromAccount, toAccount, feeSelected]);
+
+  const onLLSwap = useCallback(() => {
+    const toAccountId = searchParams.get("toAccountId");
+    const fromAccountId = searchParams.get("fromAccountId");
+    const fromAmount = searchParams.get("fromAmount");
+    const feeStrategy = searchParams.get("feeStrategy");
+    const quoteId = decodeURIComponent(searchParams.get("quoteId"));
+
+    const provider = searchParams.get("provider");
+
+    const params = {
+      quoteId, //pending to test
+      fromAccountId,
+      toAccountId,
+      fromAmount: BigInt(fromAmount),
+      feeStrategy: "SLOW" as FeeStrategy, // What happend if the fees are personalise (CUSTOM mode)
+    };
+
+    exchangeSDK.current.swap(params);
+  }, [searchParams]);
+
+  return (
+    <div>
+      <h1>Hello I am a Swap Web app</h1>
+
+      <div>
+        <Button variant="main" outline={false} onClick={listAccounts}>
+          List accounts
+        </Button>
+      </div>
+      <div style={{ backgroundColor: "#999999" }}>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>ID</th>
+              <th>Currency</th>
+              <th>Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allAccounts.map((elt) => {
+              return (
+                <tr key={elt.id}>
+                  <td>{elt.name}</td>
+                  <td>{elt.id}</td>
+                  <td>{elt.currency}</td>
+                  <td>{elt.address}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <label htmlFor="amount" style={{ color: "#dddddd" }}>
+          {"Amount"}
+        </label>
+        <input name="amount" onChange={handleAmount} />
+      </div>
+      <div>
+        <label htmlFor="fee" style={{ color: "#dddddd" }}>
+          {"Fee"}
+        </label>
+        <div onChange={handleFee} style={{ color: "#dddddd" }}>
+          <input type="radio" name="fee" value="SLOW" /> SLOW
+          <input type="radio" name="fee" value="MEDIUM" /> MEDIUM
+          <input type="radio" name="fee" value="FAST" /> FAST
+        </div>
+      </div>
+      <div>
+        <label htmlFor="fromAccount" style={{ color: "#dddddd" }}>
+          {"From Account"}
+        </label>
+        <input name="fromAccount" onChange={handleFromAccount} />
+        <label htmlFor="toAccount" style={{ color: "#dddddd" }}>
+          {"To Account"}
+        </label>
+        <input name="toAccount" onChange={handleToAccount} />
+      </div>
+
+      <div>
+        <button onClick={() => onSwap()}>{"Execute swap"}</button>
+      </div>
+
+      <div>
+        <button onClick={() => onLLSwap()}>{"Execute swap from LL"}</button>
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;

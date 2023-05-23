@@ -1,29 +1,16 @@
 import React, { ReactNode } from "react";
-import Link from "next/link";
+import { Flex } from "@ledgerhq/react-ui";
 import Head from "next/head";
 
-type Props = {
-  children?: ReactNode;
-  title?: string;
+export const Layout = ({ children }: { children: ReactNode }) => {
+  return (
+    <Flex flexDirection="column" height="100vh">
+      <Head>
+        <title>Swap Web App</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      {children}
+    </Flex>
+  );
 };
-
-const Layout = ({ children, title = "This is the default title" }: Props) => (
-  <div>
-    <Head>
-      <title>{title}</title>
-      <meta charSet="utf-8" />
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    </Head>
-    <header>
-      <nav>
-        <Link href="/">Home</Link> |{" "}
-      </nav>
-    </header>
-    {children}
-    <footer>
-      <span>Footer</span>
-    </footer>
-  </div>
-);
-
-export default Layout;
