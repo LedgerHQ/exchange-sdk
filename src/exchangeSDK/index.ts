@@ -1,23 +1,32 @@
 import {
   Account,
+  CryptoCurrency,
+  Currency,
   Transaction,
   WalletAPIClient,
   WindowMessageTransport,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import axios from "axios";
+import { NonceStepError, PayloadStepError, SignatureStepError } from "./error";
 
 export type SwapInfo = {
   quoteId?: string;
   fromAccountId: string;
   toAccountId: string;
-  fromAmount: BigInt;
+  fromAmount: bigint;
   feeStrategy: FeeStrategy;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST";
+// export type FeeStrategy =
+//   (typeof schemaExchangeComplete)["params"]["feeStrategy"];
 
-type UserAccounts = { fromAccount: Account; toAccount: Account };
+type UserAccounts = {
+  fromAccount: Account;
+  toAccount: Account;
+  fromCurrency: CryptoCurrency;
+};
 
 type SwapBackendResponse = {
   provider: string;
@@ -44,35 +53,7 @@ const ExchangeType = {
   SWAP: "SWAP",
 } as const;
 
-class ExchangeError extends Error {
-  readonly nestedError: Error | undefined;
-  constructor(nestedError?: Error, message?: string) {
-    super(message);
-    this.name = "ExchangeError";
-    this.nestedError = nestedError;
-  }
-}
-
-class NonceStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
-    this.name = "NonceStepError";
-  }
-}
-
-class PayloadStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
-    this.name = "PayloadStepError";
-  }
-}
-
-class SignatureStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
-    this.name = "SignatureStepError";
-  }
-}
+const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5";
 
 /**
  *
@@ -84,33 +65,33 @@ export class ExchangeSDK {
   private transport: WindowMessageTransport;
   readonly walletAPI: WalletAPIClient;
 
-  constructor(transport?: WindowMessageTransport) {
-    if (!transport) {
-      this.transport = new WindowMessageTransport();
-      this.transport.connect();
+  constructor(
+    providerId: string,
+    transport?: WindowMessageTransport,
+    walletAPI?: WalletAPIClient
+  ) {
+    this.providerId = providerId;
+    if (!walletAPI) {
+      if (!transport) {
+        this.transport = new WindowMessageTransport();
+        this.transport.connect();
+      }
+      this.walletAPI = new WalletAPIClient(this.transport);
     }
-    this.walletAPI = new WalletAPIClient(this.transport);
   }
 
-  async swap(info: SwapInfo) {
-    const {
-      fromAccountId,
-      toAccountId,
-      fromAmount,
-      feeStrategy,
-      provider,
-      quoteId,
-    } = info;
-    const { fromAccount, toAccount } = await this.retrieveUserAccounts({
-      fromAccountId,
-      toAccountId,
-    });
-    debugger
+  async swap(info: SwapInfo): Promise<string> {
+    const { fromAccountId, toAccountId, fromAmount, feeStrategy, quoteId } =
+      info;
+    const { fromAccount, toAccount, fromCurrency } =
+      await this.retrieveUserAccounts({
+        fromAccountId,
+        toAccountId,
+      });
+    console.log("User info:");
     console.log(fromAccount);
     console.log(toAccount);
-    const [fromCurrency] = await this.walletAPI.currency.list({
-      currencyIds: [fromAccount.currency],
-    });
+    console.log(fromCurrency);
 
     console.log("*** Start Swap ***");
     // 1 - Ask for deviceTransactionId
@@ -127,22 +108,23 @@ export class ExchangeSDK {
         "Access-Control-Allow-Origin": "*",
       },
     });
-    const res = await axiosClient.post(
-      "https://swap.aws.stg.ldg-tech.com/v5/swap",
-      {
-        provider,
+    const res = await axiosClient
+      .post(`${SWAP_BACKEND_URL}/swap`, {
+        provider: this.providerId,
         deviceTransactionId,
         from: fromAccount.currency,
         to: toAccount.currency,
         address: toAccount.address,
         refundAddress: fromAccount.address,
         amountFrom: fromAmount.toString(),
-        rateId: quoteId,
-      }
-    );
+        // rateId: quoteId,
+      })
+      .catch((error: Error) => {
+        console.error(error);
+        throw new PayloadStepError(error);
+      });
 
-    console.log("Backend result:", res);
-    // const response: SwapBackendResponse = res.data;
+    // console.log("Backend result:", res);
     const { binaryPayload, signature, payinAddress } =
       this.parseSwapBackendInfo(res.data);
 
@@ -150,12 +132,12 @@ export class ExchangeSDK {
     const transaction = this.createTransaction({
       recipient: payinAddress,
       amount: fromAmount,
-      family: fromCurrency.family,
+      family: fromCurrency.parent ?? fromCurrency.family,
     });
 
     const tx = await this.walletAPI.exchange
       .completeSwap({
-        provider,
+        provider: this.providerId,
         fromAccountId,
         toAccountId,
         transaction,
@@ -168,6 +150,7 @@ export class ExchangeSDK {
       });
     console.log("== Transaction sent:", tx);
     console.log("*** End Swap ***");
+    return tx;
   }
 
   disconnect() {
@@ -180,9 +163,23 @@ export class ExchangeSDK {
   }): Promise<UserAccounts> {
     const { fromAccountId, toAccountId } = accounts;
     const allAccounts = await this.walletAPI.account.list();
+
+    const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
+    const toAccount = allAccounts.find((value) => value.id === toAccountId);
+    console.log("retrieveUserAccounts", fromAccount);
+    let [fromCurrency]: Array<Currency> = await this.walletAPI.currency.list({
+      currencyIds: [fromAccount.currency],
+    });
+    if (fromCurrency.type === "TokenCurrency") {
+      [fromCurrency] = await this.walletAPI.currency.list({
+        currencyIds: [fromCurrency.parent],
+      });
+    }
+
     return {
-      fromAccount: allAccounts.find((value) => value.id === fromAccountId),
-      toAccount: allAccounts.find((value) => value.id === toAccountId),
+      fromAccount,
+      toAccount,
+      fromCurrency,
     };
   }
 
@@ -204,7 +201,7 @@ export class ExchangeSDK {
     family,
   }: {
     recipient: string;
-    amount: BigInt;
+    amount: bigint;
     family: string;
   }): Transaction {
     return {

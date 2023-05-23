@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
-import { ExchangeSDK } from "../exchangeSDK";
+import { ExchangeSDK, FeeStrategy } from "../exchangeSDK";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 
@@ -13,11 +13,14 @@ const IndexPage = () => {
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
+  const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
+  const [feeSelected, setFeeSelected] = useState("");
 
   useEffect(() => {
-    exchangeSDK.current = new ExchangeSDK();
+    const providerId = "changelly";
+    exchangeSDK.current = new ExchangeSDK(providerId);
 
     // Cleanup the Ledger Live API on component unmount
     return () => {
@@ -35,23 +38,30 @@ const IndexPage = () => {
     }
   }, [exchangeSDK]);
 
+  const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setAmount(event.target.value);
   const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
     setFromAccount(event.target.value);
   const handleToAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
     setToAccount(event.target.value);
+  const handleFee = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setFeeSelected(event.target.value);
 
   const onSwap = useCallback(() => {
-    console.log("provider", provider);
-
-    exchangeSDK.current.swap({
-      quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
-      fromAccountId: fromAccount,
-      toAccountId: toAccount,
-      fromAmount: BigInt("100"),
-      feeStrategy: "SLOW",
-      provider: "changelly",
-    });
-  }, [fromAccount, toAccount]);
+    console.log("Fee selected", feeSelected);
+    exchangeSDK.current
+      .swap({
+        quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
+        fromAccountId: fromAccount,
+        toAccountId: toAccount,
+        fromAmount: BigInt(amount),
+        feeStrategy: feeSelected,
+      })
+      .catch((err) => {
+        console.error(err);
+        alert(err);
+      });
+  }, [amount, fromAccount, toAccount, feeSelected]);
 
   const onLLSwap = useCallback(() => {
     const toAccountId = searchParams.get("toAccountId");
@@ -63,13 +73,11 @@ const IndexPage = () => {
     const provider = searchParams.get("provider");
 
     const params = {
-      provider,
+      quoteId, //pending to test
       fromAccountId,
       toAccountId,
-      fromAmount,
-      provider,
-      feeStrategy, // What happend if the fees are personalise (CUSTOM mode)
-      quoteId: quoteId === "undefined" ? undefined : quoteId, //pending to test
+      fromAmount: BigInt(fromAmount),
+      feeStrategy: "SLOW" as FeeStrategy, // What happend if the fees are personalise (CUSTOM mode)
     };
 
     exchangeSDK.current.swap(params);
@@ -83,15 +91,46 @@ const IndexPage = () => {
         <button onClick={listAccounts}>{"List accounts"}</button>
       </div>
       <div style={{ backgroundColor: "#999999" }}>
-        {allAccounts.map((elt) => {
-          return (
-            <div key={elt.id}>
-              {elt.name}: {elt.id}
-            </div>
-          );
-        })}
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>ID</th>
+              <th>Currency</th>
+              <th>Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allAccounts.map((elt) => {
+              return (
+                <tr key={elt.id}>
+                  <td>{elt.name}</td>
+                  <td>{elt.id}</td>
+                  <td>{elt.currency}</td>
+                  <td>{elt.address}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
+      <div>
+        <label htmlFor="amount" style={{ color: "#dddddd" }}>
+          {"Amount"}
+        </label>
+        <input name="amount" onChange={handleAmount} />
+      </div>
+      <div>
+        <label htmlFor="fee" style={{ color: "#dddddd" }}>
+          {"Fee"}
+        </label>
+        <div onChange={handleFee} style={{ color: "#dddddd" }}>
+          <input type="radio" name="fee" value="SLOW" /> SLOW
+          <input type="radio" name="fee" value="MEDIUM" /> MEDIUM
+          <input type="radio" name="fee" value="FAST" /> FAST
+        </div>
+      </div>
       <div>
         <label htmlFor="fromAccount" style={{ color: "#dddddd" }}>
           {"From Account"}
