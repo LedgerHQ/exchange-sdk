@@ -1,4 +1,6 @@
 {
+  "name": "swap-live-app",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next",

@@ -105,6 +105,7 @@ export class ExchangeSDK {
       fromAccountId,
       toAccountId,
     });
+    debugger
     console.log(fromAccount);
     console.log(toAccount);
     const [fromCurrency] = await this.walletAPI.currency.list({
