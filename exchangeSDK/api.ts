@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 
-const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5";
+const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
 
 type SwapBackendResponse = {
   provider: string;
@@ -22,9 +22,7 @@ type SwapBackendResponse = {
 };
 
 const axiosClient = axios.create({
-  headers: {
-    "Access-Control-Allow-Origin": "*",
-  },
+  baseURL: SWAP_BACKEND_URL,
 });
 
 export type PayloadRequestData = {
@@ -55,7 +53,7 @@ export async function retrievePayload(
     // rateId: quoteId,
   };
   // logger.log("Request to SWAP Backend:", request);
-  const res = await axiosClient.post(`${SWAP_BACKEND_URL}/swap`, request);
+  const res = await axiosClient.post("", request);
 
   // logger.log("Backend result:", res);
   return parseSwapBackendInfo(res.data);
@@ -66,7 +64,7 @@ export async function confirmSwap(
   swapId: string,
   transactionId: string
 ) {
-  await axiosClient.post(`${SWAP_BACKEND_URL}/accepted`, {
+  await axiosClient.post("accepted", {
     provider,
     swapId,
     transactionId,
@@ -74,7 +72,7 @@ export async function confirmSwap(
 }
 
 export async function cancelSwap(provider: string, swapId: string) {
-  await axiosClient.post(`${SWAP_BACKEND_URL}/cancelled`, { provider, swapId });
+  await axiosClient.post("/cancelled", { provider, swapId });
 }
 
 function parseSwapBackendInfo(response: SwapBackendResponse): {
