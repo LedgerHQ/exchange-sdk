@@ -1,4 +1,12 @@
-import { Button } from "@ledgerhq/react-ui";
+import {
+  Button,
+  Flex,
+  NumberInput,
+  Radio,
+  SelectInput,
+  Text,
+  ButtonExpand,
+} from "@ledgerhq/react-ui";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
@@ -7,16 +15,19 @@ import { ExchangeSDK, FeeStrategy } from "../exchangeSDK";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 
+const defaultFee = "SLOW";
+
 const HomePage = () => {
   const searchParams = useSearchParams();
 
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(0);
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
-  const [feeSelected, setFeeSelected] = useState("");
+  const [feeSelected, setFeeSelected] = useState(defaultFee);
+  const [isPopinOpen, setIsPopinOpen] = useState(false);
 
   useEffect(() => {
     const providerId = "changelly";
@@ -29,7 +40,7 @@ const HomePage = () => {
     };
   }, []);
 
-  const listAccounts = useCallback(async () => {
+  const getListAccounts = useCallback(async () => {
     console.log("Search for all accounts");
     const result = await exchangeSDK.current?.walletAPI.account.list();
 
@@ -38,17 +49,31 @@ const HomePage = () => {
     }
   }, [exchangeSDK]);
 
-  const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setAmount(event.target.value);
-  const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setFromAccount(event.target.value);
-  const handleToAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setToAccount(event.target.value);
-  const handleFee = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setFeeSelected(event.target.value);
+  const toogleAccountList = useCallback(async () => {
+    debugger;
+    setIsPopinOpen(!isPopinOpen);
+  }, []);
 
+  const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(event);
+  };
+  const handleFromAccount = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFromAccount(event.value);
+    }
+  );
+
+  const handleToAccount = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setToAccount(event.value);
+    }
+  );
+  const handleFee = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFeeSelected(event);
+    }
+  );
   const onSwap = useCallback(() => {
-    console.log("Fee selected", feeSelected);
     exchangeSDK.current
       .swap({
         quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
@@ -73,26 +98,34 @@ const HomePage = () => {
     const provider = searchParams.get("provider");
 
     const params = {
-      quoteId, //pending to test
+      quoteId: "1234", //pending to test
       fromAccountId,
       toAccountId,
-      fromAmount: BigInt(fromAmount),
-      feeStrategy: "SLOW" as FeeStrategy, // What happend if the fees are personalise (CUSTOM mode)
+      fromAmount,
+      feeStrategy, // What happend if the fees are personalise (CUSTOM mode)
     };
-
+    debugger;
     exchangeSDK.current.swap(params);
   }, [searchParams]);
-
+  const options = allAccounts.map((item) => {
+    return {
+      label: item?.name,
+      value: item?.id,
+    };
+  });
   return (
-    <div>
-      <h1>Hello I am a Swap Web app</h1>
+    <Flex flexDirection="column" m="1rem">
+      <Text variant="h1" textTransform="uppercase">
+        Swap Web app
+      </Text>
 
-      <div>
-        <Button variant="main" outline={false} onClick={listAccounts}>
-          List accounts
-        </Button>
-      </div>
-      <div style={{ backgroundColor: "#999999" }}>
+      <Button variant="main" outline={false} onClick={getListAccounts}>
+        Retrieve all accounts
+      </Button>
+
+      {/* <ButtonExpand onToggle={toogleAccountList}>See Account List</ButtonExpand> */}
+
+      {/* <div display={isPopinOpen} style={{ backgroundColor: "#999999" }}>
         <table>
           <thead>
             <tr>
@@ -115,43 +148,77 @@ const HomePage = () => {
             })}
           </tbody>
         </table>
-      </div>
+      </div> */}
 
-      <div>
-        <label htmlFor="amount" style={{ color: "#dddddd" }}>
-          {"Amount"}
-        </label>
-        <input name="amount" onChange={handleAmount} />
-      </div>
-      <div>
-        <label htmlFor="fee" style={{ color: "#dddddd" }}>
-          {"Fee"}
-        </label>
-        <div onChange={handleFee} style={{ color: "#dddddd" }}>
-          <input type="radio" name="fee" value="SLOW" /> SLOW
-          <input type="radio" name="fee" value="MEDIUM" /> MEDIUM
-          <input type="radio" name="fee" value="FAST" /> FAST
-        </div>
-      </div>
-      <div>
-        <label htmlFor="fromAccount" style={{ color: "#dddddd" }}>
-          {"From Account"}
-        </label>
-        <input name="fromAccount" onChange={handleFromAccount} />
-        <label htmlFor="toAccount" style={{ color: "#dddddd" }}>
-          {"To Account"}
-        </label>
-        <input name="toAccount" onChange={handleToAccount} />
-      </div>
+      <Flex mb="1rem" rowGap="1rem" flexDirection="column">
+        <Text variant="h4" textTransform="uppercase">
+          Amount
+        </Text>
+        <NumberInput
+          max={349}
+          min={0}
+          onChange={handleAmount}
+          onPercentClick={function noRefCheck() {}}
+          placeholder="Placeholder"
+          value={amount}
+        />
+      </Flex>
+      <Flex mb="1rem" rowGap="1rem" flexDirection="column">
+        <Text variant="h4" textTransform="uppercase">
+          Fee
+        </Text>
+        <Radio currentValue={feeSelected} onChange={handleFee}>
+          {["SLOW", "MEDIUM", "FAST"].map((item, i) => {
+            return (
+              <Radio.ListElement
+                containerProps={{
+                  flex: 1,
+                }}
+                label={item}
+                value={item}
+              />
+            );
+          })}
+        </Radio>
+      </Flex>
 
-      <div>
-        <button onClick={() => onSwap()}>{"Execute swap"}</button>
-      </div>
+      <Flex mb="1rem">
+        <Flex flex="1" mr="1rem" rowGap="1rem" flexDirection="column">
+          <Text variant="h4" textTransform="uppercase">
+            From Account
+          </Text>
+          <SelectInput onChange={handleFromAccount} options={options} />
+        </Flex>
 
-      <div>
-        <button onClick={() => onLLSwap()}>{"Execute swap from LL"}</button>
-      </div>
-    </div>
+        <Flex flex="1" ml="1rem" rowGap="1rem" flexDirection="column">
+          <Text variant="h4" textTransform="uppercase">
+            To Account
+          </Text>
+          <SelectInput onChange={handleToAccount} options={options} />
+        </Flex>
+      </Flex>
+
+      <Flex mb="1rem">
+        <Flex flex="1" mr="1rem" rowGap="1rem" flexDirection="column">
+          <Button
+            disabled={
+              !(amount && fromAccount.length && toAccount.length && feeSelected)
+            }
+            variant="color"
+            outline={false}
+            onClick={onSwap}
+          >
+            Execute Swap
+          </Button>
+        </Flex>
+
+        <Flex flex="1" ml="1rem" rowGap="1rem" flexDirection="column">
+          <Button variant="color" outline={false} onClick={onLLSwap}>
+            Execute swap from LL
+          </Button>
+        </Flex>
+      </Flex>
+    </Flex>
   );
 };
 
