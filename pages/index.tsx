@@ -19,7 +19,7 @@ const IndexPage = () => {
   const [feeSelected, setFeeSelected] = useState("");
 
   useEffect(() => {
-    const providerId = "changelly";
+    const providerId = searchParams.get("provider") || "changelly";
     exchangeSDK.current = new ExchangeSDK(providerId);
 
     // Cleanup the Ledger Live API on component unmount
@@ -69,17 +69,15 @@ const IndexPage = () => {
     const toAccountId = searchParams.get("toAccountId");
     const fromAccountId = searchParams.get("fromAccountId");
     const fromAmount = searchParams.get("fromAmount");
-    const feeStrategy = searchParams.get("feeStrategy");
+    const feeStrategy = searchParams.get("feeStrategy") || "SLOW";
     const quoteId = decodeURIComponent(searchParams.get("quoteId"));
-
-    const provider = searchParams.get("provider");
 
     const params = {
       quoteId, //pending to test
       fromAccountId,
       toAccountId,
-      fromAmount: BigInt(fromAmount),
-      feeStrategy: "SLOW" as FeeStrategy, // What happend if the fees are personalise (CUSTOM mode)
+      fromAmount,
+      feeStrategy, // What happend if the fees are personalise (CUSTOM mode)
     };
 
     exchangeSDK.current.swap(params);
