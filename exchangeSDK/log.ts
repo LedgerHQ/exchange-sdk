@@ -2,7 +2,11 @@ const style = "background: #7f0000; color: #fff";
 const prefix = "[ExchangeSDK]";
 
 export class Logger {
-  isActive = true;
+  private isActive: boolean;
+
+  constructor(isActive?: boolean) {
+    this.isActive = isActive ?? true;
+  }
 
   log(message: string, ...args: unknown[]) {
     if (this.isActive) {

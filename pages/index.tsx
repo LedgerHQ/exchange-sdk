@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
-import { ExchangeSDK, FeeStrategy } from "../exchangeSDK";
+import { ExchangeSDK, FeeStrategy, QueryParams } from "../exchangeSDK";
 
 import { Account } from "@ledgerhq/wallet-api-client";
+import BigNumber from "bignumber.js";
 
 const IndexPage = () => {
   const searchParams = useSearchParams();
@@ -18,8 +19,19 @@ const IndexPage = () => {
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("");
 
+  const currencyInputRef = useRef(null);
+
   useEffect(() => {
+    // As a demo app, we may provide a providerId for testing purpose.
     const providerId = searchParams.get("provider") || "changelly";
+
+    //-- Retrieve information coming from Deeplink
+    setAmount(searchParams.get(QueryParams.FromAmount));
+    setFromAccount(searchParams.get(QueryParams.FromAccountId));
+    setToAccount(searchParams.get(QueryParams.ToAccountId));
+    setFeeSelected(searchParams.get(QueryParams.FeeStrategy) || "SLOW");
+
+    // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
 
     // Cleanup the Ledger Live API on component unmount
@@ -27,8 +39,11 @@ const IndexPage = () => {
       exchangeSDK.current.disconnect();
       exchangeSDK.current = undefined;
     };
-  }, []);
+  }, [searchParams]);
 
+  /**
+   * Retrieve all user's accounts
+   */
   const listAccounts = useCallback(async () => {
     console.log("Search for all accounts");
     const result = await exchangeSDK.current?.walletAPI.account.list();
@@ -38,6 +53,7 @@ const IndexPage = () => {
     }
   }, [exchangeSDK]);
 
+  //-- Handle user's inputs
   const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) =>
     setAmount(event.target.value);
   const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
@@ -47,13 +63,30 @@ const IndexPage = () => {
   const handleFee = (event: React.ChangeEvent<HTMLInputElement>) =>
     setFeeSelected(event.target.value);
 
+  //-- TEST
+  const onUninstallCoin = async () => {
+    const currency = currencyInputRef.current.value;
+    const result = await exchangeSDK.current.walletAPI.account
+      .request({
+        currencyIds: currency !== "" ? [currency] : undefined,
+      })
+      .catch((err: Error) => console.error("onUninstallCoin", err));
+    console.log("onUninstallCoin result:", result);
+  };
+
+  /**
+   * Handle user's swap validation
+   */
   const onSwap = useCallback(() => {
+    const quoteId =
+      decodeURIComponent(searchParams.get(QueryParams.QuoteId)) ||
+      "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
     exchangeSDK.current
       .swap({
-        quoteId: "84F84F76-FD3A-461A-AF6B-D03F78F7123B",
+        quoteId,
         fromAccountId: fromAccount,
         toAccountId: toAccount,
-        fromAmount: BigInt(amount),
+        fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
       })
       .catch((err) => {
@@ -63,25 +96,7 @@ const IndexPage = () => {
           err
         );
       });
-  }, [amount, fromAccount, toAccount, feeSelected]);
-
-  const onLLSwap = useCallback(() => {
-    const toAccountId = searchParams.get("toAccountId");
-    const fromAccountId = searchParams.get("fromAccountId");
-    const fromAmount = searchParams.get("fromAmount");
-    const feeStrategy = searchParams.get("feeStrategy") || "SLOW";
-    const quoteId = decodeURIComponent(searchParams.get("quoteId"));
-
-    const params = {
-      quoteId, //pending to test
-      fromAccountId,
-      toAccountId,
-      fromAmount,
-      feeStrategy, // What happend if the fees are personalise (CUSTOM mode)
-    };
-
-    exchangeSDK.current.swap(params);
-  }, [searchParams]);
+  }, [amount, fromAccount, toAccount, feeSelected, searchParams]);
 
   return (
     <Layout title="Swap Web App Example">
@@ -119,27 +134,49 @@ const IndexPage = () => {
         <label htmlFor="amount" style={{ color: "#dddddd" }}>
           {"Amount"}
         </label>
-        <input name="amount" onChange={handleAmount} />
+        <input name="amount" onChange={handleAmount} value={amount} />
       </div>
       <div>
         <label htmlFor="fee" style={{ color: "#dddddd" }}>
           {"Fee"}
         </label>
         <div onChange={handleFee} style={{ color: "#dddddd" }}>
-          <input type="radio" name="fee" value="SLOW" /> SLOW
-          <input type="radio" name="fee" value="MEDIUM" /> MEDIUM
-          <input type="radio" name="fee" value="FAST" /> FAST
+          <input
+            type="radio"
+            name="fee"
+            value="SLOW"
+            checked={feeSelected === "SLOW"}
+          />{" "}
+          SLOW
+          <input
+            type="radio"
+            name="fee"
+            value="MEDIUM"
+            checked={feeSelected === "MEDIUM"}
+          />{" "}
+          MEDIUM
+          <input
+            type="radio"
+            name="fee"
+            value="FAST"
+            checked={feeSelected === "FAST"}
+          />{" "}
+          FAST
         </div>
       </div>
       <div>
         <label htmlFor="fromAccount" style={{ color: "#dddddd" }}>
           {"From Account"}
         </label>
-        <input name="fromAccount" onChange={handleFromAccount} />
+        <input
+          name="fromAccount"
+          onChange={handleFromAccount}
+          value={fromAccount}
+        />
         <label htmlFor="toAccount" style={{ color: "#dddddd" }}>
           {"To Account"}
         </label>
-        <input name="toAccount" onChange={handleToAccount} />
+        <input name="toAccount" onChange={handleToAccount} value={toAccount} />
       </div>
 
       <div>
@@ -147,7 +184,8 @@ const IndexPage = () => {
       </div>
 
       <div>
-        <button onClick={() => onLLSwap()}>{"Execute swap from LL"}</button>
+        <input name="currency" ref={currencyInputRef} />
+        <button onClick={onUninstallCoin}>{"Ask for currency account"}</button>
       </div>
     </Layout>
   );

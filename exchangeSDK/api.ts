@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
+import BigNumber from "bignumber.js";
 
 const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
 
@@ -30,7 +31,7 @@ export type PayloadRequestData = {
   deviceTransactionId: string;
   fromAccount: Account;
   toAccount: Account;
-  amount: bigint;
+  amount: BigNumber;
   rateId?: string;
 };
 export type PayloadResponse = {
