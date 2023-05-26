@@ -26,10 +26,10 @@ const IndexPage = () => {
     const providerId = searchParams.get("provider") || "changelly";
 
     //-- Retrieve information coming from Deeplink
-    setAmount(searchParams.get(QueryParams.FromAmount));
-    setFromAccount(searchParams.get(QueryParams.FromAccountId));
-    setToAccount(searchParams.get(QueryParams.ToAccountId));
-    setFeeSelected(searchParams.get(QueryParams.FeeStrategy) || "SLOW");
+    setAmount(searchParams.get(QueryParams.FromAmount) ?? "");
+    setFromAccount(searchParams.get(QueryParams.FromAccountId) ?? "");
+    setToAccount(searchParams.get(QueryParams.ToAccountId) ?? "");
+    setFeeSelected(searchParams.get(QueryParams.FeeStrategy) ?? "SLOW");
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -45,7 +45,6 @@ const IndexPage = () => {
    * Retrieve all user's accounts
    */
   const listAccounts = useCallback(async () => {
-    console.log("Search for all accounts");
     const result = await exchangeSDK.current?.walletAPI.account.list();
 
     if (result) {
@@ -145,21 +144,21 @@ const IndexPage = () => {
             type="radio"
             name="fee"
             value="SLOW"
-            checked={feeSelected === "SLOW"}
+            defaultChecked={feeSelected === "SLOW"}
           />{" "}
           SLOW
           <input
             type="radio"
             name="fee"
             value="MEDIUM"
-            checked={feeSelected === "MEDIUM"}
+            defaultChecked={feeSelected === "MEDIUM"}
           />{" "}
           MEDIUM
           <input
             type="radio"
             name="fee"
             value="FAST"
-            checked={feeSelected === "FAST"}
+            defaultChecked={feeSelected === "FAST"}
           />{" "}
           FAST
         </div>
