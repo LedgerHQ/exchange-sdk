@@ -15,6 +15,7 @@ const IndexPage = () => {
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
   const [amount, setAmount] = useState("");
+  const [tenPowMagnitude, setTenPowMagnitude] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("");
@@ -27,6 +28,7 @@ const IndexPage = () => {
 
     //-- Retrieve information coming from Deeplink
     setAmount(searchParams.get(QueryParams.FromAmount));
+    setTenPowMagnitude(searchParams.get(QueryParams.TenPowMagnitude));
     setFromAccount(searchParams.get(QueryParams.FromAccountId));
     setToAccount(searchParams.get(QueryParams.ToAccountId));
     setFeeSelected(searchParams.get(QueryParams.FeeStrategy) || "SLOW");
@@ -87,6 +89,7 @@ const IndexPage = () => {
         fromAccountId: fromAccount,
         toAccountId: toAccount,
         fromAmount: new BigNumber(amount),
+        tenPowMagnitude: new BigNumber(tenPowMagnitude),
         feeStrategy: feeSelected as FeeStrategy,
       })
       .catch((err) => {

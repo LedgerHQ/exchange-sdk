@@ -8,8 +8,8 @@ dependencies:
     specifier: ^1.3.4
     version: 1.3.4
   bignumber.js:
-    specifier: ^9.0.2
-    version: 9.0.2
+    specifier: ^9.1.0
+    version: 9.1.0
   eslint:
     specifier: 8.34.0
     version: 8.34.0
@@ -121,14 +121,14 @@ packages:
     dependencies:
       '@ledgerhq/hw-transport': 6.28.3
       '@ledgerhq/wallet-api-core': 0.17.0
-      bignumber.js: 9.0.2
+      bignumber.js: 9.1.0
     dev: false
 
   /@ledgerhq/wallet-api-core@0.17.0:
     resolution: {integrity: sha512-2YjMfhQoy3cfnSNcI14VwdA7KGfUVElqbcH4GTjzTu4uH9JUASbBNDC0Fk6P/Kvp1pfmuNuEN5a9lPQy6//JXQ==}
     dependencies:
       '@ledgerhq/errors': 6.12.5
-      bignumber.js: 9.0.2
+      bignumber.js: 9.1.0
       uuid: 9.0.0
       zod: 3.21.4
     dev: false
@@ -597,8 +597,8 @@ packages:
     engines: {node: '>=0.6'}
     dev: false
 
-  /bignumber.js@9.0.2:
-    resolution: {integrity: sha512-GAcQvbpsM0pUb0zw1EI0KhQEZ+lRwR5fYaAp3vPOYuP7aDvGy6cVN6XHLauvF8SOga2y0dcLcjt3iQDTSEliyw==}
+  /bignumber.js@9.1.0:
+    resolution: {integrity: sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==}
     dev: false
 
   /bplist-parser@0.2.0:

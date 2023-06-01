@@ -19,6 +19,7 @@ export type SwapInfo = {
   fromAccountId: string;
   toAccountId: string;
   fromAmount: BigNumber;
+  tenPowMagnitude: BigNumber;
   feeStrategy: FeeStrategy;
 };
 
@@ -81,7 +82,7 @@ export class ExchangeSDK {
   async swap(info: SwapInfo): Promise<string> {
     this.logger.log("*** Start Swap ***");
 
-    const { fromAccountId, toAccountId, fromAmount, feeStrategy, quoteId } =
+    const { fromAccountId, toAccountId, fromAmount, tenPowMagnitude, feeStrategy, quoteId } =
       info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -105,7 +106,7 @@ export class ExchangeSDK {
         deviceTransactionId,
         fromAccount: fromAccount,
         toAccount: toAccount,
-        amount: fromAmount,
+        amount: fromAmount.div(tenPowMagnitude),
         // rateId: quoteId,
       }).catch((error: Error) => {
         this.logger.error(error);
