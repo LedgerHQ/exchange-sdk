@@ -110,8 +110,6 @@ const IndexPage = () => {
             <tr>
               <th>Name</th>
               <th>ID</th>
-              <th>Currency</th>
-              <th>Address</th>
             </tr>
           </thead>
           <tbody>
@@ -120,8 +118,6 @@ const IndexPage = () => {
                 <tr key={elt.id}>
                   <td>{elt.name}</td>
                   <td>{elt.id}</td>
-                  <td>{elt.currency}</td>
-                  <td>{elt.address}</td>
                 </tr>
               );
             })}
