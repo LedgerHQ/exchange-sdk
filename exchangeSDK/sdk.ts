@@ -126,7 +126,7 @@ export class ExchangeSDK {
     // 3 - Send payload
     const transaction = await this.createTransaction({
       recipient: payinAddress,
-      amount: fromAmount,
+      amount: fromAmountAtomic,
       currency: fromCurrency,
     });
 
