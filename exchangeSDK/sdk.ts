@@ -1,13 +1,17 @@
 import {
   Account,
-  CryptoCurrency,
   Currency,
   Transaction,
   WalletAPIClient,
   WindowMessageTransport,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
-import { NonceStepError, PayloadStepError, SignatureStepError } from "./error";
+import {
+  NonceStepError,
+  NotEnoughFunds,
+  PayloadStepError,
+  SignatureStepError,
+} from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload } from "./api";
 
@@ -29,7 +33,7 @@ export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST";
 type UserAccounts = {
   fromAccount: Account;
   toAccount: Account;
-  fromCurrency: CryptoCurrency;
+  fromCurrency: Currency;
 };
 
 // Should be available from the WalletAPI (zod :( )
@@ -90,6 +94,12 @@ export class ExchangeSDK {
       });
     this.logger.log("User info", fromAccount, toAccount, fromCurrency);
 
+    // Check enough fund
+    const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
+    if (canSpendAmount(fromAccount, fromAmountAtomic) === false) {
+      throw new NotEnoughFunds();
+    }
+
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.exchange
       .start(ExchangeType.SWAP)
@@ -106,6 +116,7 @@ export class ExchangeSDK {
         fromAccount: fromAccount,
         toAccount: toAccount,
         amount: fromAmount,
+        //FIXME
         // rateId: quoteId,
       }).catch((error: Error) => {
         this.logger.error(error);
@@ -113,10 +124,10 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = createTransaction({
+    const transaction = await this.createTransaction({
       recipient: payinAddress,
-      amount: fromAmount,
-      family: fromCurrency.family,
+      amount: fromAmountAtomic,
+      currency: fromCurrency,
     });
 
     const tx = await this.walletAPI.exchange
@@ -157,10 +168,9 @@ export class ExchangeSDK {
 
     const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
     const toAccount = allAccounts.find((value) => value.id === toAccountId);
-    this.logger.log("retrieveUserAccounts", fromAccount);
-    const fromCurrency = await this.getParentCryptoCurrency(
-      fromAccount.currency
-    );
+    const [fromCurrency]: Array<Currency> = await this.walletAPI.currency.list({
+      currencyIds: [fromAccount.currency],
+    });
 
     return {
       fromAccount,
@@ -169,34 +179,33 @@ export class ExchangeSDK {
     };
   }
 
-  private async getParentCryptoCurrency(
-    currencyName: string
-  ): Promise<CryptoCurrency> {
-    let [currency]: Array<Currency> = await this.walletAPI.currency.list({
-      currencyIds: [currencyName],
-    });
+  private async createTransaction({
+    recipient,
+    amount,
+    currency,
+  }: {
+    recipient: string;
+    amount: BigNumber;
+    currency: Currency;
+  }): Promise<Transaction> {
     if (currency.type === "TokenCurrency") {
       [currency] = await this.walletAPI.currency.list({
         currencyIds: [currency.parent],
       });
     }
 
-    return currency;
+    return {
+      family: currency.family,
+      amount,
+      recipient,
+    };
   }
 }
 
-function createTransaction({
-  recipient,
-  amount,
-  family,
-}: {
-  recipient: string;
-  amount: BigNumber;
-  family: string;
-}): Transaction {
-  return {
-    family,
-    amount,
-    recipient,
-  };
+function canSpendAmount(account: Account, amount: BigNumber): boolean {
+  return account.spendableBalance.isGreaterThanOrEqualTo(amount);
+}
+
+function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
+  return amount.shiftedBy(currency.decimals);
 }

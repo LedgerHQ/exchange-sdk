@@ -26,3 +26,10 @@ export class SignatureStepError extends ExchangeError {
     this.name = "SignatureStepError";
   }
 }
+
+export class NotEnoughFunds extends ExchangeError {
+  constructor() {
+    super();
+    this.name = "NotEnoughFunds";
+  }
+}
