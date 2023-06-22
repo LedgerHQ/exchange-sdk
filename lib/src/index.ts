@@ -6,5 +6,5 @@ export {
   NonceStepError,
   PayloadStepError,
   SignatureStepError,
-  NotEnoughFound,
+  NotEnoughFunds,
 } from "./error";

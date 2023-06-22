@@ -52,7 +52,7 @@ export class ExchangeSDK {
   readonly providerId: string;
   readonly walletAPI: WalletAPIClient;
 
-  private transport: WindowMessageTransport;
+  private transport: WindowMessageTransport = new WindowMessageTransport();
   private logger: Logger = new Logger();
 
   /**
@@ -69,10 +69,11 @@ export class ExchangeSDK {
     this.providerId = providerId;
     if (!walletAPI) {
       if (!transport) {
-        this.transport = new WindowMessageTransport();
         this.transport.connect();
       }
       this.walletAPI = new WalletAPIClient(this.transport);
+    } else {
+      this.walletAPI = walletAPI;
     }
   }
 
@@ -85,8 +86,8 @@ export class ExchangeSDK {
   async swap(info: SwapInfo): Promise<string> {
     this.logger.log("*** Start Swap ***");
 
-    const { fromAccountId, toAccountId, fromAmount, feeStrategy, quoteId } =
-      info;
+    //TODO: Add and manage `quoteId`
+    const { fromAccountId, toAccountId, fromAmount, feeStrategy } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
         fromAccountId,
@@ -167,7 +168,9 @@ export class ExchangeSDK {
     const allAccounts = await this.walletAPI.account.list();
 
     const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
+    if (!fromAccount) throw Error("Unknonw fromAccountId"); //FIXME
     const toAccount = allAccounts.find((value) => value.id === toAccountId);
+    if (!toAccount) throw Error("Unknonw toAccountId"); //FIXME
     const [fromCurrency]: Array<Currency> = await this.walletAPI.currency.list({
       currencyIds: [fromAccount.currency],
     });
