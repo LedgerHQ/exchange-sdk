@@ -2,11 +2,16 @@
   "name": "@ledgerhq/exchange-sdk",
   "version": "0.0.1",
   "license": "MIT",
+  "repository": "git@github.com:LedgerHQ/swap-live-app.git",
   "module": "./lib/index.js",
-  "main": "./lib/index.ts",
+  "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "files": [
+    "/lib",
+    "/lib-es"
+  ],
   "exports": {
-    ".": "./index.js"
+    ".": "./lib/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -22,7 +27,6 @@
     "@types/node": "^12.12.21",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "eslint": "8.34.0",
-    "eslint-config-next": "13.1.6",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1"
   }

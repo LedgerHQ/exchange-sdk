@@ -3,18 +3,15 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "es2022"
     ],
     "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "incremental": true,
+    "module": "es2022",
+    "moduleResolution": "NodeNext",
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
