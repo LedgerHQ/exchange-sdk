@@ -16,6 +16,10 @@
       "dependsOn": ["build", "lint"],
       "outputs": [],
       "inputs": ["src/**/*.ts", "test/**/*.ts"]
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }

@@ -8,9 +8,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "clean": "git clean -fdX",
-    "lint": "turbo lint",
-    "start": "turbo next start",
-    "type-check": "tsc"
+    "lint": "turbo lint"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
