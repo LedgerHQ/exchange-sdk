@@ -1,7 +1,7 @@
 {
   "name": "@ledgerhq/exchange-sdk",
   "version": "0.0.1",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": "git@github.com:LedgerHQ/swap-live-app.git",
   "module": "./lib/index.js",
   "main": "./lib/index.js",
