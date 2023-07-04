@@ -3,6 +3,18 @@
 ## Purpose
 This LiveApp is an example of how to interact with ExchangeSDK to ask user to validate a swap transaction.
 
+### Setting
+For your LiveApp, you have to add the following permission in your `manifest.json` file:
+```json
+  "permissions": [
+    "account.list",
+    "account.request",
+    "currency.list",
+    "exchange.start",
+    "exchange.complete"
+  ]
+```
+
 ## What to look at
 ### /pages/index.tsx
 `useEffect` is used when the LiveApp is launch.

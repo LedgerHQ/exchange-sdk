@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
-import { ExchangeSDK, FeeStrategy, QueryParams } from "../exchangeSDK";
+import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
@@ -19,7 +19,7 @@ const IndexPage = () => {
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("");
 
-  const currencyInputRef = useRef(null);
+  const currencyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
@@ -36,7 +36,7 @@ const IndexPage = () => {
 
     // Cleanup the Ledger Live API on component unmount
     return () => {
-      exchangeSDK.current.disconnect();
+      exchangeSDK.current?.disconnect();
       exchangeSDK.current = undefined;
     };
   }, [searchParams]);
@@ -64,10 +64,11 @@ const IndexPage = () => {
 
   //-- TEST
   const onUninstallCoin = async () => {
-    const currency = currencyInputRef.current.value;
-    const result = await exchangeSDK.current.walletAPI.account
+    const currency = currencyInputRef.current?.value;
+    const result = await exchangeSDK.current?.walletAPI.account
       .request({
-        currencyIds: currency !== "" ? [currency] : undefined,
+        currencyIds:
+          currency !== "" && currency !== undefined ? [currency] : undefined,
       })
       .catch((err: Error) => console.error("onUninstallCoin", err));
     console.log("onUninstallCoin result:", result);
@@ -77,11 +78,12 @@ const IndexPage = () => {
    * Handle user's swap validation
    */
   const onSwap = useCallback(() => {
-    const quoteId =
-      decodeURIComponent(searchParams.get(QueryParams.QuoteId)) ||
-      "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
+    const quoteIdParam = searchParams.get(QueryParams.QuoteId);
+    const quoteId = quoteIdParam
+      ? decodeURIComponent(quoteIdParam)
+      : "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
     exchangeSDK.current
-      .swap({
+      ?.swap({
         quoteId,
         fromAccountId: fromAccount,
         toAccountId: toAccount,

@@ -1,0 +1,32 @@
+{
+  "name": "@ledgerhq/exchange-sdk",
+  "version": "0.0.1",
+  "license": "Apache-2.0",
+  "repository": "git@github.com:LedgerHQ/swap-live-app.git",
+  "module": "./lib/index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "./lib"
+  ],
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf node_modules lib",
+    "lint": "eslint --cache --ext .ts \"src\""
+  },
+  "dependencies": {
+    "@ledgerhq/wallet-api-client": "0.15.3",
+    "bignumber.js": "^9.1.0",
+    "axios": "^1.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.21",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "eslint": "8.34.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1"
+  }
+}
