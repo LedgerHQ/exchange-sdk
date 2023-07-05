@@ -1,6 +1,6 @@
 {
   "name": "swap-live-app",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "next build",
