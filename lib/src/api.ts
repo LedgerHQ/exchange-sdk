@@ -4,24 +4,6 @@ import BigNumber from "bignumber.js";
 
 const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
 
-type SwapBackendResponse = {
-  provider: string;
-  swapId: string;
-  apiExtraFee: number;
-  apiFee: number;
-  refundAddress: string;
-  amountExpectedFrom: number;
-  amountExpectedTo: number;
-  status: string;
-  from: string;
-  to: string;
-  payinAddress: string;
-  payoutAddress: string;
-  createdAt: string; // ISO-8601
-  binaryPayload: string;
-  signature: string;
-};
-
 const axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
 });
@@ -32,6 +14,7 @@ export type PayloadRequestData = {
   fromAccount: Account;
   toAccount: Account;
   amount: BigNumber;
+  amountInAtomicUnit: bigint;
   rateId?: string;
 };
 export type PayloadResponse = {
@@ -51,7 +34,8 @@ export async function retrievePayload(
     address: data.toAccount.address,
     refundAddress: data.fromAccount.address,
     amountFrom: data.amount.toString(),
-    // rateId: quoteId,
+    amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
+    rateId: data.rateId,
   };
   // logger.log("Request to SWAP Backend:", request);
   const res = await axiosClient.post("", request);
@@ -73,9 +57,26 @@ export async function confirmSwap(
 }
 
 export async function cancelSwap(provider: string, swapId: string) {
-  await axiosClient.post("/cancelled", { provider, swapId });
+  await axiosClient.post("cancelled", { provider, swapId });
 }
 
+type SwapBackendResponse = {
+  provider: string;
+  swapId: string;
+  apiExtraFee: number;
+  apiFee: number;
+  refundAddress: string;
+  amountExpectedFrom: number;
+  amountExpectedTo: number;
+  status: string;
+  from: string;
+  to: string;
+  payinAddress: string;
+  payoutAddress: string;
+  createdAt: string; // ISO-8601
+  binaryPayload: string;
+  signature: string;
+};
 function parseSwapBackendInfo(response: SwapBackendResponse): {
   binaryPayload: Buffer;
   signature: Buffer;
