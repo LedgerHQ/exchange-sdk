@@ -27,3 +27,6 @@ For testing purpose, a default `quoteId` is provided, but in Production this que
 ### /lib/src/index.ts
 This file is the only one you need to depends on.
 It exports all public interface to the ExchangeSDK.
+
+## Why
+`lib/package.json` has 2 pre/post script on bump version. This is due to an [NPM issue](https://github.com/npm/npm/issues/9111).
