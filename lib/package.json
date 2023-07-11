@@ -15,7 +15,10 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf node_modules lib",
-    "lint": "eslint --cache --ext .ts \"src\""
+    "lint": "eslint --cache --ext .ts \"src\"",
+    "prebump": "mkdir .git",
+    "bump": "pnpm version --workspaces-update false",
+    "postbump": "rmdir .git"
   },
   "dependencies": {
     "@ledgerhq/wallet-api-client": "0.15.3",
