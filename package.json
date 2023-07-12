@@ -9,7 +9,10 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "clean": "git clean -fdX",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "bump": "pnpm --filter=exchange-sdk --enable-pre-post-scripts bump",
+    "prerelease": "pnpm build",
+    "release": "pnpm --filter=exchange-sdk publish"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
@@ -22,8 +25,8 @@
     "typescript": "^4.8.3"
   },
   "engines": {
-    "node": ">=16",
-    "pnpm": ">=7"
+    "node": ">=18",
+    "pnpm": ">=8"
   },
   "packageManager": "pnpm@8.1.1"
 }
