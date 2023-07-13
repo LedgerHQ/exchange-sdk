@@ -3,11 +3,15 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      option:
-        description: set eventual option to the release command
-        required: false
-        default: ''
-        type: string
+      version:
+        description: set version for this release
+        default: "minor"
+        type: choice
+        options:
+          - "major"
+          - "minor"
+          - "patch"
+          - "prerelease"
 
 jobs:
   release:
@@ -28,11 +32,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
       - name: Create new version
-        run: pnpm bump
+        run: pnpm bump ${{ inputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish new version
-        run: pnpm prerelease && pnpm release ${{ inputs.option }}
+        run: pnpm prerelease && pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
