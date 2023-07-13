@@ -1,7 +1,17 @@
 name: Release
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      version:
+        description: set version for this release
+        default: "minor"
+        type: choice
+        options:
+          - "major"
+          - "minor"
+          - "patch"
+          - "prerelease"
 
 jobs:
   release:
@@ -12,7 +22,7 @@ jobs:
         uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
         with:
-          version: 7.30.3
+          version: 8.5.1
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -21,8 +31,12 @@ jobs:
           cache: pnpm
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+      - name: Setup temp github user
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "Github Bot"
       - name: Create new version
-        run: pnpm bump
+        run: pnpm bump ${{ inputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish new version
