@@ -1,7 +1,13 @@
 name: Release
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      option:
+        description: set eventual option to the release command
+        required: false
+        default: ''
+        type: string
 
 jobs:
   release:
