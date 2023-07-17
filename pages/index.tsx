@@ -33,13 +33,19 @@ const IndexPage = () => {
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
-
+    onSwap();
     // Cleanup the Ledger Live API on component unmount
     return () => {
       exchangeSDK.current.disconnect();
       exchangeSDK.current = undefined;
     };
   }, [searchParams]);
+
+  useEffect(() => {
+    if (amount && fromAccount && toAccount && feeSelected && exchangeSDK) {
+      onSwap();
+    }
+  }, [amount, fromAccount, toAccount, feeSelected, exchangeSDK, onSwap]);
 
   /**
    * Retrieve all user's accounts
