@@ -33,7 +33,7 @@ describe("swap", () => {
     const mockAccountList = jest
       .spyOn(AccountModule.prototype, "list")
       .mockResolvedValue(accounts as Array<Account>);
-    jest.spyOn(CurrencyModule.prototype, "list").mockResolvedValue(currencies);
+    jest.spyOn(CurrencyModule.prototype, "list").mockResolvedValue(currencies as any);
     jest
       .spyOn(ExchangeModule.prototype, "start")
       .mockResolvedValue("DeviceTransactionId");

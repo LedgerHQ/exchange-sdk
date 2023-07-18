@@ -78,7 +78,7 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/wallet-api-client':
-        specifier: 0.15.3
+        specifier: link:/Users/sara.neila-jimenez/Desktop/wallet-api/packages/client
         version: 0.15.3
       axios:
         specifier: ^1.3.4

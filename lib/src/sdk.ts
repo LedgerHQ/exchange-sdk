@@ -201,8 +201,9 @@ export class ExchangeSDK {
       });
     }
 
+    const family = (currency as any )?.family;
     return {
-      family: currency.family,
+      family,
       amount,
       recipient,
     };

@@ -19,7 +19,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@ledgerhq/wallet-api-client": "0.15.3",
+    "@ledgerhq/wallet-api-client": "link:/Users/sara.neila-jimenez/Desktop/wallet-api/packages/client",
     "bignumber.js": "^9.1.0",
     "axios": "^1.3.4"
   },
