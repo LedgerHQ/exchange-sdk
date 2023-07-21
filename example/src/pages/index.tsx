@@ -18,6 +18,10 @@ const IndexPage = () => {
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("");
+  const [maxFeePerGas, setMaxFeePerGas] = useState("");
+  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState("");
+  const [userGasLimit, setUserGasLimit] = useState("");
+  const [gasLimit, setGasLimit] = useState("");
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +34,12 @@ const IndexPage = () => {
     setFromAccount(searchParams.get(QueryParams.FromAccountId) ?? "");
     setToAccount(searchParams.get(QueryParams.ToAccountId) ?? "");
     setFeeSelected(searchParams.get(QueryParams.FeeStrategy) ?? "SLOW");
+    setMaxFeePerGas(searchParams.get(QueryParams.MaxFeePerGas) ?? "");
+    setMaxPriorityFeePerGas(
+      searchParams.get(QueryParams.MaxPriorityFeePerGas) ?? ""
+    );
+    setUserGasLimit(searchParams.get(QueryParams.UserGasLimit) ?? "");
+    setGasLimit(searchParams.get(QueryParams.GasLimit) ?? "");
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -89,6 +99,10 @@ const IndexPage = () => {
         toAccountId: toAccount,
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        userGasLimit,
+        gasLimit,
       })
       .catch((err) => {
         console.error(
