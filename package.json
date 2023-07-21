@@ -11,6 +11,11 @@
     "clean": "git clean -fdX",
     "lint": "turbo lint"
   },
+  "dependencies": {
+    "@ledgerhq/wallet-api-client": "link:/Users/sara.neila-jimenez/Desktop/wallet-api/packages/client",
+    "bignumber.js": "^9.1.0",
+    "axios": "^1.3.4"
+  },
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@types/react": "^17.0.2",
