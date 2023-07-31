@@ -99,10 +99,10 @@ const IndexPage = () => {
         toAccountId: toAccount,
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        userGasLimit,
-        gasLimit,
+        maxFeePerGas: new BigNumber(maxFeePerGas),
+        maxPriorityFeePerGas: new BigNumber(maxPriorityFeePerGas),
+        userGasLimit: new BigNumber(userGasLimit),
+        gasLimit: new BigNumber(gasLimit),
       })
       .catch((err) => {
         console.error(
@@ -111,7 +111,17 @@ const IndexPage = () => {
           err
         );
       });
-  }, [amount, fromAccount, toAccount, feeSelected, searchParams]);
+  }, [
+    searchParams,
+    fromAccount,
+    toAccount,
+    amount,
+    feeSelected,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    userGasLimit,
+    gasLimit,
+  ]);
 
   return (
     <Layout title="Swap Web App Example">

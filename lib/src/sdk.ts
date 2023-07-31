@@ -24,10 +24,10 @@ export type SwapInfo = {
   toAccountId: string;
   fromAmount: BigNumber;
   feeStrategy: FeeStrategy;
-  maxFeePerGas?: String;
-  maxPriorityFeePerGas?: String;
-  userGasLimit?: String;
-  gasLimit?: String;
+  maxFeePerGas?: BigNumber;
+  maxPriorityFeePerGas?: BigNumber;
+  userGasLimit?: BigNumber;
+  gasLimit?: BigNumber;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -101,7 +101,7 @@ export class ExchangeSDK {
       maxFeePerGas,
       maxPriorityFeePerGas,
       userGasLimit,
-      gasLimit
+      gasLimit,
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -148,7 +148,7 @@ export class ExchangeSDK {
       maxFeePerGas,
       maxPriorityFeePerGas,
       userGasLimit,
-      gasLimit
+      gasLimit,
     });
 
     const tx = await this.walletAPI.exchange
@@ -209,15 +209,15 @@ export class ExchangeSDK {
     maxFeePerGas,
     maxPriorityFeePerGas,
     userGasLimit,
-    gasLimit
+    gasLimit,
   }: {
     recipient: string;
     amount: BigNumber;
     currency: Currency;
-    maxFeePerGas: any;
-    maxPriorityFeePerGas: any;
-    userGasLimit: any;
-    gasLimit: any;
+    maxFeePerGas: BigNumber;
+    maxPriorityFeePerGas: BigNumber;
+    userGasLimit: BigNumber;
+    gasLimit: BigNumber;
   }): Promise<Transaction> {
     if (currency.type === "TokenCurrency") {
       [currency] = await this.walletAPI.currency.list({
@@ -225,7 +225,7 @@ export class ExchangeSDK {
       });
     }
 
-    const family = (currency as any )?.family;
+    const family = (currency as any)?.family;
     return {
       family,
       amount,
