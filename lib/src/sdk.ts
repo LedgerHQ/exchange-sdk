@@ -102,7 +102,7 @@ export class ExchangeSDK {
       maxFeePerGas,
       maxPriorityFeePerGas,
       userGasLimit,
-      gasLimit
+      gasLimit,
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -149,7 +149,7 @@ export class ExchangeSDK {
       maxFeePerGas,
       maxPriorityFeePerGas,
       userGasLimit,
-      gasLimit
+      gasLimit,
     });
 
     const tx = await this.walletAPI.exchange
@@ -210,7 +210,7 @@ export class ExchangeSDK {
     maxFeePerGas,
     maxPriorityFeePerGas,
     userGasLimit,
-    gasLimit
+    gasLimit,
   }: {
     recipient: string;
     amount: BigNumber;

@@ -111,7 +111,17 @@ const IndexPage = () => {
           err
         );
       });
-  }, [amount, fromAccount, toAccount, feeSelected, searchParams]);
+  }, [
+    searchParams,
+    fromAccount,
+    toAccount,
+    amount,
+    feeSelected,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    userGasLimit,
+    gasLimit,
+  ]);
 
   return (
     <Layout title="Swap Web App Example">
