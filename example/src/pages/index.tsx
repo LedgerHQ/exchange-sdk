@@ -22,12 +22,14 @@ const IndexPage = () => {
   const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState("");
   const [userGasLimit, setUserGasLimit] = useState("");
   const [gasLimit, setGasLimit] = useState("");
+  const [customGasLimit, setCustomGasLimit] = useState("");
+  const [feePerByte, setFeePerByte] = useState("");
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    const providerId = searchParams.get("provider") || "changelly";
+    const providerId = searchParams.get(QueryParams.Provider) || "changelly";
 
     //-- Retrieve information coming from Deeplink
     setAmount(searchParams.get(QueryParams.FromAmount) ?? "");
@@ -40,6 +42,8 @@ const IndexPage = () => {
     );
     setUserGasLimit(searchParams.get(QueryParams.UserGasLimit) ?? "");
     setGasLimit(searchParams.get(QueryParams.GasLimit) ?? "");
+    setCustomGasLimit(searchParams.get(QueryParams.CustomGasLimit) ?? "");
+    setFeePerByte(searchParams.get(QueryParams.FeePerByte) ?? "");
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -92,6 +96,7 @@ const IndexPage = () => {
     const quoteId = quoteIdParam
       ? decodeURIComponent(quoteIdParam)
       : "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
+
     exchangeSDK.current
       ?.swap({
         quoteId,
@@ -103,6 +108,8 @@ const IndexPage = () => {
         maxPriorityFeePerGas,
         userGasLimit,
         gasLimit,
+        customGasLimit,
+        feePerByte,
       })
       .catch((err) => {
         console.error(
@@ -121,6 +128,8 @@ const IndexPage = () => {
     maxPriorityFeePerGas,
     userGasLimit,
     gasLimit,
+    customGasLimit,
+    feePerByte,
   ]);
 
   return (

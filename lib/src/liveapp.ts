@@ -2,6 +2,7 @@
  * LiveApp query params.
  */
 export const QueryParams = {
+  Provider: "provider",
   QuoteId: "quoteId",
   FromAmount: "fromAmount",
   FromAccountId: "fromAccountId",
@@ -11,4 +12,6 @@ export const QueryParams = {
   MaxPriorityFeePerGas: "maxPriorityFeePerGas",
   UserGasLimit: "userGasLimit",
   GasLimit: "gasLimit",
+  CustomGasLimit: "customGasLimit",
+  FeePerByte: "feePerByte",
 };

@@ -103,6 +103,8 @@ export class ExchangeSDK {
       maxPriorityFeePerGas,
       userGasLimit,
       gasLimit,
+      customGasLimit,
+      feePerByte,
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -150,6 +152,8 @@ export class ExchangeSDK {
       maxPriorityFeePerGas,
       userGasLimit,
       gasLimit,
+      customGasLimit,
+      feePerByte,
     });
 
     const tx = await this.walletAPI.exchange
@@ -211,14 +215,18 @@ export class ExchangeSDK {
     maxPriorityFeePerGas,
     userGasLimit,
     gasLimit,
+    customGasLimit,
+    feePerByte,
   }: {
     recipient: string;
     amount: BigNumber;
     currency: Currency;
-    maxFeePerGas: BigNumber;
-    maxPriorityFeePerGas: BigNumber;
-    userGasLimit: BigNumber;
-    gasLimit: BigNumber;
+    maxFeePerGas?: BigNumber;
+    maxPriorityFeePerGas?: BigNumber;
+    userGasLimit?: BigNumber;
+    gasLimit?: BigNumber;
+    customGasLimit?: BigNumber;
+    feePerByte?: BigNumber;
   }): Promise<Transaction> {
     if (currency.type === "TokenCurrency") {
       [currency] = await this.walletAPI.currency.list({
@@ -234,6 +242,8 @@ export class ExchangeSDK {
       maxPriorityFeePerGas,
       userGasLimit,
       gasLimit,
+      customGasLimit,
+      feePerByte,
     };
   }
 }
