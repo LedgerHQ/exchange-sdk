@@ -4,7 +4,11 @@
   "license": "MIT",
   "repository": "git@github.com:LedgerHQ/swap-live-app.git",
   "main": "./lib/index.js",
+  "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
+  "files": [
+    "./lib"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -12,8 +16,8 @@
         "default": "./lib/index.mjs"
       },
       "require": {
-        "types": "./types/commonjs/index.d.cts",
-        "default": "./commonjs/index.cjs"
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
       }
     }
   },
