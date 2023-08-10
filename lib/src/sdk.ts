@@ -24,10 +24,9 @@ export type SwapInfo = {
   toAccountId: string;
   fromAmount: BigNumber;
   feeStrategy: FeeStrategy;
-  maxFeePerGas?: BigNumber;
-  maxPriorityFeePerGas?: BigNumber;
-  userGasLimit?: BigNumber;
-  gasLimit?: BigNumber;
+  customFeeConfig?: {
+    [key: string]: BigNumber;
+  }
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -99,12 +98,7 @@ export class ExchangeSDK {
       toAccountId,
       fromAmount,
       feeStrategy,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      userGasLimit,
-      gasLimit,
-      customGasLimit,
-      feePerByte,
+      customFeeConfig = {}
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -148,12 +142,7 @@ export class ExchangeSDK {
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      userGasLimit,
-      gasLimit,
-      customGasLimit,
-      feePerByte,
+      customFeeConfig
     });
 
     const tx = await this.walletAPI.exchange
@@ -211,22 +200,14 @@ export class ExchangeSDK {
     recipient,
     amount,
     currency,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    userGasLimit,
-    gasLimit,
-    customGasLimit,
-    feePerByte,
+    customFeeConfig
   }: {
     recipient: string;
     amount: BigNumber;
     currency: Currency;
-    maxFeePerGas?: BigNumber;
-    maxPriorityFeePerGas?: BigNumber;
-    userGasLimit?: BigNumber;
-    gasLimit?: BigNumber;
-    customGasLimit?: BigNumber;
-    feePerByte?: BigNumber;
+    customFeeConfig: {
+      [key: string]: BigNumber;
+    }
   }): Promise<Transaction> {
     if (currency.type === "TokenCurrency") {
       [currency] = await this.walletAPI.currency.list({
@@ -238,12 +219,7 @@ export class ExchangeSDK {
       family: currency.family,
       amount,
       recipient,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      userGasLimit,
-      gasLimit,
-      customGasLimit,
-      feePerByte,
+      ...customFeeConfig,
     };
   }
 }

@@ -8,10 +8,4 @@ export const QueryParams = {
   FromAccountId: "fromAccountId",
   ToAccountId: "toAccountId",
   FeeStrategy: "feeStrategy",
-  MaxFeePerGas: "maxFeePerGas",
-  MaxPriorityFeePerGas: "maxPriorityFeePerGas",
-  UserGasLimit: "userGasLimit",
-  GasLimit: "gasLimit",
-  CustomGasLimit: "customGasLimit",
-  FeePerByte: "feePerByte",
 };

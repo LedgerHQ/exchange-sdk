@@ -18,32 +18,38 @@ const IndexPage = () => {
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("");
-  const [maxFeePerGas, setMaxFeePerGas] = useState("");
-  const [maxPriorityFeePerGas, setMaxPriorityFeePerGas] = useState("");
-  const [userGasLimit, setUserGasLimit] = useState("");
-  const [gasLimit, setGasLimit] = useState("");
-  const [customGasLimit, setCustomGasLimit] = useState("");
-  const [feePerByte, setFeePerByte] = useState("");
+  const [customFeeConfig, setCustomFeeConfig] = useState({});
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    const providerId = searchParams.get(QueryParams.Provider) || "changelly";
+    const providerId = "changelly";
 
     //-- Retrieve information coming from Deeplink
-    setAmount(searchParams.get(QueryParams.FromAmount) ?? "");
-    setFromAccount(searchParams.get(QueryParams.FromAccountId) ?? "");
-    setToAccount(searchParams.get(QueryParams.ToAccountId) ?? "");
-    setFeeSelected(searchParams.get(QueryParams.FeeStrategy) ?? "SLOW");
-    setMaxFeePerGas(searchParams.get(QueryParams.MaxFeePerGas) ?? "");
-    setMaxPriorityFeePerGas(
-      searchParams.get(QueryParams.MaxPriorityFeePerGas) ?? ""
-    );
-    setUserGasLimit(searchParams.get(QueryParams.UserGasLimit) ?? "");
-    setGasLimit(searchParams.get(QueryParams.GasLimit) ?? "");
-    setCustomGasLimit(searchParams.get(QueryParams.CustomGasLimit) ?? "");
-    setFeePerByte(searchParams.get(QueryParams.FeePerByte) ?? "");
+    const customConfig = {};
+    for (const [key, value] of searchParams.entries()) {
+      switch (key) {
+        case QueryParams.Provider:
+          providerId = value;
+          break;
+        case QueryParams.FromAmount:
+          setAmount(value ?? "");
+          break;
+        case QueryParams.FromAccountId:
+          setFromAccount(value ?? "");
+          break;
+        case QueryParams.ToAccountId:
+          setToAccount(value ?? "");
+          break;
+        case QueryParams.FeeStrategy:
+          setFeeSelected(value ?? "SLOW");
+          break;
+        default:
+          customConfig[key] = value ?? "";
+      }
+    }
+    setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -104,12 +110,7 @@ const IndexPage = () => {
         toAccountId: toAccount,
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        userGasLimit,
-        gasLimit,
-        customGasLimit,
-        feePerByte,
+        customFeeConfig,
       })
       .catch((err) => {
         console.error(
@@ -124,12 +125,7 @@ const IndexPage = () => {
     toAccount,
     amount,
     feeSelected,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    userGasLimit,
-    gasLimit,
-    customGasLimit,
-    feePerByte,
+    customFeeConfig,
   ]);
 
   return (
