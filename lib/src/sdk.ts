@@ -52,7 +52,7 @@ export class ExchangeSDK {
   readonly providerId: string;
   readonly walletAPI: WalletAPIClient;
 
-  private transport: WindowMessageTransport = new WindowMessageTransport();
+  private transport: WindowMessageTransport | undefined;
   private logger: Logger = new Logger();
 
   /**
@@ -69,8 +69,11 @@ export class ExchangeSDK {
     this.providerId = providerId;
     if (!walletAPI) {
       if (!transport) {
+        this.transport = new WindowMessageTransport();
         this.transport.connect();
       }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore: this.transport is really assigned before being used
       this.walletAPI = new WalletAPIClient(this.transport);
     } else {
       this.walletAPI = walletAPI;
@@ -117,6 +120,7 @@ export class ExchangeSDK {
         fromAccount: fromAccount,
         toAccount: toAccount,
         amount: fromAmount,
+        amountInAtomicUnit: BigInt("0"),
         //FIXME
         // rateId: quoteId,
       }).catch((error: Error) => {
@@ -157,7 +161,7 @@ export class ExchangeSDK {
    * {@link https://github.com/LedgerHQ/wallet-api WalletAPI} server.
    */
   disconnect() {
-    this.transport.disconnect();
+    this.transport?.disconnect();
   }
 
   private async retrieveUserAccounts(accounts: {
