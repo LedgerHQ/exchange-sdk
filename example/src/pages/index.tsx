@@ -24,7 +24,7 @@ const IndexPage = () => {
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    const providerId = "changelly";
+    let providerId = "changelly";
 
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
