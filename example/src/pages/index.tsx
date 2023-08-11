@@ -28,7 +28,8 @@ const IndexPage = () => {
 
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
-    for (const [key, value] of searchParams.entries()) {
+    for (let [key, value] of searchParams.entries()) {
+      if (value === "undefined") value = undefined;
       switch (key) {
         case QueryParams.Provider:
           providerId = value;
@@ -43,6 +44,7 @@ const IndexPage = () => {
           setToAccount(value ?? "");
           break;
         case QueryParams.FeeStrategy:
+          debugger;
           setFeeSelected(value ?? "SLOW");
           break;
         default:
