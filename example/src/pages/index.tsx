@@ -28,7 +28,7 @@ const IndexPage = () => {
 
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
-    for (let [key, value] of searchParams.entries()) {
+    searchParams.entries().forEach(([key, value]) => {
       if (value === "undefined") value = undefined;
       switch (key) {
         case QueryParams.Provider:
@@ -44,13 +44,12 @@ const IndexPage = () => {
           setToAccount(value ?? "");
           break;
         case QueryParams.FeeStrategy:
-          debugger;
           setFeeSelected(value ?? "SLOW");
           break;
         default:
           customConfig[key] = value ?? "";
       }
-    }
+    });
     setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK

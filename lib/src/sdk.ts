@@ -27,7 +27,7 @@ export type SwapInfo = {
   feeStrategy: FeeStrategy;
   customFeeConfig?: {
     [key: string]: BigNumber;
-  }
+  };
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -99,7 +99,7 @@ export class ExchangeSDK {
       toAccountId,
       fromAmount,
       feeStrategy,
-      customFeeConfig = {}
+      customFeeConfig = {},
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -143,7 +143,7 @@ export class ExchangeSDK {
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
-      customFeeConfig
+      customFeeConfig,
     });
 
     const tx = await this.walletAPI.exchange
@@ -201,14 +201,14 @@ export class ExchangeSDK {
     recipient,
     amount,
     currency,
-    customFeeConfig
+    customFeeConfig,
   }: {
     recipient: string;
     amount: BigNumber;
     currency: Currency;
     customFeeConfig: {
       [key: string]: BigNumber;
-    }
+    };
   }): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
