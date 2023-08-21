@@ -28,7 +28,9 @@ const IndexPage = () => {
 
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
-    searchParams.entries().forEach(([key, value]) => {
+    for (let entry of searchParams.entries()) {
+      const [key] = entry;
+      let [, value] = entry;
       if (value === "undefined") value = undefined;
       switch (key) {
         case QueryParams.Provider:
@@ -49,7 +51,8 @@ const IndexPage = () => {
         default:
           customConfig[key] = value ?? "";
       }
-    });
+    }
+
     setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK
