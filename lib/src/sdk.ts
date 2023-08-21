@@ -228,16 +228,13 @@ export class ExchangeSDK {
       case "crypto_org":
       case "ripple":
       case "cosmos":
-      case "ripple":
       case "celo":
-      case "cosmos":
       case "hedera":
       case "filecoin":
       case "tezos":
       case "polkadot":
       case "stellar":
       case "tron":
-      case "near":
       case "neo":
         return {
           family,
