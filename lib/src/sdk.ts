@@ -1,5 +1,6 @@
 import {
   Account,
+  CryptoCurrency,
   Currency,
   Transaction,
   WalletAPIClient,
@@ -209,18 +210,75 @@ export class ExchangeSDK {
       [key: string]: BigNumber;
     }
   }): Promise<Transaction> {
+    let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
-      [currency] = await this.walletAPI.currency.list({
+      const currencies = await this.walletAPI.currency.list({
         currencyIds: [currency.parent],
       });
+
+      family = (currencies[0] as CryptoCurrency).family;
+    } else {
+      family = currency.family;
     }
 
-    return {
-      family: currency.family,
-      amount,
-      recipient,
-      ...customFeeConfig,
-    };
+    switch (family) {
+      case "bitcoin":
+      case "ethereum":
+      case "algorand":
+      case "crypto_org":
+      case "ripple":
+      case "cosmos":
+      case "ripple":
+      case "celo":
+      case "cosmos":
+      case "hedera":
+      case "filecoin":
+      case "tezos":
+      case "polkadot":
+      case "stellar":
+      case "tron":
+      case "near":
+      case "neo":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+        } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
+      case "near":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+          mode: "send", //??
+        };
+      case "cardano":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+          mode: "send",
+        };
+      case "elrond":
+        return {
+          family,
+          amount,
+          recipient,
+          gasLimit: 0, //FIXME
+          ...customFeeConfig,
+          mode: "send", //??
+        };
+      case "solana":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+          model: { kind: "transfer", uiState: {} },
+        };
+    }
   }
 }
 

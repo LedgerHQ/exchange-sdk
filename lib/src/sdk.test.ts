@@ -10,8 +10,15 @@ import BigNumber from "bignumber.js";
 import { retrievePayload } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 
+<<<<<<< HEAD
 describe("swap", () => {
   it("", async () => {
+=======
+jest.mock("./api");
+
+describe("swap", () => {
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+>>>>>>> main
     // GIVEN
     const accounts: Array<Partial<Account>> = [
       {
@@ -44,7 +51,6 @@ describe("swap", () => {
       onMessage: jest.fn(),
       send: jest.fn(),
     };
-    jest.mock("./api");
     (retrievePayload as jest.Mock).mockResolvedValue({
       binaryPayload: "",
       signature: "",
@@ -63,9 +69,17 @@ describe("swap", () => {
     };
 
     // WHEN
+<<<<<<< HEAD
     await sdk.swap(swapData);
 
     // THEN
     expect(mockAccountList).toBeCalled();
+=======
+    const transactionId = await sdk.swap(swapData);
+
+    // THEN
+    expect(mockAccountList).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
+>>>>>>> main
   });
 });
