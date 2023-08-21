@@ -10,15 +10,10 @@ import BigNumber from "bignumber.js";
 import { retrievePayload } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 
-<<<<<<< HEAD
-describe("swap", () => {
-  it("", async () => {
-=======
 jest.mock("./api");
 
 describe("swap", () => {
   it("sends back the 'transactionId' from the WalletAPI", async () => {
->>>>>>> main
     // GIVEN
     const accounts: Array<Partial<Account>> = [
       {
@@ -69,17 +64,10 @@ describe("swap", () => {
     };
 
     // WHEN
-<<<<<<< HEAD
-    await sdk.swap(swapData);
-
-    // THEN
-    expect(mockAccountList).toBeCalled();
-=======
     const transactionId = await sdk.swap(swapData);
 
     // THEN
     expect(mockAccountList).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
->>>>>>> main
   });
 });
