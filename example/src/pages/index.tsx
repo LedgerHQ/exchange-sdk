@@ -8,6 +8,10 @@ import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
+export const InternalParams = {
+  Provider: "provider",
+};
+
 const IndexPage = () => {
   const searchParams = useSearchParams();
 
@@ -33,7 +37,7 @@ const IndexPage = () => {
       let [, value] = entry;
       if (value === "undefined") value = undefined;
       switch (key) {
-        case QueryParams.Provider:
+        case InternalParams.Provider:
           providerId = value;
           break;
         case QueryParams.FromAmount:
