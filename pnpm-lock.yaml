@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -967,24 +967,24 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
-  /@ledgerhq/devices@8.0.3:
-    resolution: {integrity: sha512-Q7/vqkGELSBuwFafFoTqlHIRyOjw8JqbSgiQwe2R38xN0RKtKIh+5E6UfMKyoExiq+SrQg0IC8P2LS+XdjOHLw==}
+  /@ledgerhq/devices@8.0.7:
+    resolution: {integrity: sha512-BbPyET52lXnVs7CxJWrGYqmtGdbGzj+XnfCqLsDnA7QYr1CZREysxmie+Rr6BKpNDBRVesAovXjtaVaZOn+upw==}
     dependencies:
-      '@ledgerhq/errors': 6.12.6
+      '@ledgerhq/errors': 6.14.0
       '@ledgerhq/logs': 6.10.1
       rxjs: 6.6.7
       semver: 7.5.3
     dev: false
 
-  /@ledgerhq/errors@6.12.6:
-    resolution: {integrity: sha512-D+r2B09vaRO06wfGoss+rNgwqWSoK0bCtsaJWzlD2hv1zxTtucqVtSztbRFypIqxWTCb3ix5Nh2dWHEJVTp2Xw==}
+  /@ledgerhq/errors@6.14.0:
+    resolution: {integrity: sha512-ZWJw2Ti6Dq1Ott/+qYqJdDWeZm16qI3VNG5rFlb0TQ3UcAyLIQZbnnzzdcVVwVeZiEp66WIpINd/pBdqsHVyOA==}
     dev: false
 
-  /@ledgerhq/hw-transport@6.28.4:
-    resolution: {integrity: sha512-fB2H92YQjidmae2GFCmOGPwkZWk0lvTu0tlLlzfiY0wRheAG+DEgjnqhdU8wmydkPLIj0WUjRgldtnJtg/a2iQ==}
+  /@ledgerhq/hw-transport@6.28.8:
+    resolution: {integrity: sha512-XxQVl4htd018u/M66r0iu5nlHi+J6QfdPsORzDF6N39jaz+tMqItb7tUlXM/isggcuS5lc7GJo7NOuJ8rvHZaQ==}
     dependencies:
-      '@ledgerhq/devices': 8.0.3
-      '@ledgerhq/errors': 6.12.6
+      '@ledgerhq/devices': 8.0.7
+      '@ledgerhq/errors': 6.14.0
       events: 3.3.0
     dev: false
 
@@ -995,7 +995,7 @@ packages:
   /@ledgerhq/wallet-api-client@1.0.2:
     resolution: {integrity: sha512-ClFmYqK+ySpaORHP7UodlBfph19jpEPkfGjUqic2MIyomyQEVO/BNS6s2jcRztyfCauBRyh7u+egJNRALVVLKg==}
     dependencies:
-      '@ledgerhq/hw-transport': 6.28.4
+      '@ledgerhq/hw-transport': 6.28.8
       '@ledgerhq/wallet-api-core': 1.0.2
       bignumber.js: 9.1.1
     dev: false
@@ -1003,7 +1003,7 @@ packages:
   /@ledgerhq/wallet-api-core@1.0.2:
     resolution: {integrity: sha512-xlpoJAC75R0OtqHj26WYQJ9xeNWhT1erb8eAWAfmMCQH2qIca4pxNWnXVousEX+o1EQQTEmmMjlv/JdvSo/43g==}
     dependencies:
-      '@ledgerhq/errors': 6.12.6
+      '@ledgerhq/errors': 6.14.0
       bignumber.js: 9.1.1
       uuid: 9.0.0
       zod: 3.21.4

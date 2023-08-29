@@ -8,6 +8,10 @@ import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
+export const InternalParams = {
+  Provider: "provider",
+};
+
 const IndexPage = () => {
   const searchParams = useSearchParams();
 
@@ -17,19 +21,44 @@ const IndexPage = () => {
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
-  const [feeSelected, setFeeSelected] = useState("");
+  const [feeSelected, setFeeSelected] = useState("SLOW");
+  const [customFeeConfig, setCustomFeeConfig] = useState({});
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    const providerId = searchParams.get("provider") || "changelly";
+    let providerId = "changelly";
 
     //-- Retrieve information coming from Deeplink
-    setAmount(searchParams.get(QueryParams.FromAmount) ?? "");
-    setFromAccount(searchParams.get(QueryParams.FromAccountId) ?? "");
-    setToAccount(searchParams.get(QueryParams.ToAccountId) ?? "");
-    setFeeSelected(searchParams.get(QueryParams.FeeStrategy) ?? "SLOW");
+    const customConfig = {};
+    for (const entry of searchParams.entries()) {
+      const [key] = entry;
+      let [, value] = entry;
+      if (value && value !== "undefined") {
+        switch (key) {
+          case InternalParams.Provider:
+            providerId = value;
+            break;
+          case QueryParams.FromAmount:
+            setAmount(value);
+            break;
+          case QueryParams.FromAccountId:
+            setFromAccount(value);
+            break;
+          case QueryParams.ToAccountId:
+            setToAccount(value);
+            break;
+          case QueryParams.FeeStrategy:
+            setFeeSelected(value);
+            break;
+          default:
+            customConfig[key] = value;
+        }
+      }
+    }
+
+    setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -82,6 +111,7 @@ const IndexPage = () => {
     const quoteId = quoteIdParam
       ? decodeURIComponent(quoteIdParam)
       : "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
+
     exchangeSDK.current
       ?.swap({
         quoteId,
@@ -89,6 +119,7 @@ const IndexPage = () => {
         toAccountId: toAccount,
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
+        customFeeConfig,
       })
       .catch((err) => {
         console.error(
@@ -97,7 +128,14 @@ const IndexPage = () => {
           err
         );
       });
-  }, [amount, fromAccount, toAccount, feeSelected, searchParams]);
+  }, [
+    searchParams,
+    fromAccount,
+    toAccount,
+    amount,
+    feeSelected,
+    customFeeConfig,
+  ]);
 
   return (
     <Layout title="Swap Web App Example">

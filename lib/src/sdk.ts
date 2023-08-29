@@ -25,9 +25,12 @@ export type SwapInfo = {
   toAccountId: string;
   fromAmount: BigNumber;
   feeStrategy: FeeStrategy;
+  customFeeConfig?: {
+    [key: string]: BigNumber;
+  };
 };
 
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST";
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 // export type FeeStrategy =
 //   (typeof schemaExchangeComplete)["params"]["feeStrategy"];
 
@@ -91,7 +94,13 @@ export class ExchangeSDK {
     this.logger.log("*** Start Swap ***");
 
     //TODO: Add and manage `quoteId`
-    const { fromAccountId, toAccountId, fromAmount, feeStrategy } = info;
+    const {
+      fromAccountId,
+      toAccountId,
+      fromAmount,
+      feeStrategy,
+      customFeeConfig = {},
+    } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
         fromAccountId,
@@ -134,6 +143,7 @@ export class ExchangeSDK {
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
+      customFeeConfig,
     });
 
     const tx = await this.walletAPI.exchange
@@ -148,6 +158,7 @@ export class ExchangeSDK {
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId);
+        this.logger.error(error);
         throw new SignatureStepError(error);
       });
 
@@ -191,10 +202,14 @@ export class ExchangeSDK {
     recipient,
     amount,
     currency,
+    customFeeConfig,
   }: {
     recipient: string;
     amount: BigNumber;
     currency: Currency;
+    customFeeConfig: {
+      [key: string]: BigNumber;
+    };
   }): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
@@ -214,27 +229,26 @@ export class ExchangeSDK {
       case "crypto_org":
       case "ripple":
       case "cosmos":
-      case "ripple":
       case "celo":
-      case "cosmos":
       case "hedera":
       case "filecoin":
       case "tezos":
       case "polkadot":
       case "stellar":
       case "tron":
-      case "near":
       case "neo":
         return {
           family,
           amount,
           recipient,
+          ...customFeeConfig,
         } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
       case "near":
         return {
           family,
           amount,
           recipient,
+          ...customFeeConfig,
           mode: "send", //??
         };
       case "cardano":
@@ -242,6 +256,7 @@ export class ExchangeSDK {
           family,
           amount,
           recipient,
+          ...customFeeConfig,
           mode: "send",
         };
       case "elrond":
@@ -249,14 +264,16 @@ export class ExchangeSDK {
           family,
           amount,
           recipient,
-          mode: "send", //??
           gasLimit: 0, //FIXME
+          ...customFeeConfig,
+          mode: "send", //??
         };
       case "solana":
         return {
           family,
           amount,
           recipient,
+          ...customFeeConfig,
           model: { kind: "transfer", uiState: {} },
         };
     }
