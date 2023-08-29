@@ -158,6 +158,7 @@ export class ExchangeSDK {
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId);
+        this.logger.error(error);
         throw new SignatureStepError(error);
       });
 

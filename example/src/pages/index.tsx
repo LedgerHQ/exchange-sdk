@@ -21,7 +21,7 @@ const IndexPage = () => {
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
-  const [feeSelected, setFeeSelected] = useState("");
+  const [feeSelected, setFeeSelected] = useState("SLOW");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
@@ -32,28 +32,29 @@ const IndexPage = () => {
 
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
-    for (let entry of searchParams.entries()) {
+    for (const entry of searchParams.entries()) {
       const [key] = entry;
       let [, value] = entry;
-      if (value === "undefined") value = undefined;
-      switch (key) {
-        case InternalParams.Provider:
-          providerId = value;
-          break;
-        case QueryParams.FromAmount:
-          setAmount(value ?? "");
-          break;
-        case QueryParams.FromAccountId:
-          setFromAccount(value ?? "");
-          break;
-        case QueryParams.ToAccountId:
-          setToAccount(value ?? "");
-          break;
-        case QueryParams.FeeStrategy:
-          setFeeSelected(value ?? "SLOW");
-          break;
-        default:
-          customConfig[key] = value ?? "";
+      if (value && value !== "undefined") {
+        switch (key) {
+          case InternalParams.Provider:
+            providerId = value;
+            break;
+          case QueryParams.FromAmount:
+            setAmount(value);
+            break;
+          case QueryParams.FromAccountId:
+            setFromAccount(value);
+            break;
+          case QueryParams.ToAccountId:
+            setToAccount(value);
+            break;
+          case QueryParams.FeeStrategy:
+            setFeeSelected(value);
+            break;
+          default:
+            customConfig[key] = value;
+        }
       }
     }
 
