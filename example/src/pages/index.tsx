@@ -23,6 +23,7 @@ const IndexPage = () => {
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("SLOW");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
+  const [rate, setRate] = useState(1);
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,8 +34,7 @@ const IndexPage = () => {
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
     for (const entry of searchParams.entries()) {
-      const [key] = entry;
-      let [, value] = entry;
+      const [key, value] = entry;
       if (value && value !== "undefined") {
         switch (key) {
           case InternalParams.Provider:
@@ -51,6 +51,9 @@ const IndexPage = () => {
             break;
           case QueryParams.FeeStrategy:
             setFeeSelected(value);
+            break;
+          case QueryParams.Rate:
+            setRate(+value);
             break;
           default:
             customConfig[key] = value;
@@ -108,9 +111,7 @@ const IndexPage = () => {
    */
   const onSwap = useCallback(() => {
     const quoteIdParam = searchParams.get(QueryParams.QuoteId);
-    const quoteId = quoteIdParam
-      ? decodeURIComponent(quoteIdParam)
-      : "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
+    const quoteId = quoteIdParam ? decodeURIComponent(quoteIdParam) : undefined;
 
     exchangeSDK.current
       ?.swap({
@@ -120,6 +121,7 @@ const IndexPage = () => {
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
+        rate,
       })
       .catch((err) => {
         console.error(

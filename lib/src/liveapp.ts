@@ -7,4 +7,5 @@ export const QueryParams = {
   FromAccountId: "fromAccountId",
   ToAccountId: "toAccountId",
   FeeStrategy: "feeStrategy",
+  Rate: "rate",
 };

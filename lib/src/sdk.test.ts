@@ -61,6 +61,7 @@ describe("swap", () => {
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
+      rate: 1.2,
     };
 
     // WHEN
