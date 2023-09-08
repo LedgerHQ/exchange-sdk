@@ -18,6 +18,7 @@ const IndexPage = () => {
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
+  const [quoteId, setQuoteId] = useState();
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
@@ -40,6 +41,9 @@ const IndexPage = () => {
           case InternalParams.Provider:
             providerId = value;
             break;
+          case QueryParams.QuoteId:
+            setQuoteId(value);
+            break;
           case QueryParams.FromAmount:
             setAmount(value);
             break;
@@ -55,13 +59,12 @@ const IndexPage = () => {
           case QueryParams.Rate:
             setRate(+value);
             break;
-          default:
-            customConfig[key] = value;
+          case QueryParams.CustomFeeConfig:
+            setCustomFeeConfig(JSON.parse(value));
+            break;
         }
       }
     }
-
-    setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -110,9 +113,6 @@ const IndexPage = () => {
    * Handle user's swap validation
    */
   const onSwap = useCallback(() => {
-    const quoteIdParam = searchParams.get(QueryParams.QuoteId);
-    const quoteId = quoteIdParam ? decodeURIComponent(quoteIdParam) : undefined;
-
     exchangeSDK.current
       ?.swap({
         quoteId,

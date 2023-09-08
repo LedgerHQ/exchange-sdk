@@ -33,8 +33,6 @@ export type SwapInfo = {
 };
 
 export type FeeStrategy = ExchangeComplete["params"]["feeStrategy"];
-// export type FeeStrategy =
-//   (typeof schemaExchangeComplete)["params"]["feeStrategy"];
 
 type UserAccounts = {
   fromAccount: Account;
