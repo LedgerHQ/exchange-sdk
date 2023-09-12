@@ -132,7 +132,7 @@ export class ExchangeSDK {
         toAccount: toAccount,
         amount: fromAmount,
         amountInAtomicUnit: BigInt("0"),
-        rateId: quoteId,
+        quoteId,
       }).catch((error: Error) => {
         this.logger.error(error);
         throw new PayloadStepError(error);
