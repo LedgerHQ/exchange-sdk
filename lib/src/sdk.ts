@@ -31,7 +31,7 @@ export type SwapInfo = {
   rate: number;
 };
 
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM"
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 
 type UserAccounts = {
   fromAccount: Account;
