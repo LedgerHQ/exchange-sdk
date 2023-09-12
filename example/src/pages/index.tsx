@@ -10,6 +10,7 @@ import BigNumber from "bignumber.js";
 
 export const InternalParams = {
   Provider: "provider",
+  Rate: "rate",
 };
 
 const IndexPage = () => {
@@ -56,7 +57,7 @@ const IndexPage = () => {
           case QueryParams.FeeStrategy:
             setFeeSelected(value);
             break;
-          case QueryParams.Rate:
+          case InternalParams.Rate:
             setRate(+value);
             break;
           case QueryParams.CustomFeeConfig:
