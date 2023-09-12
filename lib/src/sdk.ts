@@ -5,7 +5,6 @@ import {
   Transaction,
   WalletAPIClient,
   WindowMessageTransport,
-  ExchangeComplete,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import {
@@ -32,7 +31,7 @@ export type SwapInfo = {
   rate: number;
 };
 
-export type FeeStrategy = ExchangeComplete["params"]["feeStrategy"];
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM"
 
 type UserAccounts = {
   fromAccount: Account;
