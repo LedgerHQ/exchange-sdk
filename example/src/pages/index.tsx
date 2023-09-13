@@ -78,11 +78,32 @@ const IndexPage = () => {
   }, [searchParams]);
 
   /**
+   * Retrieve init fee surrency example
+   */
+  const getInitFeeCurrency = useCallback(async () => {
+    const accounts = await exchangeSDK.current?.walletAPI.account.list();
+    const account = accounts.find((acc) => acc.id === fromAccount);
+    const result = await exchangeSDK.current?.walletAPI.currency.list({
+      currencyIds: [account.currency],
+    });
+    const { parent: parentId } = result;
+    if (parentId) {
+      const parentCurrency = await exchangeSDK.current?.walletAPI.currency.list(
+        {
+          currencyIds: [parentId.currency],
+        }
+      );
+      console.log("initFeeCurrency (token)", parentCurrency);
+    } else {
+      console.log("initFeeCurrency (coin)", result);
+    }
+  }, [allAccounts, fromAccount]);
+
+  /**
    * Retrieve all user's accounts
    */
   const listAccounts = useCallback(async () => {
     const result = await exchangeSDK.current?.walletAPI.account.list();
-
     if (result) {
       setAllAccounts(result);
     }
@@ -224,6 +245,11 @@ const IndexPage = () => {
       <div>
         <input name="currency" ref={currencyInputRef} />
         <button onClick={onUninstallCoin}>{"Ask for currency account"}</button>
+      </div>
+      <div>
+        <button onClick={getInitFeeCurrency}>
+          {"Ask for init fee currency"}
+        </button>
       </div>
     </Layout>
   );

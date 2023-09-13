@@ -9,5 +9,4 @@ export const QueryParams = {
   FeeStrategy: "feeStrategy",
   CustomFeeConfig: "customFeeConfig",
   InitFeeTotalValue: "initFeeTotalValue",
-  InitFeeCurrencyCode: "initFeeCurrencyCode",
 };
