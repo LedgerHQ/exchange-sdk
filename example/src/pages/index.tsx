@@ -78,7 +78,7 @@ const IndexPage = () => {
   }, [searchParams]);
 
   /**
-   * Retrieve init fee surrency example
+   * Retrieve init fee currency example
    */
   const getInitFeeCurrency = useCallback(async () => {
     const accounts = await exchangeSDK.current?.walletAPI.account.list();
@@ -135,6 +135,7 @@ const IndexPage = () => {
    * Handle user's swap validation
    */
   const onSwap = useCallback(() => {
+    debugger;
     exchangeSDK.current
       ?.swap({
         quoteId,
