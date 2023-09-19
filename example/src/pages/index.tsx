@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
 import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
+import { useHashState } from "../hooks/useHashState";
 
 export const InternalParams = {
   Provider: "provider",
@@ -14,6 +15,7 @@ export const InternalParams = {
 
 const IndexPage = () => {
   const searchParams = useSearchParams();
+  const hashState = useHashState();
 
   const exchangeSDK = useRef<ExchangeSDK>();
 
@@ -215,7 +217,12 @@ const IndexPage = () => {
       </div>
 
       <div>
-        <button onClick={() => onSwap()}>{"Execute swap"}</button>
+        <button
+          disabled={!(hashState?.enabled ?? false)}
+          onClick={() => onSwap()}
+        >
+          Execute swap - disabled:{`${!hashState?.enabled}`}
+        </button>
       </div>
 
       <div>
