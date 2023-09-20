@@ -7,4 +7,6 @@ export const QueryParams = {
   FromAccountId: "fromAccountId",
   ToAccountId: "toAccountId",
   FeeStrategy: "feeStrategy",
+  CustomFeeConfig: "customFeeConfig",
+  InitFeeTotalValue: "initFeeTotalValue",
 };

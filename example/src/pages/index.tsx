@@ -10,6 +10,7 @@ import BigNumber from "bignumber.js";
 
 export const InternalParams = {
   Provider: "provider",
+  Rate: "rate",
 };
 
 const IndexPage = () => {
@@ -18,11 +19,13 @@ const IndexPage = () => {
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
+  const [quoteId, setQuoteId] = useState();
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("SLOW");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
+  const [rate, setRate] = useState(1);
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,12 +36,14 @@ const IndexPage = () => {
     //-- Retrieve information coming from Deeplink
     const customConfig = {};
     for (const entry of searchParams.entries()) {
-      const [key] = entry;
-      let [, value] = entry;
+      const [key, value] = entry;
       if (value && value !== "undefined") {
         switch (key) {
           case InternalParams.Provider:
             providerId = value;
+            break;
+          case QueryParams.QuoteId:
+            setQuoteId(value);
             break;
           case QueryParams.FromAmount:
             setAmount(value);
@@ -52,13 +57,15 @@ const IndexPage = () => {
           case QueryParams.FeeStrategy:
             setFeeSelected(value);
             break;
-          default:
-            customConfig[key] = value;
+          case InternalParams.Rate:
+            setRate(+value);
+            break;
+          case QueryParams.CustomFeeConfig:
+            setCustomFeeConfig(JSON.parse(value));
+            break;
         }
       }
     }
-
-    setCustomFeeConfig(customConfig);
 
     // Initiate ExchangeSDK
     exchangeSDK.current = new ExchangeSDK(providerId);
@@ -71,11 +78,32 @@ const IndexPage = () => {
   }, [searchParams]);
 
   /**
+   * Retrieve init fee currency example
+   */
+  const getInitFeeCurrency = useCallback(async () => {
+    const accounts = await exchangeSDK.current?.walletAPI.account.list();
+    const account = accounts.find((acc) => acc.id === fromAccount);
+    const result = await exchangeSDK.current?.walletAPI.currency.list({
+      currencyIds: [account.currency],
+    });
+    const { parent: parentId } = result;
+    if (parentId) {
+      const parentCurrency = await exchangeSDK.current?.walletAPI.currency.list(
+        {
+          currencyIds: [parentId.currency],
+        }
+      );
+      console.log("initFeeCurrency (token)", parentCurrency);
+    } else {
+      console.log("initFeeCurrency (coin)", result);
+    }
+  }, [allAccounts, fromAccount]);
+
+  /**
    * Retrieve all user's accounts
    */
   const listAccounts = useCallback(async () => {
     const result = await exchangeSDK.current?.walletAPI.account.list();
-
     if (result) {
       setAllAccounts(result);
     }
@@ -107,11 +135,7 @@ const IndexPage = () => {
    * Handle user's swap validation
    */
   const onSwap = useCallback(() => {
-    const quoteIdParam = searchParams.get(QueryParams.QuoteId);
-    const quoteId = quoteIdParam
-      ? decodeURIComponent(quoteIdParam)
-      : "84F84F76-FD3A-461A-AF6B-D03F78F7123B";
-
+    debugger;
     exchangeSDK.current
       ?.swap({
         quoteId,
@@ -120,6 +144,7 @@ const IndexPage = () => {
         fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
+        rate,
       })
       .catch((err) => {
         console.error(
@@ -221,6 +246,11 @@ const IndexPage = () => {
       <div>
         <input name="currency" ref={currencyInputRef} />
         <button onClick={onUninstallCoin}>{"Ask for currency account"}</button>
+      </div>
+      <div>
+        <button onClick={getInitFeeCurrency}>
+          {"Ask for init fee currency"}
+        </button>
       </div>
     </Layout>
   );

@@ -20,7 +20,7 @@ import { cancelSwap, confirmSwap, retrievePayload } from "./api";
  * Swap information required to request user's a swap transaction.
  */
 export type SwapInfo = {
-  quoteId: string;
+  quoteId?: string;
   fromAccountId: string;
   toAccountId: string;
   fromAmount: BigNumber;
@@ -28,11 +28,10 @@ export type SwapInfo = {
   customFeeConfig?: {
     [key: string]: BigNumber;
   };
+  rate: number;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-// export type FeeStrategy =
-//   (typeof schemaExchangeComplete)["params"]["feeStrategy"];
 
 type UserAccounts = {
   fromAccount: Account;
@@ -93,13 +92,14 @@ export class ExchangeSDK {
   async swap(info: SwapInfo): Promise<string> {
     this.logger.log("*** Start Swap ***");
 
-    //TODO: Add and manage `quoteId`
     const {
       fromAccountId,
       toAccountId,
       fromAmount,
       feeStrategy,
       customFeeConfig = {},
+      rate,
+      quoteId,
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -131,8 +131,7 @@ export class ExchangeSDK {
         toAccount: toAccount,
         amount: fromAmount,
         amountInAtomicUnit: BigInt("0"),
-        //FIXME
-        // rateId: quoteId,
+        quoteId,
       }).catch((error: Error) => {
         this.logger.error(error);
         throw new PayloadStepError(error);
@@ -155,6 +154,8 @@ export class ExchangeSDK {
         binaryPayload,
         signature,
         feeStrategy,
+        swapId,
+        rate,
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId);

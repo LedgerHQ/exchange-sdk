@@ -35,7 +35,7 @@ describe("swap", () => {
     const mockAccountList = jest
       .spyOn(AccountModule.prototype, "list")
       .mockResolvedValue(accounts as Array<Account>);
-    jest.spyOn(CurrencyModule.prototype, "list").mockResolvedValue(currencies);
+    jest.spyOn(CurrencyModule.prototype, "list").mockResolvedValue(currencies as any);
     jest
       .spyOn(ExchangeModule.prototype, "start")
       .mockResolvedValue("DeviceTransactionId");
@@ -61,6 +61,7 @@ describe("swap", () => {
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
+      rate: 1.2,
     };
 
     // WHEN

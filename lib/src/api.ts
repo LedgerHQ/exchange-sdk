@@ -15,7 +15,7 @@ export type PayloadRequestData = {
   toAccount: Account;
   amount: BigNumber;
   amountInAtomicUnit: bigint;
-  rateId?: string;
+  quoteId?: string;
 };
 export type PayloadResponse = {
   binaryPayload: Buffer;
@@ -35,7 +35,7 @@ export async function retrievePayload(
     refundAddress: data.fromAccount.address,
     amountFrom: data.amount.toString(),
     amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
-    rateId: data.rateId,
+    swapId: data.quoteId,
   };
   // logger.log("Request to SWAP Backend:", request);
   const res = await axiosClient.post("", request);

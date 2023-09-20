@@ -26,7 +26,7 @@ describe("retrievePayload", () => {
       toAccount: createAccount("13", "eth-account", "ethereum", "0x999"),
       amount: BigNumber("1.908"),
       amountInAtomicUnit: BigInt(1_908_000_000_000),
-      rateId: "978400",
+      quoteId: "978400",
     };
     const responseData = swapApiResponse();
     mockPost.mockResolvedValueOnce({ data: responseData });
@@ -51,13 +51,13 @@ describe("retrievePayload", () => {
       refundAddress: "0x998",
       amountFrom: "1.908",
       amountFromInSmallestDenomination: 1908000000000,
-      rateId: "978400",
+      swapId: "978400",
     };
     expect(mockPost.mock.calls[0][0]).toEqual("");
     expect(mockPost.mock.calls[0][1]).toEqual(expectedRequest);
   });
 
-  it("doesn't send rateId if there is none in the parameter", async () => {
+  it("doesn't send quoteId if there is none in the parameter", async () => {
     // GIVEN
     const data = {
       provider: "provider-name",
