@@ -19,7 +19,7 @@ const Layout = ({ children, title = "This is the default title" }: Props) => (
         <Link href="/">Home</Link> |{" "}
       </nav>
     </header>
-    {children}
+    <div style={{ backgroundColor: "whitesmoke" }}>{children}</div>
     <footer>
       <span>Footer</span>
     </footer>

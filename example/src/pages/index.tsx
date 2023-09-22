@@ -3,11 +3,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
-import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
+import { ExchangeSDK, QueryParams } from "@ledgerhq/exchange-sdk";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { useHashState } from "../hooks/useHashState";
+import { HashSchemaType } from "../schemas/HashSchema";
 
 export const InternalParams = {
   Provider: "provider",
@@ -15,62 +16,26 @@ export const InternalParams = {
 
 const IndexPage = () => {
   const searchParams = useSearchParams();
-  const hashState = useHashState();
+  const [hashState, setHashState] = useHashState();
 
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
-  const [amount, setAmount] = useState("");
-  const [fromAccount, setFromAccount] = useState("");
-  const [toAccount, setToAccount] = useState("");
-  const [feeSelected, setFeeSelected] = useState("SLOW");
-  const [customFeeConfig, setCustomFeeConfig] = useState({});
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // As a demo app, we may provide a providerId for testing purpose.
-    let providerId = "changelly";
-
-    //-- Retrieve information coming from Deeplink
-    const customConfig = {};
-    for (const entry of searchParams.entries()) {
-      const [key] = entry;
-      let [, value] = entry;
-      if (value && value !== "undefined") {
-        switch (key) {
-          case InternalParams.Provider:
-            providerId = value;
-            break;
-          case QueryParams.FromAmount:
-            setAmount(value);
-            break;
-          case QueryParams.FromAccountId:
-            setFromAccount(value);
-            break;
-          case QueryParams.ToAccountId:
-            setToAccount(value);
-            break;
-          case QueryParams.FeeStrategy:
-            setFeeSelected(value);
-            break;
-          default:
-            customConfig[key] = value;
-        }
-      }
-    }
-
-    setCustomFeeConfig(customConfig);
-
     // Initiate ExchangeSDK
-    exchangeSDK.current = new ExchangeSDK(providerId);
+    if (hashState?.provider) {
+      exchangeSDK.current = new ExchangeSDK(hashState.provider);
+    }
 
     // Cleanup the Ledger Live API on component unmount
     return () => {
       exchangeSDK.current?.disconnect();
       exchangeSDK.current = undefined;
     };
-  }, [searchParams]);
+  }, [searchParams, hashState?.provider]);
 
   /**
    * Retrieve all user's accounts
@@ -82,16 +47,6 @@ const IndexPage = () => {
       setAllAccounts(result);
     }
   }, [exchangeSDK]);
-
-  //-- Handle user's inputs
-  const handleAmount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setAmount(event.target.value);
-  const handleFromAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setFromAccount(event.target.value);
-  const handleToAccount = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setToAccount(event.target.value);
-  const handleFee = (event: React.ChangeEvent<HTMLInputElement>) =>
-    setFeeSelected(event.target.value);
 
   //-- TEST
   const onUninstallCoin = async () => {
@@ -117,11 +72,10 @@ const IndexPage = () => {
     exchangeSDK.current
       ?.swap({
         quoteId,
-        fromAccountId: fromAccount,
-        toAccountId: toAccount,
-        fromAmount: new BigNumber(amount),
-        feeStrategy: feeSelected as FeeStrategy,
-        customFeeConfig,
+        fromAccountId: hashState?.fromAccountId ?? "",
+        toAccountId: hashState?.toAccountId ?? "",
+        fromAmount: hashState?.fromAmount ?? BigNumber(0),
+        feeStrategy: hashState?.feeStrategy ?? "SLOW",
       })
       .catch((err) => {
         console.error(
@@ -132,11 +86,10 @@ const IndexPage = () => {
       });
   }, [
     searchParams,
-    fromAccount,
-    toAccount,
-    amount,
-    feeSelected,
-    customFeeConfig,
+    hashState?.fromAccountId,
+    hashState?.toAccountId,
+    hashState?.fromAmount,
+    hashState?.feeStrategy,
   ]);
 
   return (
@@ -146,7 +99,7 @@ const IndexPage = () => {
       <div>
         <button onClick={listAccounts}>{"List accounts"}</button>
       </div>
-      <div style={{ backgroundColor: "#999999" }}>
+      <div>
         <table>
           <thead>
             <tr>
@@ -166,63 +119,106 @@ const IndexPage = () => {
           </tbody>
         </table>
       </div>
+      <form
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "13px",
+          backgroundColor: "bisque",
+          padding: "13px",
+        }}
+        onChange={(e: React.ChangeEvent<HTMLFormElement>) => {
+          const name = e.target.name as keyof HashSchemaType;
+          const value = e.target.value;
 
-      <div>
-        <label htmlFor="amount" style={{ color: "#dddddd" }}>
-          {"Amount"}
-        </label>
-        <input name="amount" onChange={handleAmount} value={amount} />
-      </div>
-      <div>
-        <label htmlFor="fee" style={{ color: "#dddddd" }}>
-          {"Fee"}
-        </label>
-        <div onChange={handleFee} style={{ color: "#dddddd" }}>
-          <input
-            type="radio"
-            name="fee"
-            value="SLOW"
-            defaultChecked={feeSelected === "SLOW"}
-          />{" "}
-          SLOW
-          <input
-            type="radio"
-            name="fee"
-            value="MEDIUM"
-            defaultChecked={feeSelected === "MEDIUM"}
-          />{" "}
-          MEDIUM
-          <input
-            type="radio"
-            name="fee"
-            value="FAST"
-            defaultChecked={feeSelected === "FAST"}
-          />{" "}
-          FAST
-        </div>
-      </div>
-      <div>
-        <label htmlFor="fromAccount" style={{ color: "#dddddd" }}>
-          {"From Account"}
-        </label>
-        <input
-          name="fromAccount"
-          onChange={handleFromAccount}
-          value={fromAccount}
-        />
-        <label htmlFor="toAccount" style={{ color: "#dddddd" }}>
-          {"To Account"}
-        </label>
-        <input name="toAccount" onChange={handleToAccount} value={toAccount} />
-      </div>
+          console.log(
+            "%cindex.tsx line:135 name, value",
+            "color: #007acc;",
+            name,
+            value
+          );
 
-      <div>
-        <button
-          disabled={!(hashState?.enabled ?? false)}
-          onClick={() => onSwap()}
+          if (
+            ["fromAmount", "initFeeTotalValue", "rate", "feeStrategy"].includes(
+              name
+            )
+          ) {
+            setHashState({
+              [name]: BigNumber(value),
+            });
+          }
+          setHashState({
+            [name]: value,
+          });
+        }}
+      >
+        <fieldset>
+          <label htmlFor="fromAmount">Amount</label>
+          <input
+            id="fromAmount"
+            name="fromAmount"
+            value={hashState?.fromAmount.toString()}
+          />
+        </fieldset>
+        <fieldset
+          style={{ display: "flex", flexDirection: "column", gap: "13px" }}
         >
-          Execute swap - disabled:{`${!hashState?.enabled}`}
-        </button>
+          <legend>Fee</legend>
+          <div>
+            <label htmlFor="feeStrategy-slow">SLOW</label>
+            <input
+              id="feeStrategy-slow"
+              type="radio"
+              name="feeStrategy"
+              value="SLOW"
+              defaultChecked={hashState?.feeStrategy === "SLOW"}
+            />
+          </div>
+          <div>
+            <label htmlFor="feeStrategy-medium">MEDIUM</label>
+            <input
+              id="feeStrategy-medium"
+              type="radio"
+              name="feeStrategy"
+              value="MEDIUM"
+              defaultChecked={hashState?.feeStrategy === "MEDIUM"}
+            />
+          </div>
+          <div>
+            <label htmlFor="feeStrategy-fast">FAST</label>
+            <input
+              id="feeStrategy-fast"
+              type="radio"
+              name="feeStrategy"
+              value="FAST"
+              defaultChecked={hashState?.feeStrategy === "FAST"}
+            />
+          </div>
+        </fieldset>
+        <fieldset
+          style={{ display: "flex", flexDirection: "column", gap: "13px" }}
+        >
+          <div>
+            <label htmlFor="fromAccountId">From Account</label>
+            <input
+              id="fromAccountId"
+              name="fromAccountId"
+              value={hashState?.fromAccountId}
+            />
+          </div>
+          <div>
+            <label htmlFor="toAccountId">To Account</label>
+            <input
+              id="toAccountId"
+              name="toAccountId"
+              value={hashState?.toAccountId}
+            />
+          </div>
+        </fieldset>
+      </form>
+
+      <div>
+        <button onClick={() => onSwap()}>Execute swap</button>
       </div>
 
       <div>
