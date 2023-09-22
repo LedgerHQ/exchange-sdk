@@ -16,7 +16,14 @@ export class Logger {
 
   error(error: Error) {
     if (this.isActive) {
-      console.error(`%c${prefix} ERROR`, style, "%O", error);
+      const errorParams = [
+        `%c${prefix} ERROR`,
+        style,
+        "%O",
+        error,
+        error.cause,
+      ].filter((x) => x !== undefined);
+      console.error(...errorParams);
     }
   }
 

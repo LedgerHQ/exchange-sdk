@@ -1,35 +1,64 @@
 export class ExchangeError extends Error {
-  constructor(nestedError?: Error, message?: string) {
-    super(message);
+  constructor(code = "swap000", nestedError?: Error) {
+    super();
     this.name = "ExchangeError";
-    this.cause = nestedError;
+    // Support log for different error types.
+    this.cause = {
+      swapCode: code,
+      ...(nestedError?.constructor !== Object ||
+      nestedError?.constructor !== Array
+        ? { message: `${nestedError}` }
+        : {}),
+      ...nestedError,
+    };
   }
 }
 
 export class NonceStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
+  constructor(nestedError?: Error) {
+    super("swap001", nestedError);
     this.name = "NonceStepError";
   }
 }
 
 export class PayloadStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
+  constructor(nestedError?: Error) {
+    super("swap002", nestedError);
     this.name = "PayloadStepError";
   }
 }
 
 export class SignatureStepError extends ExchangeError {
-  constructor(nestedError?: Error, message?: string) {
-    super(nestedError, message);
+  constructor(nestedError?: Error) {
+    super("swap003", nestedError);
     this.name = "SignatureStepError";
   }
 }
 
 export class NotEnoughFunds extends ExchangeError {
   constructor() {
-    super();
+    super("swap004");
     this.name = "NotEnoughFunds";
+  }
+}
+
+export class ListAccountError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap005", nestedError);
+    this.name = "ListAccountError";
+  }
+}
+
+export class ListCurrencyError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap006", nestedError);
+    this.name = "ListCurrencyError";
+  }
+}
+
+export class UnknonwAccountError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap007", nestedError);
+    this.name = "UnknonwAccountError";
   }
 }
