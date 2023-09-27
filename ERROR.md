@@ -22,40 +22,9 @@ stateDiagram
   completeswap_state --> [*]
   completeswap_state --> SignatureStepError
 
-  state CompleteSwap{
-    state partnerkey_state <<choice>>
-    state payoutaddress_state <<choice>>
-    state refundaddress_state <<choice>>
-
-    [*] --> SetPartnerKey
-    SetPartnerKey --> partnerkey_state
-    partnerkey_state --> CheckPartnerKey
-    partnerkey_state --> UnsupportedPartner
-
-    CheckPartnerKey --> ProcessTransaction
-    ProcessTransaction --> CheckTransactionSignature
-    CheckTransactionSignature --> CheckPayoutAddress
-
-    CheckPayoutAddress --> payoutaddress_state
-    payoutaddress_state --> CheckRefundAddress
-    payoutaddress_state --> WrongDeviceForAccount
-    payoutaddress_state --> SwapCompleteExchangeError %% Generic device error
-
-    CheckRefundAddress --> refundaddress_state
-    refundaddress_state --> SignCoinTransaction
-    refundaddress_state --> WrongDeviceForAccount
-    refundaddress_state --> SwapCompleteExchangeError %% Generic device error
-
-    SignCoinTransaction --> [*]
-  }
-
   class NonceStepError badBadEvent
   class PayloadStepError badBadEvent
   class SignatureStepError badBadEvent
-
-  class UnsupportedPartner badBadEvent
-  class WrongDeviceForAccount badBadEvent
-  class SwapCompleteExchangeError badBadEvent
 ```
 
 ## Error objects
@@ -67,22 +36,5 @@ The ExchangeSDK can throw differents kind of errors:
 
 All those errors (except *NotEnoughFunds*) embed the root error/cause.
 
-### SwapCompleteExchangeError case
-The `SwapCompleteExchangeError` within LL is a conversion of a device error.
-
-It contains:
-  * the step where the error occured (see `CompleteSwap` above)
-  * a human readable error from the app-exchange
-
-This last error is define [app-exchange wrapper](https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/hw-app-exchange/src/Exchange.ts) one among:
-  * INCORRECT_COMMAND_DATA: "Incorrect command data"
-  * DESERIALIZATION_FAILED: "Payload deserialzation failed"
-  * WRONG_TRANSACTION_ID: "Wrond transaction id"
-  * INVALID_ADDRESS: "Invalid address"
-  * USER_REFUSED: "User refused"
-  * INTERNAL_ERROR: "Internal error"
-  * WRONG_P1: "Wrong P1"
-  * WRONG_P2: "Wrong P2"
-  * CLASS_NOT_SUPPORTED: "Class not supported"
-  * INVALID_INSTRUCTION: "Invalid instruction"
-  * SIGN_VERIFICATION_FAIL: "Signature verification failed"
+## Contributors
+For more details on the whole error flow, with details on Ledger Live, go to the [dedicated confluence page](https://ledgerhq.atlassian.net/wiki/spaces/PTX/pages/4144530320/Errors).
