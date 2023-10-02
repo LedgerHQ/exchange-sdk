@@ -3,9 +3,6 @@
   "version": "0.0.2-0",
   "license": "MIT",
   "repository": "git@github.com:LedgerHQ/exchange-sdk.git",
-  "main": "./lib/index.js",
-  "module": "./lib/index.mjs",
-  "types": "./lib/index.d.ts",
   "files": [
     "./lib"
   ],
