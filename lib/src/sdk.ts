@@ -11,10 +11,12 @@ import {
   NonceStepError,
   NotEnoughFunds,
   PayloadStepError,
+  CancelStepError,
+  ConfirmStepError,
   SignatureStepError,
   ListAccountError,
   ListCurrencyError,
-  UnknonwAccountError,
+  UnknownAccountError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload } from "./api";
@@ -174,7 +176,12 @@ export class ExchangeSDK {
         rate,
       })
       .catch(async (error: Error) => {
-        await cancelSwap(this.providerId, swapId);
+        await cancelSwap(this.providerId, swapId)
+          .catch(async (error: Error) => {
+            const err = new CancelStepError(error);
+            this.logger.error(err);
+            throw err;
+          });
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
@@ -182,7 +189,12 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(this.providerId, swapId, tx);
+    await confirmSwap(this.providerId, swapId, tx)
+      .catch(async (error: Error) => {
+        const err = new ConfirmStepError(error);
+        this.logger.error(err);
+        throw err;
+      });;
     return tx;
   }
 
@@ -210,13 +222,13 @@ export class ExchangeSDK {
 
     const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
     if (!fromAccount) {
-      const err = new UnknonwAccountError(new Error("Unknonw fromAccountId"));
+      const err = new UnknownAccountError(new Error("Unknown fromAccountId"));
       this.logger.error(err);
       throw err;
     }
     const toAccount = allAccounts.find((value) => value.id === toAccountId);
     if (!toAccount) {
-      const err = new UnknonwAccountError(new Error("Unknonw toAccountId"));
+      const err = new UnknownAccountError(new Error("Unknown toAccountId"));
       this.logger.error(err);
       throw err;
     }
@@ -231,7 +243,7 @@ export class ExchangeSDK {
         return [];
       });
     if (!fromCurrency) {
-      const err = new UnknonwAccountError(new Error("Unknonw fromCurrency"));
+      const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
       this.logger.error(err);
       throw err;
     }

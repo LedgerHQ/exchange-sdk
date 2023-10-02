@@ -56,9 +56,24 @@ export class ListCurrencyError extends ExchangeError {
   }
 }
 
-export class UnknonwAccountError extends ExchangeError {
+export class UnknownAccountError extends ExchangeError {
   constructor(nestedError?: Error) {
     super("swap007", nestedError);
-    this.name = "UnknonwAccountError";
+    this.name = "UnknownAccountError";
   }
 }
+
+export class CancelStepError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap008", nestedError);
+    this.name = "CancelStepError";
+  }
+}
+
+export class ConfirmStepError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap009", nestedError);
+    this.name = "ConfirmStepError";
+  }
+}
+

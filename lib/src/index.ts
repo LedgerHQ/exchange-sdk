@@ -5,9 +5,11 @@ export {
   ExchangeError,
   NonceStepError,
   PayloadStepError,
+  CancelStepError,
+  ConfirmStepError,
   SignatureStepError,
   NotEnoughFunds,
   ListAccountError,
   ListCurrencyError,
-  UnknonwAccountError,
+  UnknownAccountError,
 } from "./error";
