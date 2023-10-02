@@ -25,6 +25,7 @@ export type SwapInfo = {
   toAccountId: string;
   fromAmount: BigNumber;
   feeStrategy: FeeStrategy;
+  rate: BigNumber;
   customFeeConfig?: {
     [key: string]: BigNumber;
   };
@@ -100,6 +101,7 @@ export class ExchangeSDK {
       fromAmount,
       feeStrategy,
       customFeeConfig = {},
+      rate,
     } = info;
     const { fromAccount, toAccount, fromCurrency } =
       await this.retrieveUserAccounts({
@@ -151,6 +153,8 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         toAccountId,
+        swapId,
+        rate: rate.toNumber(),
         transaction,
         binaryPayload,
         signature,
