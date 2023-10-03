@@ -1,7 +1,17 @@
 name: Release
 
 on:
-  push
+  workflow_dispatch:
+    inputs:
+      version:
+        description: set version for this release
+        default: "minor"
+        type: choice
+        options:
+          - "major"
+          - "minor"
+          - "patch"
+          - "prerelease"
 
 env:
   PACKAGE_NAME: "@ledgerhq/exchange-sdk"
@@ -41,13 +51,13 @@ jobs:
 
       - name: Create new version
         working-directory: ./lib
-        run: pnpm version patch --no-git-tag-version --workspaces-update false
+        run: pnpm version ${{ inputs.version }} --no-git-tag-version --workspaces-update false
 
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
       - name: Publish package to npm registry
-        run: pnpm --filter exchange-sdk --dry-run --access public --no-git-checks publish
+        run: pnpm publish --filter exchange-sdk --dry-run --access public --no-git-checks
         env:
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
@@ -55,9 +65,7 @@ jobs:
         working-directory: ./lib
         run: |
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          git diff
           git checkout $GIT_HASH -- ./package.json
-          git diff
           git tag $(pnpm show $PACKAGE_NAME version)
           git push --tags
         env:
