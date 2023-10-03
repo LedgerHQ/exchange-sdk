@@ -47,8 +47,8 @@ jobs:
         working-directory: ./lib
         run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > tmp && mv tmp package.json
 
-      working-directory: ./lib
       - name: Create new version
+        working-directory: ./lib
         run: pnpm version minor --no-git-tag-version
 
 
