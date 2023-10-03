@@ -28,6 +28,11 @@ jobs:
       - name: Setup jq
         run: sudo apt-get install jq
 
+      - name: Setup temp github user
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "Github Bot"
+
       - name: Install Dependencies
         run: pnpm --frozen-lockfile install
 
