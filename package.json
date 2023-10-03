@@ -10,9 +10,6 @@
     "dev": "turbo run dev",
     "clean": "git clean -fdX",
     "lint": "turbo lint",
-    "bump": "pnpm --filter=exchange-sdk --enable-pre-post-scripts bump",
-    "prerelease": "pnpm build",
-    "release": "pnpm --filter=exchange-sdk publish --access public",
     "test": "pnpm --filter=exchange-sdk test"
   },
   "devDependencies": {
