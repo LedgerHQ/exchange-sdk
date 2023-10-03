@@ -65,7 +65,7 @@ jobs:
       - name: Revert git changes and push version tag
         working-directory: ./lib
         run: |
-          VERSION=$(jq ".version" ./lib/package.json)
+          VERSION=$(jq ".version" ./package.json)
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
           git checkout $GIT_HASH -- ./package.json
           git tag $VERSION
