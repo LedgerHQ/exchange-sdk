@@ -1,4 +1,4 @@
-name: Release
+name: Release-Test
 
 on:
   workflow_dispatch:
@@ -13,6 +13,9 @@ on:
           - "patch"
           - "prerelease"
 
+env:
+  PACKAGE_NAME: "@ledgerhq/exchange-sdk"
+
 jobs:
   release:
     name: Release
@@ -23,25 +26,37 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8.6.12
+
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: 18.16
           registry-url: 'https://registry.npmjs.org'
           cache: pnpm
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          
+      - name: Setup jq
+        run: sudo apt-get install jq
+
       - name: Setup temp github user
         run: |
           git config user.email "action@github.com"
           git config user.name "Github Bot"
+
+      - name: Install Dependencies
+        run: pnpm --frozen-lockfile --filter exchange-sdk install
+
+      - name: Set current npm registry version in package.json
+        working-directory: ./lib
+        run: jq --arg v "$(npm show $PACKAGE_NAME version)" '.version=$v' package.json > tmp && mv tmp package.json
+
       - name: Create new version
-        run: pnpm bump ${{ inputs.version }}
+        working-directory: ./lib
+        run: pnpm version ${{ inputs.version }} --no-git-tag-version --workspaces-update false
+
+      - name: Build exchange-sdk
+        run: pnpm --filter exchange-sdk build
+
+      - name: Publish package to npm registry
+        run: pnpm --filter exchange-sdk --access public --no-git-checks publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish new version
-        run: pnpm prerelease && pnpm release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

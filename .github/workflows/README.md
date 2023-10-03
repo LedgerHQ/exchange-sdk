@@ -2,19 +2,17 @@
 
 ```mermaid
 graph TB
-
-     A((start)) --> B{push event triggered}
+     A((start)) --> B{workflow_dispatch event triggered}
      
-     B -- on:push --> C[Checkout code]
+     B -- "version (major, minor, patch, prerelease) chosen" --> C[Checkout code]
      C --> D[Setup pnpm]
      D --> E[Setup node]
      E --> F[Setup jq]
      F --> G[Setup temporary GitHub user]
      G --> H[Install Dependencies]
-     H --> I[Build exchange-sdk]
-     I --> J[Set current npm registry version in package.json]
-     J --> K[Create a new version]
+     H --> I[Set current npm registry version in package.json]
+     I --> J[Create a new version]
+     J --> K[Build exchange-sdk]
      K --> L[Publish package to npm registry]
      L --> M((end))
-     
 ```
