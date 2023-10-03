@@ -26,4 +26,4 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
       - name: Echo package name
-        run: echo "$PACKAGE_NAME
+        run: echo $PACKAGE_NAME
