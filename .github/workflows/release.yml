@@ -55,9 +55,11 @@ jobs:
         working-directory: ./lib
         run: |
           GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+          git diff
           git checkout $GIT_HASH -- ./package.json
+          git diff
           git tag $(pnpm show $PACKAGE_NAME version)
-          git push --dry-run origin $VERSION
+          git push origin $VERSION
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
