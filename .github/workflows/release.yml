@@ -1,17 +1,7 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: set version for this release
-        default: "minor"
-        type: choice
-        options:
-          - "major"
-          - "minor"
-          - "patch"
-          - "prerelease"
+  push
 
 env:
   PACKAGE_NAME: "@ledgerhq/exchange-sdk"
@@ -47,16 +37,28 @@ jobs:
 
       - name: Set current npm registry version in package.json
         working-directory: ./lib
-        run: jq --arg v "$(npm show $PACKAGE_NAME version)" '.version=$v' package.json > tmp && mv tmp package.json
+        run: jq --arg v "$(pnpm show $PACKAGE_NAME version)" '.version=$v' package.json > tmp && mv tmp package.json
 
       - name: Create new version
         working-directory: ./lib
-        run: pnpm version ${{ inputs.version }} --no-git-tag-version --workspaces-update false
+        run: pnpm version patch --no-git-tag-version --workspaces-update false
 
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
       - name: Publish package to npm registry
-        run: pnpm --filter exchange-sdk --access public --no-git-checks publish
+        run: pnpm --filter exchange-sdk --dry-run --access public --no-git-checks publish
         env:
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Revert git changes and push version tag
+        working-directory: ./lib
+        run: |
+          GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+          git checkout $GIT_HASH -- ./package.json
+          git tag $(pnpm show $PACKAGE_NAME version)
+          git push --dry-run origin $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
