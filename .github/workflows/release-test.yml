@@ -45,7 +45,9 @@ jobs:
       
       - name: Set version in package.json
         working-directory: ./lib
-        run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > tmp && mv tmp package.json
+        run: |
+          jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > tmp && mv tmp package.json
+          jq "." package.json
 
       - name: Create new version
         working-directory: ./lib
