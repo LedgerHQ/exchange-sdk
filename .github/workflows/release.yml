@@ -59,7 +59,7 @@ jobs:
           git checkout $GIT_HASH -- ./package.json
           git diff
           git tag $(pnpm show $PACKAGE_NAME version)
-          git push origin $VERSION
+          git push --tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
