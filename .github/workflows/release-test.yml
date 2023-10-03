@@ -34,7 +34,7 @@ jobs:
           git config user.name "Github Bot"
 
       - name: Install Dependencies
-        run: pnpm --frozen-lockfile install
+        run: pnpm --frozen-lockfile --filter exchange-sdk install
 
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
