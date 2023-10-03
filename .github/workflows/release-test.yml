@@ -40,7 +40,10 @@ jobs:
       
       - name: Set version in package.json
         working-directory: ./lib
-        run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json | jq -r '.version' | echo
+        run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json
+
+      - name: Create new version
+        run: pnpm bump ${{ inputs.version }}
 
 
 
