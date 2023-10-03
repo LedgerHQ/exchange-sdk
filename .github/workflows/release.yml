@@ -57,7 +57,7 @@ jobs:
         run: pnpm --filter exchange-sdk build
 
       - name: Publish package to npm registry
-        run: pnpm publish --filter exchange-sdk --dry-run --access public --no-git-checks
+        run: pnpm publish --filter exchange-sdk --access public --no-git-checks
         env:
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
