@@ -48,7 +48,5 @@ jobs:
         working-directory: ./lib
         run: pnpm version patch --no-git-tag-version --workspaces-update false
 
-
-
-
-
+      - name: Publish package to npm registry
+        run: pnpm --filter exchange-sdk --dry-run --no-git-checks publish
