@@ -39,13 +39,11 @@ jobs:
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
-      - name: Get version of package from registry
-        working-directory: ./lib
-        run: PACKAGE_VERSION=$(npm show $PACKAGE_NAME version)
       
-      - name: Set version in package.json
+      - name: Set current npm registry version in package.json
         working-directory: ./lib
         run: |
+          PACKAGE_VERSION=$(npm show $PACKAGE_NAME version)
           jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > tmp && mv tmp package.json
           jq "." package.json
 
