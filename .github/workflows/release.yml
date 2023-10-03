@@ -60,6 +60,7 @@ jobs:
         run: pnpm publish --filter exchange-sdk --access public --no-git-checks
         env:
           NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Revert git changes and push version tag
         working-directory: ./lib
