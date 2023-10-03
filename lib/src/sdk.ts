@@ -11,7 +11,12 @@ import {
   NonceStepError,
   NotEnoughFunds,
   PayloadStepError,
+  CancelStepError,
+  ConfirmStepError,
   SignatureStepError,
+  ListAccountError,
+  ListCurrencyError,
+  UnknownAccountError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload } from "./api";
@@ -89,7 +94,7 @@ export class ExchangeSDK {
    * @return {Promise} Promise of hash of send transaction.
    * @throws {ExchangeError}
    */
-  async swap(info: SwapInfo): Promise<string> {
+  async swap(info: SwapInfo): Promise<string | void> {
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -101,24 +106,36 @@ export class ExchangeSDK {
       rate,
       quoteId,
     } = info;
-    const { fromAccount, toAccount, fromCurrency } =
-      await this.retrieveUserAccounts({
-        fromAccountId,
-        toAccountId,
-      });
-    this.logger.log("User info", fromAccount, toAccount, fromCurrency);
+    const userAccounts = await this.retrieveUserAccounts({
+      fromAccountId,
+      toAccountId,
+    }).catch((error: Error) => {
+      throw error;
+    });
+    const { fromAccount, toAccount, fromCurrency } = userAccounts || {};
+    if (!(fromAccount && toAccount && fromCurrency))
+      return void this.logger.log(
+        "User info",
+        fromAccount,
+        toAccount,
+        fromCurrency
+      );
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
     if (canSpendAmount(fromAccount, fromAmountAtomic) === false) {
-      throw new NotEnoughFunds();
+      const err = new NotEnoughFunds();
+      this.logger.error(err);
+      throw err;
     }
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.exchange
       .start(ExchangeType.SWAP)
       .catch((error: Error) => {
-        throw new NonceStepError(error);
+        const err = new NonceStepError(error);
+        this.logger.error(err);
+        throw err;
       });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
@@ -133,8 +150,9 @@ export class ExchangeSDK {
         amountInAtomicUnit: BigInt("0"),
         quoteId,
       }).catch((error: Error) => {
-        this.logger.error(error);
-        throw new PayloadStepError(error);
+        const err = new PayloadStepError(error);
+        this.logger.error(err);
+        throw err;
       });
 
     // 3 - Send payload
@@ -158,14 +176,25 @@ export class ExchangeSDK {
         rate,
       })
       .catch(async (error: Error) => {
-        await cancelSwap(this.providerId, swapId);
-        this.logger.error(error);
-        throw new SignatureStepError(error);
+        await cancelSwap(this.providerId, swapId)
+          .catch(async (error: Error) => {
+            const err = new CancelStepError(error);
+            this.logger.error(err);
+            throw err;
+          });
+        const err = new SignatureStepError(error);
+        this.logger.error(err);
+        throw err;
       });
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(this.providerId, swapId, tx);
+    await confirmSwap(this.providerId, swapId, tx)
+      .catch(async (error: Error) => {
+        const err = new ConfirmStepError(error);
+        this.logger.error(err);
+        throw err;
+      });;
     return tx;
   }
 
@@ -182,16 +211,42 @@ export class ExchangeSDK {
     toAccountId: string;
   }): Promise<UserAccounts> {
     const { fromAccountId, toAccountId } = accounts;
-    const allAccounts = await this.walletAPI.account.list();
+    const allAccounts = await this.walletAPI.account
+      .list()
+      .catch(async (error: Error) => {
+        const err = new ListAccountError(error);
+        this.logger.error(err);
+        throw err;
+        return [];
+      });
 
     const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
-    if (!fromAccount) throw Error("Unknonw fromAccountId"); //FIXME
+    if (!fromAccount) {
+      const err = new UnknownAccountError(new Error("Unknown fromAccountId"));
+      this.logger.error(err);
+      throw err;
+    }
     const toAccount = allAccounts.find((value) => value.id === toAccountId);
-    if (!toAccount) throw Error("Unknonw toAccountId"); //FIXME
-    const [fromCurrency]: Array<Currency> = await this.walletAPI.currency.list({
-      currencyIds: [fromAccount.currency],
-    });
-
+    if (!toAccount) {
+      const err = new UnknownAccountError(new Error("Unknown toAccountId"));
+      this.logger.error(err);
+      throw err;
+    }
+    const [fromCurrency]: Array<Currency> = await this.walletAPI.currency
+      .list({
+        currencyIds: [fromAccount.currency],
+      })
+      .catch(async (error: Error) => {
+        const err = new ListCurrencyError(error);
+        this.logger.error(err);
+        throw err;
+        return [];
+      });
+    if (!fromCurrency) {
+      const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
+      this.logger.error(err);
+      throw err;
+    }
     return {
       fromAccount,
       toAccount,

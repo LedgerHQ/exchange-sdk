@@ -34,7 +34,6 @@ const IndexPage = () => {
     let providerId = "changelly";
 
     //-- Retrieve information coming from Deeplink
-    const customConfig = {};
     for (const entry of searchParams.entries()) {
       const [key, value] = entry;
       if (value && value !== "undefined") {
@@ -97,7 +96,7 @@ const IndexPage = () => {
     } else {
       console.log("initFeeCurrency (coin)", result);
     }
-  }, [allAccounts, fromAccount]);
+  }, [fromAccount]);
 
   /**
    * Retrieve all user's accounts
@@ -135,7 +134,6 @@ const IndexPage = () => {
    * Handle user's swap validation
    */
   const onSwap = useCallback(() => {
-    debugger;
     exchangeSDK.current
       ?.swap({
         quoteId,
@@ -154,12 +152,13 @@ const IndexPage = () => {
         );
       });
   }, [
-    searchParams,
     fromAccount,
     toAccount,
     amount,
     feeSelected,
     customFeeConfig,
+    quoteId,
+    rate,
   ]);
 
   return (
