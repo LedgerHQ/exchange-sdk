@@ -14,5 +14,6 @@ graph TB
      I --> J[Create a new version]
      J --> K[Build exchange-sdk]
      K --> L[Publish package to npm registry]
-     L --> M((end))
+     L --> M[Revert git changes and push version tag]
+     M --> N((end))
 ```
