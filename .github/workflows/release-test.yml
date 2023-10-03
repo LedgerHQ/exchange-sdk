@@ -49,7 +49,7 @@ jobs:
 
       - name: Create new version
         working-directory: ./lib
-        run: pnpm version minor --no-git-tag-version
+        run: pnpm version minor --no-git-tag-version --workspaces-update false
 
 
 
