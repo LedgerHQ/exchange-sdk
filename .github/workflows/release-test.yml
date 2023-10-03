@@ -43,7 +43,7 @@ jobs:
         run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json
 
       - name: Create new version
-        run: pnpm bump ${{ inputs.version }}
+        run: pnpm bump minor
 
 
 
