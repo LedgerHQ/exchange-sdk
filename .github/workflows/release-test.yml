@@ -42,16 +42,11 @@ jobs:
       
       - name: Set current npm registry version in package.json
         working-directory: ./lib
-        run: |
-          PACKAGE_VERSION=$(npm show $PACKAGE_NAME version)
-          jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > tmp && mv tmp package.json
-          jq "." package.json
+        run: jq --arg v "$(npm show $PACKAGE_NAME version)" '.version=$v' package.json > tmp && mv tmp package.json
 
       - name: Create new version
         working-directory: ./lib
-        run: |
-          jq "." package.json
-          pnpm version patch --no-git-tag-version --workspaces-update false
+        run: pnpm version patch --no-git-tag-version --workspaces-update false
 
 
 
