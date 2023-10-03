@@ -45,7 +45,7 @@ jobs:
       
       - name: Set version in package.json
         working-directory: ./lib
-        run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json
+        run: jq --arg v "$PACKAGE_VERSION" '.version=$v' package.json > package.json
 
       - name: Create new version
         run: pnpm bump minor
