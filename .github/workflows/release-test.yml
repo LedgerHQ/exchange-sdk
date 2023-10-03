@@ -1,19 +1,11 @@
 name: Release-Test
 
 on:
-  push:
-    env:
-      PACKAGE_NAME: "@ledgerhq/exchange-sdk"
-    # inputs:
-    #   version:
-    #     description: set version for this release
-    #     default: "minor"
-    #     type: choice
-    #     options:
-    #       - "major"
-    #       - "minor"
-    #       - "patch"
-    #       - "prerelease"
+  push
+
+env:
+  PACKAGE_NAME: "@ledgerhq/exchange-sdk"
+
 
 jobs:
   release:
@@ -34,4 +26,4 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
       - name: Echo package name
-        run: echo $PACKAGE_NAME
+        run: echo "$PACKAGE_NAME
