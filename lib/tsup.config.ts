@@ -1,14 +1,13 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig(() => ({
-  entry: ["src/index.ts"],
+  entry: ["./src/index.ts", "./src/*.ts"],
   outDir: "lib",
   dts: true,
-  splitting: true,
-  sourcemap: true,
-  minify: true,
-  platform: "browser",
   clean: true,
-  format: ["esm", "cjs"],
+  minify: true,
   target: ["es2022"],
+  format: ["esm", "cjs"],
+  splitting: true,
+  bundle: false,
 }));

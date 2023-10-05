@@ -3,12 +3,12 @@ import {
   Currency,
   WalletAPIClient,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
-import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
-import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
-import BigNumber from "bignumber.js";
-import { retrievePayload } from "./api";
-import { ExchangeSDK, FeeStrategy } from "./sdk";
+import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange.js";
+import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account.js";
+import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency.js";
+import { BigNumber } from "bignumber.js";
+import { retrievePayload } from "../api.js";
+import { ExchangeSDK, FeeStrategy } from "../sdk.js";
 
 jest.mock("./api");
 

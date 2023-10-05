@@ -6,7 +6,7 @@ import {
   WalletAPIClient,
   WindowMessageTransport,
 } from "@ledgerhq/wallet-api-client";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
 import {
   NonceStepError,
   NotEnoughFunds,
@@ -17,9 +17,9 @@ import {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
-} from "./error";
-import { Logger } from "./log";
-import { cancelSwap, confirmSwap, retrievePayload } from "./api";
+} from "./error.js";
+import { Logger } from "./log.js";
+import { cancelSwap, confirmSwap, retrievePayload } from "./api.js";
 
 /**
  * Swap information required to request user's a swap transaction.
@@ -176,12 +176,13 @@ export class ExchangeSDK {
         rate,
       })
       .catch(async (error: Error) => {
-        await cancelSwap(this.providerId, swapId)
-          .catch(async (error: Error) => {
+        await cancelSwap(this.providerId, swapId).catch(
+          async (error: Error) => {
             const err = new CancelStepError(error);
             this.logger.error(err);
             throw err;
-          });
+          }
+        );
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
@@ -189,12 +190,13 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(this.providerId, swapId, tx)
-      .catch(async (error: Error) => {
+    await confirmSwap(this.providerId, swapId, tx).catch(
+      async (error: Error) => {
         const err = new ConfirmStepError(error);
         this.logger.error(err);
         throw err;
-      });;
+      }
+    );
     return tx;
   }
 

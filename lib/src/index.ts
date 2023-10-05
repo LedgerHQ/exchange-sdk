@@ -1,6 +1,6 @@
-export { QueryParams } from "./liveapp";
-export type { FeeStrategy } from "./sdk";
-export { ExchangeSDK } from "./sdk";
+export { QueryParams } from "./liveapp.js";
+export type { FeeStrategy } from "./sdk.js";
+export { ExchangeSDK } from "./sdk.js";
 export {
   ExchangeError,
   NonceStepError,
@@ -12,4 +12,4 @@ export {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
-} from "./error";
+} from "./error.js";

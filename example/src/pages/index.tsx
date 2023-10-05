@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
 import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
@@ -19,7 +19,7 @@ const IndexPage = () => {
   const exchangeSDK = useRef<ExchangeSDK>();
 
   const [allAccounts, setAllAccounts] = useState<Array<Account>>([]);
-  const [quoteId, setQuoteId] = useState();
+  const [quoteId, setQuoteId] = useState<string>();
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
   const [toAccount, setToAccount] = useState("");
@@ -80,21 +80,23 @@ const IndexPage = () => {
    * Retrieve init fee currency example
    */
   const getInitFeeCurrency = useCallback(async () => {
-    const accounts = await exchangeSDK.current?.walletAPI.account.list();
-    const account = accounts.find((acc) => acc.id === fromAccount);
-    const result = await exchangeSDK.current?.walletAPI.currency.list({
-      currencyIds: [account.currency],
-    });
-    const { parent: parentId } = result;
-    if (parentId) {
-      const parentCurrency = await exchangeSDK.current?.walletAPI.currency.list(
-        {
-          currencyIds: [parentId.currency],
-        }
-      );
-      console.log("initFeeCurrency (token)", parentCurrency);
-    } else {
-      console.log("initFeeCurrency (coin)", result);
+    if (exchangeSDK.current) {
+      const accounts = await exchangeSDK.current.walletAPI.account.list();
+      const account = accounts.find((acc) => acc.id === fromAccount);
+      const [result] = await exchangeSDK.current?.walletAPI.currency.list({
+        ...(account?.currency ? { currencyIds: [account.currency] } : {}),
+      });
+      const parentId =
+        result.type === "TokenCurrency" ? result.parent : undefined;
+      if (parentId) {
+        const parentCurrency =
+          await exchangeSDK.current?.walletAPI.currency.list({
+            currencyIds: [parentId],
+          });
+        console.log("initFeeCurrency (token)", parentCurrency);
+      } else {
+        console.log("initFeeCurrency (coin)", result);
+      }
     }
   }, [fromAccount]);
 

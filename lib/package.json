@@ -1,20 +1,22 @@
 {
   "name": "@ledgerhq/exchange-sdk",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "repository": "git@github.com:LedgerHQ/exchange-sdk.git",
+  "type": "module",
   "files": [
     "./lib"
   ],
+  "main": "./lib/index.js",
   "exports": {
     ".": {
       "import": {
-        "types": "./lib/index.d.mts",
-        "default": "./lib/index.mjs"
-      },
-      "require": {
         "types": "./lib/index.d.ts",
         "default": "./lib/index.js"
+      },
+      "require": {
+        "types": "./lib/index.d.cts",
+        "default": "./lib/index.cjs"
       }
     }
   },
