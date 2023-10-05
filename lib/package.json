@@ -1,6 +1,6 @@
 {
   "name": "@ledgerhq/exchange-sdk",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "license": "MIT",
   "repository": "git@github.com:LedgerHQ/exchange-sdk.git",
   "type": "module",
