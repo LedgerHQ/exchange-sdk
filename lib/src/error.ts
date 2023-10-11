@@ -1,4 +1,5 @@
 export class ExchangeError extends Error {
+  cause: object;
   constructor(code = "swap000", nestedError?: Error) {
     super();
     this.name = "ExchangeError";

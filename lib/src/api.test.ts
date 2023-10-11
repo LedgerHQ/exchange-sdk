@@ -1,10 +1,10 @@
-import { create } from "axios";
+import axios from "axios";
 import BigNumber from "bignumber.js";
 import { Account } from "@ledgerhq/wallet-api-client";
 
 jest.mock("axios");
 const mockPost = jest.fn();
-(create as jest.Mock).mockImplementation(() => {
+(axios.create as jest.Mock).mockImplementation(() => {
   return {
     post: mockPost,
   };
