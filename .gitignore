@@ -16,6 +16,7 @@ out/
 # production
 /build
 /lib/lib
+/lib/dist
 
 # misc
 .DS_Store
