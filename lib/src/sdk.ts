@@ -176,12 +176,13 @@ export class ExchangeSDK {
         rate,
       })
       .catch(async (error: Error) => {
-        await cancelSwap(this.providerId, swapId)
-          .catch(async (error: Error) => {
+        await cancelSwap(this.providerId, swapId).catch(
+          async (error: Error) => {
             const err = new CancelStepError(error);
             this.logger.error(err);
             throw err;
-          });
+          }
+        );
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
@@ -189,12 +190,13 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(this.providerId, swapId, tx)
-      .catch(async (error: Error) => {
+    await confirmSwap(this.providerId, swapId, tx).catch(
+      async (error: Error) => {
         const err = new ConfirmStepError(error);
         this.logger.error(err);
         throw err;
-      });;
+      }
+    );
     return tx;
   }
 
