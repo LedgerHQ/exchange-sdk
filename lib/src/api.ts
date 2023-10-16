@@ -2,7 +2,7 @@ import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
-const SWAP_BACKEND_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
+const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 
 const axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
