@@ -7,7 +7,7 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
 import BigNumber from "bignumber.js";
-import { retrievePayload } from "./api";
+import { retrievePayload, confirmSwap } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 
 jest.mock("./api");
@@ -54,6 +54,7 @@ describe("swap", () => {
       payinAddress: "",
       swapId: "swap-id",
     });
+    (confirmSwap as jest.Mock).mockResolvedValue({});
 
     const walletApiClient = new WalletAPIClient(mockedTransport);
     const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
