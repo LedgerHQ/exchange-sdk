@@ -3,10 +3,23 @@ import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
+const SWAP_BACKEND_STAGING_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
 
-const axiosClient = axios.create({
+let axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
 });
+
+export type Env = "PROD" | "STAGING";
+
+/**
+ * Override the default axios client base url environment (default is production)
+ * @param {Env} env - Environment to use: "STAGING" or "PROD"
+ */
+export function setEnv(env: Env) {
+  axiosClient = axios.create({
+    baseURL: env === "PROD" ? SWAP_BACKEND_URL : SWAP_BACKEND_STAGING_URL,
+  });
+}
 
 export type PayloadRequestData = {
   provider: string;
