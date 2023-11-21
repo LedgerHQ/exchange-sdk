@@ -81,9 +81,10 @@ export class ExchangeSDK {
       if (!transport) {
         this.transport = new WindowMessageTransport();
         this.transport.connect();
+      } else {
+        this.transport = transport;
       }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore: this.transport is really assigned before being used
+
       this.walletAPI = new WalletAPIClient(this.transport);
     } else {
       this.walletAPI = walletAPI;
