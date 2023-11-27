@@ -29,6 +29,7 @@ export type PayloadRequestData = {
   amount: BigNumber;
   amountInAtomicUnit: bigint;
   quoteId?: string;
+  toNewTokenId? : string;
 };
 export type PayloadResponse = {
   binaryPayload: Buffer;
@@ -43,7 +44,7 @@ export async function retrievePayload(
     provider: data.provider,
     deviceTransactionId: data.deviceTransactionId,
     from: data.fromAccount.currency,
-    to: data.toAccount.currency,
+    to: data.toNewTokenId || data.toAccount.currency,
     address: data.toAccount.address,
     refundAddress: data.fromAccount.address,
     amountFrom: data.amount.toString(),
