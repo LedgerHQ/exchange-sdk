@@ -286,6 +286,9 @@ export class ExchangeSDK {
       family = currency.family;
     }
 
+    // TODO: remove next line when wallet-api support btc utxoStrategy
+    delete customFeeConfig.utxoStrategy;
+
     switch (family) {
       case "bitcoin":
       case "ethereum":
