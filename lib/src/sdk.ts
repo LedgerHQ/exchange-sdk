@@ -34,6 +34,7 @@ export type SwapInfo = {
     [key: string]: BigNumber;
   };
   rate: number;
+  toNewTokenId?: string;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -111,6 +112,7 @@ export class ExchangeSDK {
       customFeeConfig = {},
       rate,
       quoteId,
+      toNewTokenId,
     } = info;
     const userAccounts = await this.retrieveUserAccounts({
       fromAccountId,
@@ -152,6 +154,7 @@ export class ExchangeSDK {
         deviceTransactionId,
         fromAccount: fromAccount,
         toAccount: toAccount,
+        toNewTokenId,
         amount: fromAmount,
         amountInAtomicUnit: BigInt("0"),
         quoteId,
@@ -173,13 +176,14 @@ export class ExchangeSDK {
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
-        toAccountId,
+        toAccountId, // this attribute will point the parent account when the token is new.
         transaction,
         binaryPayload,
         signature,
         feeStrategy,
         swapId,
         rate,
+        tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId).catch(

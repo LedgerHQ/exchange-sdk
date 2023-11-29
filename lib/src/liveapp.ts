@@ -8,4 +8,5 @@ export const QueryParams = {
   ToAccountId: "toAccountId",
   FeeStrategy: "feeStrategy",
   CustomFeeConfig: "customFeeConfig",
+  ToNewTokenId: "toNewTokenId",
 };

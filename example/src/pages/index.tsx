@@ -26,6 +26,7 @@ const IndexPage = () => {
   const [feeSelected, setFeeSelected] = useState("SLOW");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
   const [rate, setRate] = useState(1);
+  const [toNewTokenId, setToNewTokenId] = useState(undefined);
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +59,9 @@ const IndexPage = () => {
             break;
           case InternalParams.Rate:
             setRate(+value);
+            break;
+          case QueryParams.toNewTokenId:
+            setToNewTokenId(value);
             break;
           case QueryParams.CustomFeeConfig:
             setCustomFeeConfig(JSON.parse(value));
@@ -143,6 +147,7 @@ const IndexPage = () => {
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
         rate,
+        toNewTokenId,
       })
       .catch((err) => {
         console.error(
@@ -159,6 +164,7 @@ const IndexPage = () => {
     customFeeConfig,
     quoteId,
     rate,
+    toNewTokenId,
   ]);
 
   return (
