@@ -5,6 +5,8 @@ The goal of this SDK is to provide an easy way to interact with Ledger Live for 
 
 This LiveApp is an example of how to interact with ExchangeSDK to ask user to validate a swap transaction.
 
+To have more details on how the swap features is working in Ledger Live, go to [Ledger's dev portal](https://developers.ledger.com/docs/swap/howto/providers-liveapp/).
+
 ## Installation
 ```bash
 npm install @ledgerhq/exchange-sdk
@@ -32,7 +34,7 @@ import { ExchangeSDK, QueryParams } from "@ledgerhq/exchange-sdk";
 const exchangeSDK = new ExchangeSDK(providerId);
 ```
 
-When your LiveApp is called by Ledger Live through a deeplink, it will receive some informations. Check `QueryParams` type to have more details about it.
+When your LiveApp is called by Ledger Live through a deeplink, it will receive some informations. Check [QueryParams type](https://github.com/LedgerHQ/exchange-sdk/blob/main/lib/src/liveapp.ts) to have more details about it.
 
 Then you can call the swap method in order to start a new swap process.
 ```js
@@ -52,7 +54,7 @@ You can update some of them (ex: `quoteId`), if your interface offers the user t
 Typically, the `quoteId` is an information coming from your system, so you can update its value if during your interaction with the user it has more mearning to do so.
 
 ### Using WalletAPI methods
-The ExchangeSDK is simple wrapper around the WalletAPI. However, you cannot instanciate twice the WalletAPI client inside you LiveApp.
+The ExchangeSDK is simple wrapper around the [WalletAPI](https://github.com/LedgerHQ/wallet-api). However, you cannot instanciate twice the WalletAPI client inside you LiveApp.
 
 So if you want to use some methods provided by WalletAPI in your LiveApp, you have the choice:
  * use the WalletAPI client instance provided by the ExchangeSDK
