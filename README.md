@@ -3,7 +3,7 @@
 ## About
 The goal of this SDK is to provide an easy way to interact with Ledger Live for exchange methods (example: Swap).
 
-This LiveApp is an example of how to interact with ExchangeSDK to ask user to validate a swap transaction.
+[This LiveApp](https://github.com/LedgerHQ/exchange-sdk/blob/main/example) is an example of how to interact with ExchangeSDK to ask user to validate a swap transaction.
 
 To have more details on how the swap features is working in Ledger Live, go to [Ledger's dev portal](https://developers.ledger.com/docs/swap/howto/providers-liveapp/).
 
@@ -54,26 +54,26 @@ You can update some of them (ex: `quoteId`), if your interface offers the user t
 Typically, the `quoteId` is an information coming from your system, so you can update its value if during your interaction with the user it has more mearning to do so.
 
 ### Using WalletAPI methods
-The ExchangeSDK is simple wrapper around the [WalletAPI](https://github.com/LedgerHQ/wallet-api). However, you cannot instanciate twice the WalletAPI client inside you LiveApp.
+The ExchangeSDK is a simple wrapper around the [WalletAPI](https://github.com/LedgerHQ/wallet-api). However, you cannot instantiate the WalletAPI client twice inside your LiveApp.
 
-So if you want to use some methods provided by WalletAPI in your LiveApp, you have the choice:
- * use the WalletAPI client instance provided by the ExchangeSDK
- * provide a WalletAPI client instance to the ExchangeSDK
+If you want to use a method(s) provided by WalletAPI in your Live App, you have two options:
+ * use the WalletAPI client instance provided by the ExchangeSDK or
+ * pass the WalletAPI client instance as the second parameter when invoking the ExchangeSDK()
 
-#### Using WalletAPI client instance
+#### Option 1: Having a direct dependency with `exchange-sdk` only
 Once you have your ExchangeSDK instance, you can call [WalletAPI methods](https://github.com/LedgerHQ/wallet-api/tree/main/packages/client) through its `walletAPI` property:
 ```js
 exchangeSDK.walletAPI.account.list()
 ```
 
 
-#### Providing WalletAPI client instance
+#### Option 2: Having a direct dependency with `wallet-api` & `exchange-sdk`
 If you already have a WalletAPI client instance, you can provide it when instanciating the ExchangeSDK:
 ```js
 const exchangeSDK = new ExchangeSDK(providerId, undefined, myWalletAPI);
 ```
 
-## What to look at the example app
+## The example app
 ### /example/src/pages/index.tsx
 `useEffect` is used when the LiveApp is launch.
 It catches the deeplink query params provided to populate the form inputs.
