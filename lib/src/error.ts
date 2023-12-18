@@ -77,4 +77,3 @@ export class ConfirmStepError extends ExchangeError {
     this.name = "ConfirmStepError";
   }
 }
-
