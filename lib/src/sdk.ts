@@ -50,6 +50,9 @@ const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
   SWAP: "SWAP",
+  FUND_NG: "FUND_NG",
+  SELL_NG: "SELL_NG",
+  SWAP_NG: "SWAP_NG",
 } as const;
 
 /**
@@ -139,7 +142,7 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.exchange
-      .start(ExchangeType.SWAP)
+      .start(ExchangeType.SWAP_NG)
       .catch((error: Error) => {
         const err = new NonceStepError(error);
         this.logger.error(err);
