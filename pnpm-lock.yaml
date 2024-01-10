@@ -91,6 +91,9 @@ importers:
       '@ledgerhq/wallet-api-client':
         specifier: ^1.5.0
         version: 1.5.0
+      '@ledgerhq/wallet-api-exchange-module':
+        specifier: ^0.1.1-custom-exchange.0
+        version: 0.1.1-custom-exchange.0
       '@rollup/plugin-babel':
         specifier: ^6.0.3
         version: 6.0.4(@babel/core@7.23.3)(rollup@3.29.4)
@@ -1101,6 +1104,13 @@ packages:
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4
+
+  /@ledgerhq/wallet-api-exchange-module@0.1.1-custom-exchange.0:
+    resolution: {integrity: sha512-JcOE95Vh/JR4LMVK1CGgHLYRy84uQSn2VV4oFuUyVDck3oWLNAm35+76cmDzYriM5SfWu0r/H4Qf2QDQTSJ8UQ==}
+    dependencies:
+      '@ledgerhq/wallet-api-client': 1.5.0
+      '@ledgerhq/wallet-api-core': 1.6.0
+    dev: true
 
   /@next/env@13.4.1:
     resolution: {integrity: sha512-eD6WCBMFjLFooLM19SIhSkWBHtaFrZFfg2Cxnyl3vS3DAdFRfnx5TY2RxlkuKXdIRCC0ySbtK9JXXt8qLCqzZg==}

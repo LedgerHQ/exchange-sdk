@@ -5,7 +5,9 @@ import {
   Transaction,
   WalletAPIClient,
   WindowMessageTransport,
+  defaultLogger,
 } from "@ledgerhq/wallet-api-client";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import BigNumber from "bignumber.js";
 import {
   NonceStepError,
@@ -55,6 +57,12 @@ const ExchangeType = {
   SWAP_NG: "SWAP_NG",
 } as const;
 
+function getCustomModule(client: WalletAPIClient) {
+  return {
+    exchange: new ExchangeModule(client),
+  };
+}
+
 /**
  * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
  * Under the hood it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -62,7 +70,7 @@ const ExchangeType = {
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
-  readonly walletAPI: WalletAPIClient;
+  readonly walletAPI: WalletAPIClient<typeof getCustomModule>;
 
   private transport: WindowMessageTransport | undefined;
   private logger: Logger = new Logger();
@@ -77,7 +85,7 @@ export class ExchangeSDK {
   constructor(
     providerId: string,
     transport?: WindowMessageTransport,
-    walletAPI?: WalletAPIClient,
+    walletAPI?: WalletAPIClient<typeof getCustomModule>,
     env: Env = "PROD"
   ) {
     this.providerId = providerId;
@@ -89,7 +97,11 @@ export class ExchangeSDK {
         this.transport = transport;
       }
 
-      this.walletAPI = new WalletAPIClient(this.transport);
+      this.walletAPI = new WalletAPIClient(
+        this.transport,
+        defaultLogger,
+        getCustomModule
+      );
     } else {
       this.walletAPI = walletAPI;
     }
@@ -141,7 +153,7 @@ export class ExchangeSDK {
     }
 
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.walletAPI.exchange
+    const deviceTransactionId = await this.walletAPI.custom.exchange
       .start(ExchangeType.SWAP_NG)
       .catch((error: Error) => {
         const err = new NonceStepError(error);
@@ -175,7 +187,7 @@ export class ExchangeSDK {
       customFeeConfig,
     });
 
-    const tx = await this.walletAPI.exchange
+    const tx = await this.walletAPI.custom.exchange
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
@@ -232,7 +244,6 @@ export class ExchangeSDK {
         const err = new ListAccountError(error);
         this.logger.error(err);
         throw err;
-        return [];
       });
 
     const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
@@ -255,7 +266,6 @@ export class ExchangeSDK {
         const err = new ListCurrencyError(error);
         this.logger.error(err);
         throw err;
-        return [];
       });
     if (!fromCurrency) {
       const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
