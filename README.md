@@ -82,5 +82,12 @@ Then it instanciate an ExchangeSDK with a default `providerId`.
 `onSwap` gets all form inputs info to send them to the ExchangeSDK.
 For testing purpose, a default `quoteId` is provided, but in Production this query param is mandatory.
 
+## Testing
+You can test your integration by setting a custom url for the backend called by this SDK.
+Instanciate the exchangeSDK this way:
+```js
+const exchangeSDK = new ExchangeSDK(providerId, undefined, undefined, "https://custom-url.swap.test");
+```
+
 ## Why
 `lib/package.json` has 2 pre/post script on bump version. This is due to an [NPM issue](https://github.com/npm/npm/issues/9111).
