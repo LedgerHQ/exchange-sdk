@@ -135,7 +135,7 @@ const IndexPage = () => {
         amount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
-        getSellDestinationAccount: async (nonce, address, amount) => {
+        getSellRecipientInfo: async (nonce, address, amount) => {
           console.log("getSellDestinationAccount called!");
 
           const result: {
