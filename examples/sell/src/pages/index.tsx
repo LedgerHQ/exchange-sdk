@@ -1,5 +1,7 @@
 "use client";
 
+import axios from "axios";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Layout from "../components/Layout";
 import { useSearchParams } from "next/navigation";
@@ -7,6 +9,8 @@ import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
+import { sign } from "crypto";
+
 
 export const InternalParams = {
   Provider: "provider",
@@ -22,7 +26,6 @@ const IndexPage = () => {
   const [quoteId, setQuoteId] = useState();
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
-  const [toAccount, setToAccount] = useState("");
   const [feeSelected, setFeeSelected] = useState("SLOW");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
 
@@ -48,9 +51,6 @@ const IndexPage = () => {
             break;
           case QueryParams.FromAccountId:
             setFromAccount(value);
-            break;
-          case QueryParams.ToAccountId:
-            setToAccount(value);
             break;
           case QueryParams.FeeStrategy:
             setFeeSelected(value);
@@ -127,14 +127,47 @@ const IndexPage = () => {
   /**
    * Handle user's swap validation
    */
-  const onSwap = useCallback(() => {
+  const onSell = useCallback(() => {
     exchangeSDK.current
       ?.sell({
         quoteId,
         accountId: fromAccount,
-        fromAmount: new BigNumber(amount),
+        amount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
+        getSellDestinationAccount: async (nonce, address, amount) => {
+          console.log("getSellDestinationAccount called!");
+
+          const result: {
+            recipientAddress: string;
+            amount: string;
+            binaryPayload: string;
+            signature: string;
+          } = await axios({
+            method: "GET",
+            url: `http://localhost:3000/api/sell?nonce=${nonce}&amount=${amount}&address=${address}`,
+            // data: {
+            //   nonce,
+            //   amount,
+            // },
+          });
+
+          console.log("Receive:", result);
+
+          const {
+            recipientAddress,
+            amount: finalAmount,
+            binaryPayload,
+            signature,
+          } = result;
+
+          return {
+            recipientAddress,
+            amount: BigNumber(finalAmount),
+            binaryPayload: Buffer.from(binaryPayload),
+            signature: Buffer.from(signature),
+          };
+        },
       })
       .catch((err) => {
         console.error(
@@ -146,8 +179,8 @@ const IndexPage = () => {
   }, [fromAccount, amount, feeSelected, customFeeConfig, quoteId]);
 
   return (
-    <Layout title="Swap Web App Example">
-      <h1>Hello I am a Swap Web app</h1>
+    <Layout title="Sell Web App Example">
+      <h1>Hello I am a Sell Web app</h1>
 
       <div>
         <button onClick={listAccounts}>{"List accounts"}</button>
@@ -219,7 +252,7 @@ const IndexPage = () => {
       </div>
 
       <div>
-        <button onClick={() => onSwap()}>{"Execute swap"}</button>
+        <button onClick={() => onSell()}>{"Execute sell"}</button>
       </div>
 
       <div>
