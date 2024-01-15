@@ -41,6 +41,9 @@ importers:
       '@ledgerhq/wallet-api-client':
         specifier: ^1.5.0
         version: 1.5.0
+      axios:
+        specifier: ^1.3.4
+        version: 1.3.4
       bignumber.js:
         specifier: ^9.1.2
         version: 9.1.2
