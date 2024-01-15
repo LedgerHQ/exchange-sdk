@@ -58,13 +58,14 @@ export type SellInfo = {
   };
   getSellDestinationAccount: (
     nonce: string,
+    sellAddress: string,
     amount: BigNumber
-  ) => {
+  ) => Promise<{
     recipientAddress: string;
     amount: BigNumber;
     binaryPayload: Buffer;
     signature: Buffer;
-  };
+  }>;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -72,12 +73,6 @@ export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 type UserAccount = {
   account: Account;
   currency: Currency;
-};
-
-type UserAccounts = {
-  fromAccount: Account;
-  toAccount: Account;
-  fromCurrency: Currency;
 };
 
 // Should be available from the WalletAPI (zod :( )
@@ -118,7 +113,7 @@ export class ExchangeSDK {
   readonly walletAPI: WalletAPIClient<typeof getCustomModule>;
 
   private transport: WindowMessageTransport | undefined;
-  private logger: Logger = new Logger();
+  private logger: Logger = new Logger(true);
 
   private transactionStrategy: {
     [K in Transaction["family"]]: TransactionStrategyFunction;
@@ -320,7 +315,7 @@ export class ExchangeSDK {
       getSellDestinationAccount,
     } = info;
 
-    const { currency } = await this.retrieveUserAccount(accountId);
+    const { account, currency } = await this.retrieveUserAccount(accountId);
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.exchange
@@ -333,8 +328,13 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
+    this.logger.log("Call getSellDestinationAccount");
     const { recipientAddress, amount, binaryPayload, signature } =
-      getSellDestinationAccount(deviceTransactionId, info.amount);
+      await getSellDestinationAccount(
+        deviceTransactionId,
+        account.address,
+        info.amount
+      );
 
     // 3 - Send payload
     const transaction = await this.createTransaction({
