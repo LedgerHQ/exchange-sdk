@@ -15,10 +15,9 @@ import {
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
-import walletApiDecorator, {
-  WalletAPIClientDecorator,
-} from "./wallet-api-decorator";
+import walletApiDecorator, { WalletAPIClientDecorator } from "./wallet-api";
 
+export type GetSwapPayload = typeof retrievePayload;
 /**
  * Swap information required to request user's a swap transaction.
  */
@@ -33,9 +32,10 @@ export type SwapInfo = {
   };
   rate: number;
   toNewTokenId?: string;
+  getSwapPayload?: GetSwapPayload;
 };
 
-export type SellGetRecipientInfo = (
+export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
   amount: BigNumber
@@ -45,6 +45,9 @@ export type SellGetRecipientInfo = (
   binaryPayload: Buffer;
   signature: Buffer;
 }>;
+/**
+ * Sell information required to request user's a sell transaction.
+ */
 export type SellInfo = {
   quoteId?: string;
   accountId: string;
@@ -53,7 +56,7 @@ export type SellInfo = {
   customFeeConfig?: {
     [key: string]: BigNumber;
   };
-  getSellRecipientInfo: SellGetRecipientInfo;
+  getSellPayload: GetSellPayload;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -78,7 +81,7 @@ export class ExchangeSDK {
   readonly walletAPI: WalletAPIClientDecorator;
 
   private transport: WindowMessageTransport | undefined;
-  private logger: Logger = new Logger(true);
+  private logger: Logger = new Logger();
 
   /**
    *
@@ -131,6 +134,7 @@ export class ExchangeSDK {
       rate,
       quoteId,
       toNewTokenId,
+      getSwapPayload,
     } = info;
     const { account: fromAccount, currency: fromCurrency } =
       await this.walletAPI
@@ -163,8 +167,10 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
+    const payloadRequest =
+      getSwapPayload !== undefined ? getSwapPayload : retrievePayload;
     const { binaryPayload, signature, payinAddress, swapId } =
-      await retrievePayload({
+      await payloadRequest({
         provider: this.providerId,
         deviceTransactionId,
         fromAccount: fromAccount,
@@ -227,7 +233,7 @@ export class ExchangeSDK {
 
   /**
    * Ask user to validate a sell transaction.
-   * @param {SwapInfo} info - Information necessary to create a sell transaction {@see SwapInfo}.
+   * @param {SellInfo} info - Information necessary to create a sell transaction {@see SellInfo}.
    * @return {Promise} Promise of hash of send transaction.
    * @throws {ExchangeError}
    */
@@ -238,7 +244,7 @@ export class ExchangeSDK {
       accountId,
       feeStrategy,
       customFeeConfig = {},
-      getSellRecipientInfo,
+      getSellPayload,
     } = info;
 
     const { account, currency } = await this.walletAPI
@@ -260,11 +266,7 @@ export class ExchangeSDK {
     // 2 - Ask for payload creation
     this.logger.log("Call getSellDestinationAccount");
     const { recipientAddress, amount, binaryPayload, signature } =
-      await getSellRecipientInfo(
-        deviceTransactionId,
-        account.address,
-        info.amount
-      );
+      await getSellPayload(deviceTransactionId, account.address, info.amount);
 
     // 3 - Send payload
     const transaction = await this.walletAPI.createTransaction({
