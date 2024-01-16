@@ -9,8 +9,6 @@ import { ExchangeSDK, FeeStrategy, QueryParams } from "@ledgerhq/exchange-sdk";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
-import { sign } from "crypto";
-
 
 export const InternalParams = {
   Provider: "provider",
@@ -135,7 +133,7 @@ const IndexPage = () => {
         amount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
-        getSellRecipientInfo: async (nonce, address, amount) => {
+        getSellPayload: async (nonce, address, amount) => {
           console.log("getSellDestinationAccount called!");
 
           const result: {

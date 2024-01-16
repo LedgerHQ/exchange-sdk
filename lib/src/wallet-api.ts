@@ -169,7 +169,7 @@ export default function walletApiDecorator(
   };
 }
 
-function getCustomModule(client: WalletAPIClient) {
+export function getCustomModule(client: WalletAPIClient) {
   return {
     exchange: new ExchangeModule(client),
   };

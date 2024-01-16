@@ -7,7 +7,8 @@ import {
   solanaTransaction,
   stellarTransaction,
   withoutGasLimitTransaction,
-} from "./wallet-api-decorator";
+} from "./wallet-api";
+import { PayinExtraIdError } from "./error";
 
 describe("defaultTransaction function", () => {
   it("creates a Transaction with correct properties", () => {
