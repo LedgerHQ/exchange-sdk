@@ -26,7 +26,7 @@ export type PayloadRequestData = {
   amount: BigNumber;
   amountInAtomicUnit: bigint;
   quoteId?: string;
-  toNewTokenId? : string;
+  toNewTokenId?: string;
 };
 export type PayloadResponse = {
   binaryPayload: string;
