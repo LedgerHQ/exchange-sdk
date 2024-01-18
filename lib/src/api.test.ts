@@ -51,7 +51,7 @@ describe("retrievePayload", () => {
       refundAddress: "0x998",
       amountFrom: "1.908",
       amountFromInSmallestDenomination: 1908000000000,
-      swapId: "978400",
+      rateId: "978400",
     };
     expect(mockPost.mock.calls[0][0]).toEqual("");
     expect(mockPost.mock.calls[0][1]).toEqual(expectedRequest);
