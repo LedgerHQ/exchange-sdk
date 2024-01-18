@@ -46,7 +46,7 @@ export async function retrievePayload(
     refundAddress: data.fromAccount.address,
     amountFrom: data.amount.toString(),
     amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
-    swapId: data.quoteId,
+    rateId: data.quoteId,
   };
   const res = await axiosClient.post("", request);
 
