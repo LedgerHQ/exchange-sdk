@@ -21,7 +21,7 @@ import {
   UnknownAccountError,
 } from "./error";
 import { Logger } from "./log";
-import { cancelSwap, confirmSwap, retrievePayload, Env, setEnv } from "./api";
+import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
 
 /**
  * Swap information required to request user's a swap transaction.
@@ -80,13 +80,13 @@ export class ExchangeSDK {
    * @param {string} providerId - Your providerId that Ledger has assign you.
    * @param {WindowMessageTransport} transport
    * @param {WalletAPIClient} walletAPI
-   * @param {Env} env - Backend environment
+   * @param {string} customUrl - Backend url environment
    */
   constructor(
     providerId: string,
     transport?: WindowMessageTransport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    env: Env = "PROD"
+    customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -106,8 +106,10 @@ export class ExchangeSDK {
       this.walletAPI = walletAPI;
     }
 
-    // Set API environment
-    setEnv(env);
+    if (customUrl) {
+      // Set API environment
+      setBackendUrl(customUrl);
+    }
   }
 
   /**

@@ -3,21 +3,18 @@ import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SWAP_BACKEND_STAGING_URL = "https://swap.aws.stg.ldg-tech.com/v5/swap";
 
 let axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
 });
 
-export type Env = "PROD" | "STAGING";
-
 /**
  * Override the default axios client base url environment (default is production)
- * @param {Env} env - Environment to use: "STAGING" or "PROD"
+ * @param {string} url
  */
-export function setEnv(env: Env) {
+export function setBackendUrl(url: string) {
   axiosClient = axios.create({
-    baseURL: env === "PROD" ? SWAP_BACKEND_URL : SWAP_BACKEND_STAGING_URL,
+    baseURL: url,
   });
 }
 
@@ -49,12 +46,10 @@ export async function retrievePayload(
     refundAddress: data.fromAccount.address,
     amountFrom: data.amount.toString(),
     amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
-    swapId: data.quoteId,
+    rateId: data.quoteId,
   };
-  // logger.log("Request to SWAP Backend:", request);
   const res = await axiosClient.post("", request);
 
-  // logger.log("Backend result:", res);
   return parseSwapBackendInfo(res.data);
 }
 
