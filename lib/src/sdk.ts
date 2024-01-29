@@ -154,7 +154,7 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.custom.exchange
-      .start(ExchangeType.SWAP_NG)
+      .start({ exchangeType: ExchangeType.SWAP, provider: this.providerId })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
         this.logger.error(err);
