@@ -47,11 +47,16 @@ exchangeSDK.swap({
   feeStrategy,
   customFeeConfig,
   rate,
+  toNewTokenId
 });
 ```
 
 You can update some of them (ex: `quoteId`), if your interface offers the user to change those parameters.
 Typically, the `quoteId` is an information coming from your system, so you can update its value if during your interaction with the user it has more mearning to do so.
+
+#### toNewTokenId
+When user swaps to a token, your app will receive toNewTokenId as a query parameter. In this case, it should be passed to swap method, without any modification.
+When user swaps to a native coin, this parameter won't be present, and you should not use this parameter neither in the swap method.
 
 ### Using WalletAPI methods
 The ExchangeSDK is a simple wrapper around the [WalletAPI](https://github.com/LedgerHQ/wallet-api). However, you cannot instantiate the WalletAPI client twice inside your LiveApp.
