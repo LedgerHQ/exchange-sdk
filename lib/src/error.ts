@@ -1,5 +1,8 @@
 export class ExchangeError extends Error {
-  cause: object;
+  cause: {
+    swapCode: string;
+    [key: string]: string | Error | undefined;
+  };
   constructor(code = "swap000", nestedError?: Error) {
     super();
     this.name = "ExchangeError";
