@@ -1,8 +1,6 @@
 import {
   Account,
-  CryptoCurrency,
   Currency,
-  Transaction,
   WalletAPIClient,
   WindowMessageTransport,
 } from "@ledgerhq/wallet-api-client";
@@ -14,13 +12,12 @@ import {
   CancelStepError,
   ConfirmStepError,
   SignatureStepError,
-  ListAccountError,
-  ListCurrencyError,
-  UnknownAccountError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
+import walletApiDecorator, { WalletAPIClientDecorator } from "./wallet-api";
 
+export type GetSwapPayload = typeof retrievePayload;
 /**
  * Swap information required to request user's a swap transaction.
  */
@@ -35,15 +32,34 @@ export type SwapInfo = {
   };
   rate: number;
   toNewTokenId?: string;
+  getSwapPayload?: GetSwapPayload;
+};
+
+export type GetSellPayload = (
+  nonce: string,
+  sellAddress: string,
+  amount: BigNumber
+) => Promise<{
+  recipientAddress: string;
+  amount: BigNumber;
+  binaryPayload: Buffer;
+  signature: Buffer;
+}>;
+/**
+ * Sell information required to request user's a sell transaction.
+ */
+export type SellInfo = {
+  quoteId?: string;
+  accountId: string;
+  amount: BigNumber;
+  feeStrategy: FeeStrategy;
+  customFeeConfig?: {
+    [key: string]: BigNumber;
+  };
+  getSellPayload: GetSellPayload;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-
-type UserAccounts = {
-  fromAccount: Account;
-  toAccount: Account;
-  fromCurrency: Currency;
-};
 
 // Should be available from the WalletAPI (zod :( )
 const ExchangeType = {
@@ -62,7 +78,7 @@ const ExchangeType = {
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
-  readonly walletAPI: WalletAPIClient;
+  readonly walletAPI: WalletAPIClientDecorator;
 
   private transport: WindowMessageTransport | undefined;
   private logger: Logger = new Logger();
@@ -89,9 +105,9 @@ export class ExchangeSDK {
         this.transport = transport;
       }
 
-      this.walletAPI = new WalletAPIClient(this.transport);
+      this.walletAPI = walletApiDecorator(new WalletAPIClient(this.transport));
     } else {
-      this.walletAPI = walletAPI;
+      this.walletAPI = walletApiDecorator(walletAPI);
     }
 
     if (customUrl) {
@@ -118,21 +134,19 @@ export class ExchangeSDK {
       rate,
       quoteId,
       toNewTokenId,
+      getSwapPayload,
     } = info;
-    const userAccounts = await this.retrieveUserAccounts({
-      fromAccountId,
-      toAccountId,
-    }).catch((error: Error) => {
-      throw error;
-    });
-    const { fromAccount, toAccount, fromCurrency } = userAccounts || {};
-    if (!(fromAccount && toAccount && fromCurrency))
-      return void this.logger.log(
-        "User info",
-        fromAccount,
-        toAccount,
-        fromCurrency
-      );
+    const { account: fromAccount, currency: fromCurrency } =
+      await this.walletAPI
+        .retrieveUserAccount(fromAccountId)
+        .catch((error: Error) => {
+          throw error;
+        });
+    const { account: toAccount } = await this.walletAPI
+      .retrieveUserAccount(toAccountId)
+      .catch((error: Error) => {
+        throw error;
+      });
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
@@ -153,8 +167,10 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
+    const payloadRequest =
+      getSwapPayload !== undefined ? getSwapPayload : retrievePayload;
     const { binaryPayload, signature, payinAddress, swapId } =
-      await retrievePayload({
+      await payloadRequest({
         provider: this.providerId,
         deviceTransactionId,
         fromAccount: fromAccount,
@@ -170,7 +186,7 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = await this.createTransaction({
+    const transaction = await this.walletAPI.createTransaction({
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
@@ -216,143 +232,77 @@ export class ExchangeSDK {
   }
 
   /**
+   * Ask user to validate a sell transaction.
+   * @param {SellInfo} info - Information necessary to create a sell transaction {@see SellInfo}.
+   * @return {Promise} Promise of hash of send transaction.
+   * @throws {ExchangeError}
+   */
+  async sell(info: SellInfo): Promise<string | void> {
+    this.logger.log("*** Start Sell ***");
+
+    const {
+      accountId,
+      feeStrategy,
+      customFeeConfig = {},
+      getSellPayload,
+    } = info;
+
+    const { account, currency } = await this.walletAPI
+      .retrieveUserAccount(accountId)
+      .catch((error: Error) => {
+        throw error;
+      });
+
+    // 1 - Ask for deviceTransactionId
+    const deviceTransactionId = await this.walletAPI.exchange
+      .start(ExchangeType.SELL_NG)
+      .catch((error: Error) => {
+        const err = new NonceStepError(error);
+        this.logger.error(err);
+        throw err;
+      });
+    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
+
+    // 2 - Ask for payload creation
+    this.logger.log("Call getSellDestinationAccount");
+    const { recipientAddress, amount, binaryPayload, signature } =
+      await getSellPayload(deviceTransactionId, account.address, info.amount);
+
+    // 3 - Send payload
+    const transaction = await this.walletAPI.createTransaction({
+      recipient: recipientAddress,
+      amount,
+      currency,
+      customFeeConfig,
+    });
+
+    const tx = await this.walletAPI.exchange
+      .completeSell({
+        provider: this.providerId,
+        fromAccountId: accountId,
+        transaction,
+        binaryPayload,
+        signature,
+        feeStrategy,
+      })
+      .catch(async (error: Error) => {
+        const err = new SignatureStepError(error);
+        this.logger.error(err);
+        throw err;
+      });
+
+    this.logger.log("Transaction sent:", tx);
+    this.logger.log("*** End Sell ***");
+
+    return tx;
+  }
+
+  /**
    * Convenient method to disconnect this instance to the
    * {@link https://github.com/LedgerHQ/wallet-api WalletAPI} server.
    */
   disconnect() {
     this.transport?.disconnect();
-  }
-
-  private async retrieveUserAccounts(accounts: {
-    fromAccountId: string;
-    toAccountId: string;
-  }): Promise<UserAccounts> {
-    const { fromAccountId, toAccountId } = accounts;
-    const allAccounts = await this.walletAPI.account
-      .list()
-      .catch(async (error: Error) => {
-        const err = new ListAccountError(error);
-        this.logger.error(err);
-        throw err;
-        return [];
-      });
-
-    const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
-    if (!fromAccount) {
-      const err = new UnknownAccountError(new Error("Unknown fromAccountId"));
-      this.logger.error(err);
-      throw err;
-    }
-    const toAccount = allAccounts.find((value) => value.id === toAccountId);
-    if (!toAccount) {
-      const err = new UnknownAccountError(new Error("Unknown toAccountId"));
-      this.logger.error(err);
-      throw err;
-    }
-    const [fromCurrency]: Array<Currency> = await this.walletAPI.currency
-      .list({
-        currencyIds: [fromAccount.currency],
-      })
-      .catch(async (error: Error) => {
-        const err = new ListCurrencyError(error);
-        this.logger.error(err);
-        throw err;
-        return [];
-      });
-    if (!fromCurrency) {
-      const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
-      this.logger.error(err);
-      throw err;
-    }
-    return {
-      fromAccount,
-      toAccount,
-      fromCurrency,
-    };
-  }
-
-  private async createTransaction({
-    recipient,
-    amount,
-    currency,
-    customFeeConfig,
-  }: {
-    recipient: string;
-    amount: BigNumber;
-    currency: Currency;
-    customFeeConfig: {
-      [key: string]: BigNumber;
-    };
-  }): Promise<Transaction> {
-    let family: Transaction["family"];
-    if (currency.type === "TokenCurrency") {
-      const currencies = await this.walletAPI.currency.list({
-        currencyIds: [currency.parent],
-      });
-
-      family = (currencies[0] as CryptoCurrency).family;
-    } else {
-      family = currency.family;
-    }
-
-    // TODO: remove next line when wallet-api support btc utxoStrategy
-    delete customFeeConfig.utxoStrategy;
-
-    switch (family) {
-      case "bitcoin":
-      case "ethereum":
-      case "algorand":
-      case "crypto_org":
-      case "ripple":
-      case "cosmos":
-      case "celo":
-      case "hedera":
-      case "filecoin":
-      case "tezos":
-      case "polkadot":
-      case "stellar":
-      case "tron":
-      case "neo":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-        } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
-      case "near":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          mode: "send", //??
-        };
-      case "cardano":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          mode: "send",
-        };
-      case "elrond":
-        return {
-          family,
-          amount,
-          recipient,
-          gasLimit: 0, //FIXME
-          ...customFeeConfig,
-          mode: "send", //??
-        };
-      case "solana":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          model: { kind: "transfer", uiState: {} },
-        };
-    }
   }
 }
 
