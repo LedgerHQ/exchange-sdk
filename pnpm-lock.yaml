@@ -92,8 +92,8 @@ importers:
         specifier: ^1.5.2
         version: 1.5.2
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: ^0.3.0-start-exchange.0
-        version: 0.3.0-start-exchange.0
+        specifier: 0.3.0-nightly.0
+        version: 0.3.0-nightly.0
       '@rollup/plugin-babel':
         specifier: ^6.0.3
         version: 6.0.4(@babel/core@7.23.3)(rollup@3.29.4)
@@ -1124,8 +1124,8 @@ packages:
       zod: 3.22.4
     dev: true
 
-  /@ledgerhq/wallet-api-exchange-module@0.3.0-start-exchange.0:
-    resolution: {integrity: sha512-z2jLkgoqjsgSfQZvrgcTyc4OgBwpmNdMSwHCpyi4TNHm2IyxEmVfvjVJ5/IIHTlsP6WrV3mIjunok/taj0md3Q==}
+  /@ledgerhq/wallet-api-exchange-module@0.3.0-nightly.0:
+    resolution: {integrity: sha512-mErmFsg5RAv59FLn0trTgehU4huyELoqzTJUswNIwKDQzA6nQoS7CQY7cmaFh62DZ5SiTi7oLUrGHLQBmLUWzQ==}
     dependencies:
       '@ledgerhq/wallet-api-client': 1.5.2
       '@ledgerhq/wallet-api-core': 1.6.2

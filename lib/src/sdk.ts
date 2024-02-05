@@ -156,7 +156,13 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.custom.exchange
-      .start({ exchangeType: ExchangeType.SWAP, provider: this.providerId })
+      .startSwap({ 
+        exchangeType: ExchangeType.SWAP, 
+        provider: this.providerId, 
+        fromAccountId, 
+        toAccountId, 
+        tokenCurrency: toNewTokenId || ''
+      })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
         this.logger.error(err);
@@ -313,7 +319,7 @@ export class ExchangeSDK {
       case "ethereum":
       case "algorand":
       case "crypto_org":
-      case "ripple":
+      case "ripple": // Todo check InitSwap 
       case "cosmos":
       case "celo":
       case "hedera":
