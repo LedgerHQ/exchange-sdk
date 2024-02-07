@@ -201,8 +201,8 @@ export class ExchangeSDK {
         fromAccountId,
         toAccountId, // this attribute will point the parent account when the token is new.
         transaction,
-        binaryPayload,
-        signature,
+        binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
+        signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
         swapId,
         rate,

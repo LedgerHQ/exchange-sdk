@@ -29,8 +29,8 @@ export type PayloadRequestData = {
   toNewTokenId? : string;
 };
 export type PayloadResponse = {
-  binaryPayload: Buffer;
-  signature: Buffer;
+  binaryPayload: string;
+  signature: string;
   payinAddress: string;
   swapId: string;
 };
