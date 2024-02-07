@@ -86,6 +86,17 @@ type SwapBackendResponse = {
   binaryPayload: string;
   signature: string;
 };
+
+function parseBinaryPayload(payload: string) {
+  // Check if the string is a valid hex: Only contains hex characters and has an even length
+  const isHex = /^[0-9A-Fa-f]+$/i.test(payload) && payload.length % 2 === 0;
+  if (isHex) {
+    return Buffer.from(payload, "hex");
+  } else {
+    return Buffer.from(payload, "base64");
+  }
+}
+
 function parseSwapBackendInfo(response: SwapBackendResponse): {
   binaryPayload: Buffer;
   signature: Buffer;
@@ -93,8 +104,8 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
   swapId: string;
 } {
   return {
-    binaryPayload: Buffer.from(response.binaryPayload, "hex"),
-    signature: Buffer.from(response.signature, "hex"),
+    binaryPayload: parseBinaryPayload(response.binaryPayload),
+    signature: parseBinaryPayload(response.signature),
     payinAddress: response.payinAddress,
     swapId: response.swapId,
   };
