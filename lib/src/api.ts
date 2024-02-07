@@ -86,15 +86,16 @@ type SwapBackendResponse = {
   binaryPayload: string;
   signature: string;
 };
+
 function parseSwapBackendInfo(response: SwapBackendResponse): {
-  binaryPayload: Buffer;
-  signature: Buffer;
+  binaryPayload: string;
+  signature: string;
   payinAddress: string;
   swapId: string;
 } {
   return {
-    binaryPayload: Buffer.from(response.binaryPayload, "hex"),
-    signature: Buffer.from(response.signature, "hex"),
+    binaryPayload: response.binaryPayload,
+    signature: response.signature,
     payinAddress: response.payinAddress,
     swapId: response.swapId,
   };
