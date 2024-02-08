@@ -18,28 +18,26 @@ export type UserAccount = {
   currency: Currency;
 };
 
-type StartType = InstanceType<typeof WalletAPIClient>["exchange"]["start"];
-type CompleteSwapType = InstanceType<
-  typeof WalletAPIClient
->["exchange"]["completeSwap"];
-type CompleteSellType = InstanceType<
-  typeof WalletAPIClient
->["exchange"]["completeSell"];
-
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
+export type CreateTransactionArg = {
+  recipient: string;
+  amount: BigNumber;
+  currency: Currency;
+  customFeeConfig: {
+    [key: string]: BigNumber;
+  };
+};
+
+export type WalletApiDecorator = {
+  walletClient: WalletAPIClient;
+  retrieveUserAccount: (accountId: string) => Promise<UserAccount>;
+  createTransaction: (arg: CreateTransactionArg) => Promise<Transaction>;
+};
 
 export default function walletApiDecorator(
   walletAPIClient: WalletAPIClient<typeof getCustomModule>
-) {
+): WalletApiDecorator {
   const walletAPI = walletAPIClient;
-  const exchange = {
-    start: async (type: Parameters<StartType>[0]) =>
-      walletAPI.exchange.start(type),
-    completeSwap: (arg: Parameters<CompleteSwapType>[0]) =>
-      walletAPI.exchange.completeSwap(arg),
-    completeSell: (arg: Parameters<CompleteSellType>[0]) =>
-      walletAPI.exchange.completeSell(arg),
-  };
 
   async function retrieveUserAccount(accountId: string): Promise<UserAccount> {
     const allAccounts = await walletAPI.account
@@ -79,14 +77,7 @@ export default function walletApiDecorator(
     amount,
     currency,
     customFeeConfig,
-  }: {
-    recipient: string;
-    amount: BigNumber;
-    currency: Currency;
-    customFeeConfig: {
-      [key: string]: BigNumber;
-    };
-  }): Promise<Transaction> {
+  }: CreateTransactionArg): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
       const currencies = await walletAPI.currency.list({
@@ -161,11 +152,11 @@ export default function walletApiDecorator(
   return {
     retrieveUserAccount,
     createTransaction,
-    exchange,
+    walletClient: walletAPIClient,
   };
 }
 
-function getCustomModule(client: WalletAPIClient) {
+export function getCustomModule(client: WalletAPIClient) {
   return {
     exchange: new ExchangeModule(client),
   };

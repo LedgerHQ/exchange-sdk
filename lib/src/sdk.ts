@@ -5,7 +5,6 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import BigNumber from "bignumber.js";
 import {
   NonceStepError,
@@ -17,7 +16,7 @@ import {
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
-import walletApiDecorator, { WalletAPIClientDecorator } from "./wallet-api";
+import walletApiDecorator, { WalletApiDecorator, getCustomModule } from "./wallet-api";
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -80,10 +79,14 @@ const ExchangeType = {
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
-  readonly walletAPI: WalletAPIClientDecorator;
 
+  private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | undefined;
   private logger: Logger = new Logger();
+
+  get walletAPI(): WalletAPIClient {
+    return this.walletAPIDecorator.walletClient;
+  }
 
   /**
    *
@@ -107,10 +110,11 @@ export class ExchangeSDK {
         this.transport = transport;
       }
 
-      this.walletAPI = walletApiDecorator(new WalletAPIClient(this.transport,defaultLogger,
-        getCustomModule));
+      this.walletAPIDecorator = walletApiDecorator(
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
+      );
     } else {
-      this.walletAPI = walletApiDecorator(walletAPI);
+      this.walletAPIDecorator = walletApiDecorator(walletAPI);
     }
 
     if (customUrl) {
@@ -140,12 +144,12 @@ export class ExchangeSDK {
       getSwapPayload,
     } = info;
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPI
+      await this.walletAPIDecorator
         .retrieveUserAccount(fromAccountId)
         .catch((error: Error) => {
           throw error;
         });
-    const { account: toAccount } = await this.walletAPI
+    const { account: toAccount } = await this.walletAPIDecorator
       .retrieveUserAccount(toAccountId)
       .catch((error: Error) => {
         throw error;
@@ -195,7 +199,7 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = await this.walletAPI.createTransaction({
+    const transaction = await this.walletAPIDecorator.createTransaction({
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
@@ -256,7 +260,7 @@ export class ExchangeSDK {
       getSellPayload,
     } = info;
 
-    const { account, currency } = await this.walletAPI
+    const { account, currency } = await this.walletAPIDecorator
       .retrieveUserAccount(accountId)
       .catch((error: Error) => {
         throw error;
@@ -278,7 +282,7 @@ export class ExchangeSDK {
       await getSellPayload(deviceTransactionId, account.address, info.amount);
 
     // 3 - Send payload
-    const transaction = await this.walletAPI.createTransaction({
+    const transaction = await this.walletAPIDecorator.createTransaction({
       recipient: recipientAddress,
       amount,
       currency,
