@@ -71,19 +71,26 @@ type CompleteSellType = InstanceType<
 >["exchange"]["completeSell"];
 
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
+export type CreateTransactionArg = {
+  recipient: string;
+  amount: BigNumber;
+  currency: Currency;
+  customFeeConfig: {
+    [key: string]: BigNumber;
+  };
+  payinExtraId?: string;
+};
+
+export type WalletApiDecorator = {
+  walletClient: WalletAPIClient;
+  retrieveUserAccount: (accountId: string) => Promise<UserAccount>;
+  createTransaction: (arg: CreateTransactionArg) => Promise<Transaction>;
+};
 
 export default function walletApiDecorator(
   walletAPIClient: WalletAPIClient<typeof getCustomModule>
-) {
+): WalletApiDecorator {
   const walletAPI = walletAPIClient;
-  const exchange = {
-    start: async (type: Parameters<StartType>[0]) =>
-      walletAPI.exchange.start(type),
-    completeSwap: (arg: Parameters<CompleteSwapType>[0]) =>
-      walletAPI.exchange.completeSwap(arg),
-    completeSell: (arg: Parameters<CompleteSellType>[0]) =>
-      walletAPI.exchange.completeSell(arg),
-  };
 
   async function retrieveUserAccount(accountId: string): Promise<UserAccount> {
     const allAccounts = await walletAPI.account
@@ -124,15 +131,7 @@ export default function walletApiDecorator(
     currency,
     customFeeConfig,
     payinExtraId,
-  }: {
-    recipient: string;
-    amount: BigNumber;
-    currency: Currency;
-    customFeeConfig: {
-      [key: string]: BigNumber;
-    };
-    payinExtraId?: string;
-  }): Promise<Transaction> {
+  }: CreateTransactionArg): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
       const currencies = await walletAPI.currency.list({
@@ -165,7 +164,7 @@ export default function walletApiDecorator(
   return {
     retrieveUserAccount,
     createTransaction,
-    exchange,
+    walletClient: walletAPIClient,
   };
 }
 
