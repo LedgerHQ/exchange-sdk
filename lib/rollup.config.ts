@@ -1,9 +1,7 @@
 import commonjs from "@rollup/plugin-commonjs";
-import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
-import { babel } from "@rollup/plugin-babel";
-import { DEFAULT_EXTENSIONS } from "@babel/core";
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   input: "src/index.ts",
   output: {
@@ -11,15 +9,9 @@ export default {
     format: "cjs",
   },
   plugins: [
-    resolve({
-      browser: true
-    }),
     commonjs(),
-    typescript(),
-    babel({
-      babelHelpers: "bundled",
-      exclude: "node_modules/**",
-      extensions: [...DEFAULT_EXTENSIONS, ".ts", "tsx"],
+    typescript({
+      exclude: "**/*.test.ts",
     }),
   ],
 };
