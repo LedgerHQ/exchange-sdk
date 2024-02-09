@@ -317,6 +317,7 @@ export class ExchangeSDK {
     switch (family) {
       case "bitcoin":
       case "ethereum":
+        delete customFeeConfig.gasLimit;
       case "algorand":
       case "crypto_org":
       case "ripple": // Todo check InitSwap 
