@@ -1,6 +1,7 @@
 import {
   Account,
   Currency,
+  Transport,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
@@ -16,7 +17,11 @@ import {
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
-import walletApiDecorator, { WalletApiDecorator, getCustomModule } from "./wallet-api";
+import walletApiDecorator, {
+  type WalletApiDecorator,
+  getCustomModule,
+} from "./wallet-api";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -36,13 +41,19 @@ export type SwapInfo = {
   getSwapPayload?: GetSwapPayload;
 };
 
+/**
+ * Sell lambda call during sell process.
+ * @param {nonce}
+ * @param {sellAddress}
+ * @param {amount} amount choosen by User, but in lowest atomic unit (ex: Satoshi, Wei)
+ */
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: BigNumber
+  amount: bigint
 ) => Promise<{
   recipientAddress: string;
-  amount: BigNumber;
+  amount: bigint;
   binaryPayload: Buffer;
   signature: Buffer;
 }>;
@@ -67,9 +78,6 @@ const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
   SWAP: "SWAP",
-  FUND_NG: "FUND_NG",
-  SELL_NG: "SELL_NG",
-  SWAP_NG: "SWAP_NG",
 } as const;
 
 /**
@@ -81,11 +89,15 @@ export class ExchangeSDK {
   readonly providerId: string;
 
   private walletAPIDecorator: WalletApiDecorator;
-  private transport: WindowMessageTransport | undefined;
-  private logger: Logger = new Logger();
+  private transport: WindowMessageTransport | Transport | undefined;
+  private logger: Logger = new Logger(true);
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
+  }
+
+  private get exchangeModule(): ExchangeModule {
+    return (this.walletAPI.custom as any).exchange as ExchangeModule;
   }
 
   /**
@@ -97,15 +109,16 @@ export class ExchangeSDK {
    */
   constructor(
     providerId: string,
-    transport?: WindowMessageTransport,
+    transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
       if (!transport) {
-        this.transport = new WindowMessageTransport();
-        this.transport.connect();
+        const transport = new WindowMessageTransport();
+        transport.connect();
+        this.transport = transport;
       } else {
         this.transport = transport;
       }
@@ -164,13 +177,13 @@ export class ExchangeSDK {
     }
 
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.walletAPI.custom.exchange
-      .startSwap({ 
-        exchangeType: ExchangeType.SWAP, 
-        provider: this.providerId, 
-        fromAccountId, 
-        toAccountId, 
-        tokenCurrency: toNewTokenId || ''
+    const deviceTransactionId = await this.exchangeModule
+      .startSwap({
+        exchangeType: ExchangeType.SWAP,
+        provider: this.providerId,
+        fromAccountId,
+        toAccountId,
+        tokenCurrency: toNewTokenId || "",
       })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
@@ -190,7 +203,7 @@ export class ExchangeSDK {
         toAccount: toAccount,
         toNewTokenId,
         amount: fromAmount,
-        amountInAtomicUnit: BigInt("0"),
+        amountInAtomicUnit: fromAmountAtomic,
         quoteId,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
@@ -206,7 +219,7 @@ export class ExchangeSDK {
       customFeeConfig,
     });
 
-    const tx = await this.walletAPI.custom.exchange
+    const tx = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
@@ -255,6 +268,7 @@ export class ExchangeSDK {
 
     const {
       accountId,
+      amount: fromAmount,
       feeStrategy,
       customFeeConfig = {},
       getSellPayload,
@@ -266,9 +280,17 @@ export class ExchangeSDK {
         throw error;
       });
 
+    // Check enough fund
+    const fromAmountAtomic = convertToAtomicUnit(fromAmount, currency);
+    if (canSpendAmount(account, fromAmountAtomic) === false) {
+      const err = new NotEnoughFunds();
+      this.logger.error(err);
+      throw err;
+    }
+
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.walletAPI.exchange
-      .start(ExchangeType.SELL_NG)
+    const deviceTransactionId = await this.exchangeModule
+      .start(ExchangeType.SELL)
       .catch((error: Error) => {
         const err = new NonceStepError(error);
         this.logger.error(err);
@@ -279,7 +301,11 @@ export class ExchangeSDK {
     // 2 - Ask for payload creation
     this.logger.log("Call getSellDestinationAccount");
     const { recipientAddress, amount, binaryPayload, signature } =
-      await getSellPayload(deviceTransactionId, account.address, info.amount);
+      await getSellPayload(
+        deviceTransactionId,
+        account.address,
+        BigInt(fromAmountAtomic.toString())
+      );
 
     // 3 - Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
@@ -289,7 +315,7 @@ export class ExchangeSDK {
       customFeeConfig,
     });
 
-    const tx = await this.walletAPI.exchange
+    const tx = await this.exchangeModule
       .completeSell({
         provider: this.providerId,
         fromAccountId: accountId,
@@ -315,14 +341,22 @@ export class ExchangeSDK {
    * {@link https://github.com/LedgerHQ/wallet-api WalletAPI} server.
    */
   disconnect() {
-    this.transport?.disconnect();
+    if (this.transport && "disconnect" in this.transport) {
+      this.transport.disconnect();
+    }
   }
 }
 
-function canSpendAmount(account: Account, amount: BigNumber): boolean {
-  return account.spendableBalance.isGreaterThanOrEqualTo(amount);
+function canSpendAmount(account: Account, amount: bigint): boolean {
+  return account.spendableBalance.isGreaterThanOrEqualTo(
+    new BigNumber(amount.toString())
+  );
 }
 
-function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
-  return amount.shiftedBy(currency.decimals);
+function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
+  const convertedNumber = amount.shiftedBy(currency.decimals);
+  if (!convertedNumber.isInteger()) {
+    throw new Error("Unable to convert amount to atomic unit");
+  }
+  return BigInt(convertedNumber.toString());
 }

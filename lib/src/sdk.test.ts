@@ -2,13 +2,15 @@ import {
   Account,
   Currency,
   WalletAPIClient,
+  defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
 import BigNumber from "bignumber.js";
 import { retrievePayload, confirmSwap } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
+import { getCustomModule } from "./wallet-api";
 
 jest.mock("./api");
 
@@ -17,6 +19,9 @@ const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
 const mockStartExchange = jest
   .spyOn(ExchangeModule.prototype, "start")
   .mockResolvedValue("DeviceTransactionId");
+const mockStartSwapExchange = jest
+  .spyOn(ExchangeModule.prototype, "startSwap")
+  .mockResolvedValue("DeviceTransactionId");
 const mockCompleteSwap = jest.spyOn(ExchangeModule.prototype, "completeSwap");
 const mockCompleteSell = jest.spyOn(ExchangeModule.prototype, "completeSell");
 
@@ -24,13 +29,18 @@ const mockedTransport = {
   onMessage: jest.fn(),
   send: jest.fn(),
 };
-const walletApiClient = new WalletAPIClient(mockedTransport);
-const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
+const walletApiClient = new WalletAPIClient(
+  mockedTransport,
+  defaultLogger,
+  getCustomModule
+);
+const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
 beforeEach(() => {
   mockAccountList.mockClear();
   mockCurrenciesList.mockClear();
   mockStartExchange.mockClear();
+  mockStartSwapExchange.mockClear();
   mockCompleteSwap.mockClear();
   mockCompleteSell.mockClear();
 });
@@ -80,7 +90,7 @@ describe("swap", () => {
     const transactionId = await sdk.swap(swapData);
 
     // THEN
-    expect(mockStartExchange).toBeCalled();
+    expect(mockStartSwapExchange).toBeCalled();
     expect(mockAccountList).toBeCalled();
     expect(mockCompleteSwap).toBeCalled();
     expect(mockCompleteSell).not.toBeCalled();

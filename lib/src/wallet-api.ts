@@ -11,7 +11,7 @@ import {
   UnknownAccountError,
 } from "./error";
 import BigNumber from "bignumber.js";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type UserAccount = {
   account: Account;
@@ -21,7 +21,7 @@ export type UserAccount = {
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
 export type CreateTransactionArg = {
   recipient: string;
-  amount: BigNumber;
+  amount: bigint;
   currency: Currency;
   customFeeConfig: {
     [key: string]: BigNumber;
@@ -35,7 +35,7 @@ export type WalletApiDecorator = {
 };
 
 export default function walletApiDecorator(
-  walletAPIClient: WalletAPIClient<typeof getCustomModule>
+  walletAPIClient: WalletAPIClient
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
@@ -74,7 +74,7 @@ export default function walletApiDecorator(
 
   async function createTransaction({
     recipient,
-    amount,
+    amount: amountBigInt,
     currency,
     customFeeConfig,
   }: CreateTransactionArg): Promise<Transaction> {
@@ -91,6 +91,8 @@ export default function walletApiDecorator(
 
     // TODO: remove next line when wallet-api support btc utxoStrategy
     delete customFeeConfig.utxoStrategy;
+
+    const amount = new BigNumber(amountBigInt.toString());
 
     switch (family) {
       case "bitcoin":

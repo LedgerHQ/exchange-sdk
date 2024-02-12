@@ -31,7 +31,7 @@ const IndexPage = () => {
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    let providerId = "changelly";
+    let providerId = "coinify";
 
     //-- Retrieve information coming from Deeplink
     for (const entry of searchParams.entries()) {
@@ -134,30 +134,26 @@ const IndexPage = () => {
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
         getSellPayload: async (nonce, address, amount) => {
-          console.log("getSellDestinationAccount called!");
-
           const result: {
-            recipientAddress: string;
-            amount: string;
-            binaryPayload: string;
-            signature: string;
+            data: {
+              recipientAddress: string;
+              amount: string;
+              binaryPayload: string;
+              signature: string;
+            };
           } = await axios({
             method: "GET",
             url: `http://localhost:3000/api/sell?nonce=${nonce}&amount=${amount}&address=${address}`,
-            // data: {
-            //   nonce,
-            //   amount,
-            // },
           });
 
-          console.log("Receive:", result);
+          console.log("getSellDestinationAccount received:", result);
 
           const {
             recipientAddress,
             amount: finalAmount,
             binaryPayload,
             signature,
-          } = result;
+          } = result.data;
 
           return {
             recipientAddress,
