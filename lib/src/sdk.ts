@@ -325,7 +325,6 @@ export class ExchangeSDK {
       case "celo":
       case "hedera":
       case "filecoin":
-      case "tezos":
       case "polkadot":
       case "stellar":
       case "tron":
@@ -352,6 +351,13 @@ export class ExchangeSDK {
           ...customFeeConfig,
           mode: "send",
         };
+      case "tezos": return {
+        family,
+        amount,
+        recipient,
+        ...customFeeConfig,
+        mode: "send", 
+      };
       case "elrond":
         return {
           family,
