@@ -38,7 +38,9 @@
     "wallet.userId",
     "wallet.info",
     "exchange.start",
-    "exchange.complete"
+    "exchange.complete",
+    "custom.exchange.start",
+    "custom.exchange.complete"
   ],
   "domains": [
     "https://*"

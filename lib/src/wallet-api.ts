@@ -20,7 +20,7 @@ import {
   UnknownAccountError,
 } from "./error";
 import BigNumber from "bignumber.js";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type UserAccount = {
   account: Account;
@@ -73,7 +73,7 @@ type CompleteSellType = InstanceType<
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
 export type CreateTransactionArg = {
   recipient: string;
-  amount: BigNumber;
+  amount: bigint;
   currency: Currency;
   customFeeConfig: {
     [key: string]: BigNumber;
@@ -88,7 +88,7 @@ export type WalletApiDecorator = {
 };
 
 export default function walletApiDecorator(
-  walletAPIClient: WalletAPIClient<typeof getCustomModule>
+  walletAPIClient: WalletAPIClient
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
@@ -127,7 +127,7 @@ export default function walletApiDecorator(
 
   async function createTransaction({
     recipient,
-    amount,
+    amount: amountBigInt,
     currency,
     customFeeConfig,
     payinExtraId,
@@ -151,6 +151,8 @@ export default function walletApiDecorator(
     if (!strategy) {
       throw new Error(`No strategy found for family: ${family}`);
     }
+
+    const amount = new BigNumber(amountBigInt.toString());
 
     return strategy({
       family,

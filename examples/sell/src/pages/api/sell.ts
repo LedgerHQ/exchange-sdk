@@ -15,7 +15,7 @@ export default function handler(
 
   const { amount } = req.query;
 
-  const recipientAddress = "0xffffff";
+  const recipientAddress = "bc1q6dpklmv02d7eg978dj8u0vlwc4aney8ddhuyck";
   const binaryPayload = "Cwiop";
   const signature = "XXXX";
 
