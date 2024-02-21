@@ -89,8 +89,8 @@ importers:
         specifier: ^1.5.2
         version: 1.5.2
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: 0.3.0-nightly.0
-        version: 0.3.0-nightly.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
         version: 25.0.7(rollup@3.29.4)
@@ -1111,8 +1111,8 @@ packages:
       zod: 3.22.4
     dev: true
 
-  /@ledgerhq/wallet-api-exchange-module@0.3.0-nightly.0:
-    resolution: {integrity: sha512-mErmFsg5RAv59FLn0trTgehU4huyELoqzTJUswNIwKDQzA6nQoS7CQY7cmaFh62DZ5SiTi7oLUrGHLQBmLUWzQ==}
+  /@ledgerhq/wallet-api-exchange-module@0.3.0:
+    resolution: {integrity: sha512-IJFNrF2/HbGrZNJvtJAVaOH4TmHQ1xfyB7yN33I0eYEOJo/IcbooriQA5JSjbFEGuVCiZlsK7E6I90FM1cTOhw==}
     dependencies:
       '@ledgerhq/wallet-api-client': 1.5.2
       '@ledgerhq/wallet-api-core': 1.6.2
