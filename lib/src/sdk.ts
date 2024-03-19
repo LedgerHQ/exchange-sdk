@@ -156,12 +156,12 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.custom.exchange
-      .startSwap({ 
-        exchangeType: ExchangeType.SWAP, 
-        provider: this.providerId, 
-        fromAccountId, 
-        toAccountId, 
-        tokenCurrency: toNewTokenId || ''
+      .startSwap({
+        exchangeType: ExchangeType.SWAP,
+        provider: this.providerId,
+        fromAccountId,
+        toAccountId,
+        tokenCurrency: toNewTokenId || "",
       })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
@@ -171,7 +171,7 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
-    const { binaryPayload, signature, payinAddress, swapId } =
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await retrievePayload({
         provider: this.providerId,
         deviceTransactionId,
@@ -193,6 +193,7 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency: fromCurrency,
       customFeeConfig,
+      payinExtraId,
     });
 
     const tx = await this.walletAPI.custom.exchange
@@ -292,6 +293,7 @@ export class ExchangeSDK {
     amount,
     currency,
     customFeeConfig,
+    payinExtraId,
   }: {
     recipient: string;
     amount: BigNumber;
@@ -299,6 +301,7 @@ export class ExchangeSDK {
     customFeeConfig: {
       [key: string]: BigNumber;
     };
+    payinExtraId?: string;
   }): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
@@ -314,19 +317,19 @@ export class ExchangeSDK {
     // TODO: remove next line when wallet-api support btc utxoStrategy
     delete customFeeConfig.utxoStrategy;
 
+    console.log("11164 SDK", family);
+
     switch (family) {
       case "bitcoin":
       case "ethereum":
         delete customFeeConfig.gasLimit;
       case "algorand":
       case "crypto_org":
-      case "ripple": // Todo check InitSwap 
       case "cosmos":
       case "celo":
       case "hedera":
       case "filecoin":
       case "polkadot":
-      case "stellar":
       case "tron":
       case "neo":
         return {
@@ -351,13 +354,14 @@ export class ExchangeSDK {
           ...customFeeConfig,
           mode: "send",
         };
-      case "tezos": return {
-        family,
-        amount,
-        recipient,
-        ...customFeeConfig,
-        mode: "send", 
-      };
+      case "tezos":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+          mode: "send",
+        };
       case "elrond":
         return {
           family,
@@ -375,6 +379,33 @@ export class ExchangeSDK {
           ...customFeeConfig,
           model: { kind: "transfer", uiState: {} },
         };
+      case "stellar":
+        console.log("11164 SDK payinExtraId", payinExtraId);
+        if (!payinExtraId)
+          throw Error(
+            "XLM transaction requires a destination memoValue (payinExtraId) for reference"
+          );
+        return {
+          family,
+          amount,
+          recipient,
+          memoValue: payinExtraId,
+          memoType: "MEMO_TEXT",
+          ...customFeeConfig,
+        } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
+      case "ripple":
+        if (!payinExtraId)
+          throw Error(
+            "XRP transaction requires a destination tag (payinExtraId) to identify the recipient"
+          );
+        console.log("11164 SDK ripple payinExtraId ", payinExtraId);
+        return {
+          family,
+          amount,
+          recipient,
+          tag: new BigNumber(payinExtraId).toNumber(),
+          ...customFeeConfig,
+        } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
     }
   }
 }
