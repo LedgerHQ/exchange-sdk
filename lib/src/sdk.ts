@@ -1,8 +1,16 @@
 import {
   Account,
+  CardanoTransaction,
   CryptoCurrency,
   Currency,
+  ElrondTransaction,
+  NearTransaction,
+  NeoTransaction,
+  RippleTransaction,
+  SolanaTransaction,
+  StellarTransaction,
   Transaction,
+  TransactionCommon,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
@@ -19,6 +27,7 @@ import {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
+  PayinExtraIdError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
@@ -63,6 +72,18 @@ function getCustomModule(client: WalletAPIClient) {
   };
 }
 
+type TransactionWithCustomFee = TransactionCommon & {
+  customFeeConfig: {
+    [key: string]: BigNumber;
+  };
+  payinExtraId?: string;
+};
+
+// Define a specific type for the strategy functions, assuming they might need parameters
+type TransactionStrategyFunction = (
+  params: TransactionWithCustomFee
+) => Transaction;
+
 /**
  * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
  * Under the hood it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -74,6 +95,29 @@ export class ExchangeSDK {
 
   private transport: WindowMessageTransport | undefined;
   private logger: Logger = new Logger();
+
+  private transactionStrategy: {
+    [K in Transaction["family"]]: TransactionStrategyFunction;
+  } = {
+    bitcoin: defaultTransaction,
+    ethereum: withoutGasLimitTransaction,
+    algorand: defaultTransaction,
+    stellar: stellarTransaction,
+    cardano: modeSendTransaction,
+    celo: defaultTransaction,
+    cosmos: defaultTransaction,
+    crypto_org: defaultTransaction,
+    elrond: elrondTransaction,
+    filecoin: defaultTransaction,
+    hedera: defaultTransaction,
+    near: modeSendTransaction,
+    neo: defaultTransaction,
+    polkadot: defaultTransaction,
+    ripple: rippleTransaction,
+    solana: solanaTransaction,
+    tezos: modeSendTransaction,
+    tron: defaultTransaction,
+  };
 
   /**
    *
@@ -171,7 +215,7 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
-    const { binaryPayload, signature, payinAddress, swapId } =
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await retrievePayload({
         provider: this.providerId,
         deviceTransactionId,
@@ -193,6 +237,7 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency: fromCurrency,
       customFeeConfig,
+      payinExtraId,
     });
 
     const tx = await this.walletAPI.custom.exchange
@@ -299,6 +344,7 @@ export class ExchangeSDK {
     amount,
     currency,
     customFeeConfig,
+    payinExtraId,
   }: {
     recipient: string;
     amount: BigNumber;
@@ -306,6 +352,7 @@ export class ExchangeSDK {
     customFeeConfig: {
       [key: string]: BigNumber;
     };
+    payinExtraId?: string;
   }): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
@@ -321,69 +368,19 @@ export class ExchangeSDK {
     // TODO: remove next line when wallet-api support btc utxoStrategy
     delete customFeeConfig.utxoStrategy;
 
-    switch (family) {
-      case "bitcoin":
-      case "ethereum":
-        delete customFeeConfig.gasLimit;
-      case "algorand":
-      case "crypto_org":
-      case "ripple": // Todo check InitSwap
-      case "cosmos":
-      case "celo":
-      case "hedera":
-      case "filecoin":
-      case "polkadot":
-      case "stellar":
-      case "tron":
-      case "neo":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-        } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
-      case "near":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          mode: "send", //??
-        };
-      case "cardano":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          mode: "send",
-        };
-      case "tezos":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          mode: "send",
-        };
-      case "elrond":
-        return {
-          family,
-          amount,
-          recipient,
-          gasLimit: 0, //FIXME
-          ...customFeeConfig,
-          mode: "send", //??
-        };
-      case "solana":
-        return {
-          family,
-          amount,
-          recipient,
-          ...customFeeConfig,
-          model: { kind: "transfer", uiState: {} },
-        };
+    const strategy = this.transactionStrategy[family];
+
+    if (!strategy) {
+      throw new Error(`No strategy found for family: ${family}`);
     }
+
+    return strategy({
+      family,
+      amount,
+      recipient,
+      customFeeConfig,
+      payinExtraId,
+    });
   }
 }
 
@@ -393,4 +390,96 @@ function canSpendAmount(account: Account, amount: BigNumber): boolean {
 
 function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
   return amount.shiftedBy(currency.decimals);
+}
+
+export function defaultTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): Transaction {
+  return {
+    family,
+    amount,
+    recipient,
+    ...customFeeConfig,
+  } as Transaction;
+}
+
+export function modeSendTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): Transaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    mode: "send",
+  };
+}
+
+export function stellarTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+  payinExtraId,
+}: TransactionWithCustomFee): StellarTransaction {
+  if (!payinExtraId) throw new PayinExtraIdError();
+
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    memoValue: payinExtraId,
+    memoType: "MEMO_TEXT",
+  } as StellarTransaction;
+}
+
+export function rippleTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+  payinExtraId,
+}: TransactionWithCustomFee): RippleTransaction {
+  if (!payinExtraId) throw new PayinExtraIdError();
+
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    tag: new BigNumber(payinExtraId).toNumber(),
+  } as RippleTransaction;
+}
+
+// Function to remove gasLimit from customFeeConfig for Ethereum or Bitcoin
+export function withoutGasLimitTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): Transaction {
+  delete customFeeConfig.gasLimit;
+  return defaultTransaction({ family, amount, recipient, customFeeConfig });
+}
+
+export function solanaTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): SolanaTransaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    model: { kind: "transfer", uiState: {} },
+  } as SolanaTransaction;
+}
+
+export function elrondTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): ElrondTransaction {
+  return {
+    ...modeSendTransaction({ family, amount, recipient, customFeeConfig }),
+    gasLimit: 0, // FIXME: Placeholder, adjust as needed
+  } as ElrondTransaction;
 }

@@ -40,6 +40,7 @@ describe("retrievePayload", () => {
       payinAddress: "0x31137882f060458bde9e9ac3caa27b030d8f85c2",
       signature: "",
       swapId: "swap-id2",
+      payinExtraId: "payinExtraId",
     };
     expect(result).toEqual(expectedResult);
     const expectedRequest = {
@@ -152,5 +153,6 @@ function swapApiResponse() {
     createdAt: "2023-07-05T22:12:15.378497Z",
     binaryPayload: "",
     signature: "",
+    payinExtraId: "payinExtraId",
   };
 }
