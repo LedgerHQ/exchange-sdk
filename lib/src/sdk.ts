@@ -303,7 +303,9 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
-      .start(ExchangeType.SELL)
+      .startSell({
+        provider: this.providerId,
+      })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
         this.logger.error(err);
@@ -319,6 +321,12 @@ export class ExchangeSDK {
         account.address,
         BigInt(fromAmountAtomic.toString())
       );
+    this.logger.log("Payload received:", {
+      recipientAddress,
+      amount,
+      binaryPayload,
+      signature,
+    });
 
     // 3 - Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
