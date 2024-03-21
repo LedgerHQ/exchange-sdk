@@ -80,3 +80,10 @@ export class ConfirmStepError extends ExchangeError {
     this.name = "ConfirmStepError";
   }
 }
+
+export class PayinExtraIdError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap010", nestedError);
+    this.name = "PayinExtraIdError";
+  }
+}
