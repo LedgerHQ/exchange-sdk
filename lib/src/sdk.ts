@@ -361,8 +361,6 @@ export class ExchangeSDK {
     // TODO: remove next line when wallet-api support btc utxoStrategy
     delete customFeeConfig.utxoStrategy;
 
-    console.log("11164 SDK strategu", family);
-
     const strategy = this.transactionStrategy[family];
 
     if (!strategy) {
@@ -376,77 +374,6 @@ export class ExchangeSDK {
       customFeeConfig,
       payinExtraId,
     });
-
-    // switch (family) {
-    //   case "bitcoin":
-    //   case "ethereum":
-    //     delete customFeeConfig.gasLimit;
-    //   case "algorand":
-    //   case "crypto_org":
-    //   case "cosmos":
-    //   case "celo":
-    //   case "hedera":
-    //   case "filecoin":
-    //   case "polkadot":
-    //   case "tron":
-    //   case "neo":
-    //     return transaction as NeoTransaction;
-    //   // {
-    //   //   family,
-    //   //   amount,
-    //   //   recipient,
-    //   //   ...customFeeConfig,
-    //   // } as Transaction; // If we don't cast into Transaction, we have compilation error with SolanaTransaction missing parameter. However we previously filter to not manage Solana family.
-    //   case "near":
-    //     return {
-    //       ...transaction,
-    //       mode: "send", //??
-    //     } as NearTransaction;
-    //   case "cardano":
-    //     return {
-    //       ...transaction,
-    //       mode: "send",
-    //     } as CardanoTransaction;
-    //   case "tezos":
-    //     return {
-    //       family,
-    //       amount,
-    //       recipient,
-    //       ...customFeeConfig,
-    //       mode: "send",
-    //     };
-    //   case "elrond":
-    //     return {
-    //       family,
-    //       amount,
-    //       recipient,
-    //       gasLimit: 0, //FIXME
-    //       ...customFeeConfig,
-    //       mode: "send", //??
-    //     };
-    //   case "solana":
-    //     return {
-    //       family,
-    //       amount,
-    //       recipient,
-    //       ...customFeeConfig,
-    //       model: { kind: "transfer", uiState: {} },
-    //     };
-    //   case "stellar":
-    //     return createStellarTransaction(
-    //       amount,
-    //       recipient,
-    //       customFeeConfig,
-    //       payinExtraId
-    //     );
-    //   case "ripple":
-    //     return createRippleTransaction(
-    //       amount,
-    //       recipient,
-    //       customFeeConfig,
-    //       payinExtraId
-    //     );
-    // }
   }
 }
 
