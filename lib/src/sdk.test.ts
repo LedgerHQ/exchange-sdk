@@ -177,7 +177,7 @@ describe("swap", () => {
     const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
     const swapData = {
       quoteId: "quoteId",
-      fromAccountId: "id-stellar",
+      fromAccountId: "id-ripple",
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
