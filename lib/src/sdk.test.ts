@@ -66,7 +66,7 @@ jest.mock("@ledgerhq/wallet-api-client/lib/WalletAPIClient", () => {
         list: jest.fn().mockResolvedValue(accounts as Array<Account>),
       },
       currency: {
-        // list: jest.fn().mockResolvedValue(currencies as any),
+        // can be updated in each test using the setMockedCurrencies
         list: jest.fn(() => Promise.resolve(mockedCurrencies)),
       },
     })),
