@@ -228,7 +228,7 @@ describe("modeSendTransaction function", () => {
       family: "cardano",
       amount: new BigNumber("5"),
       recipient: "ADDRESS",
-      customFeeConfig: {},
+      customFeeConfig: { fee: new BigNumber("0.01") },
     });
 
     expect(transaction).toEqual({
@@ -236,23 +236,7 @@ describe("modeSendTransaction function", () => {
       amount: new BigNumber("5"),
       recipient: "ADDRESS",
       mode: "send",
-    });
-  });
-
-  it("includes properties from defaultTransaction", () => {
-    const transaction = modeSendTransaction({
-      family: "celo",
-      amount: new BigNumber("1"),
-      recipient: "ADDRESS",
-      customFeeConfig: { fee: new BigNumber("0.01") },
-    });
-
-    expect(transaction).toEqual({
-      family: "celo",
-      amount: new BigNumber("1"),
-      recipient: "ADDRESS",
       fee: new BigNumber("0.01"),
-      mode: "send",
     });
   });
 });
@@ -365,23 +349,6 @@ describe("elrondTransaction function", () => {
     expect(transaction).toEqual({
       family: "elrond",
       amount: new BigNumber("10"),
-      recipient: "ADDRESS",
-      mode: "send",
-      gasLimit: 0,
-    });
-  });
-
-  it("includes properties from defaultTransaction", () => {
-    const transaction = elrondTransaction({
-      family: "elrond",
-      amount: new BigNumber("2"),
-      recipient: "ADDRESS",
-      customFeeConfig: {},
-    });
-
-    expect(transaction).toEqual({
-      family: "elrond",
-      amount: new BigNumber("2"),
       recipient: "ADDRESS",
       mode: "send",
       gasLimit: 0,

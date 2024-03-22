@@ -231,6 +231,8 @@ export class ExchangeSDK {
         throw err;
       });
 
+    console.log("11164 payinExtraId", payinExtraId);
+
     // 3 - Send payload
     const transaction = await this.createTransaction({
       recipient: payinAddress,
