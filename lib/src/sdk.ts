@@ -99,7 +99,7 @@ export class ExchangeSDK {
   private transactionStrategy: {
     [K in Transaction["family"]]: TransactionStrategyFunction;
   } = {
-    bitcoin: withoutGasLimitTransaction,
+    bitcoin: defaultTransaction,
     ethereum: withoutGasLimitTransaction,
     algorand: defaultTransaction,
     stellar: stellarTransaction,
