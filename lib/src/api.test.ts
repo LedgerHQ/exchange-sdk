@@ -36,9 +36,9 @@ describe("retrievePayload", () => {
 
     // THEN
     const expectedResult = {
-      binaryPayload: Buffer.from(""),
+      binaryPayload: "",
       payinAddress: "0x31137882f060458bde9e9ac3caa27b030d8f85c2",
-      signature: Buffer.from(""),
+      signature: "",
       swapId: "swap-id2",
     };
     expect(result).toEqual(expectedResult);
