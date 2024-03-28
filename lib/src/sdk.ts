@@ -156,12 +156,12 @@ export class ExchangeSDK {
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.walletAPI.custom.exchange
-      .startSwap({ 
-        exchangeType: ExchangeType.SWAP, 
-        provider: this.providerId, 
-        fromAccountId, 
-        toAccountId, 
-        tokenCurrency: toNewTokenId || ''
+      .startSwap({
+        exchangeType: ExchangeType.SWAP,
+        provider: this.providerId,
+        fromAccountId,
+        toAccountId,
+        tokenCurrency: toNewTokenId || "",
       })
       .catch((error: Error) => {
         const err = new NonceStepError(error);
@@ -216,6 +216,13 @@ export class ExchangeSDK {
             throw err;
           }
         );
+
+        // defined in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
+        // used for development
+        if (error.name === "DisabledTransactionBroadcastError") {
+          throw error;
+        }
+
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
@@ -320,7 +327,7 @@ export class ExchangeSDK {
         delete customFeeConfig.gasLimit;
       case "algorand":
       case "crypto_org":
-      case "ripple": // Todo check InitSwap 
+      case "ripple": // Todo check InitSwap
       case "cosmos":
       case "celo":
       case "hedera":
@@ -351,13 +358,14 @@ export class ExchangeSDK {
           ...customFeeConfig,
           mode: "send",
         };
-      case "tezos": return {
-        family,
-        amount,
-        recipient,
-        ...customFeeConfig,
-        mode: "send", 
-      };
+      case "tezos":
+        return {
+          family,
+          amount,
+          recipient,
+          ...customFeeConfig,
+          mode: "send",
+        };
       case "elrond":
         return {
           family,
