@@ -26,13 +26,14 @@ export type PayloadRequestData = {
   amount: BigNumber;
   amountInAtomicUnit: bigint;
   quoteId?: string;
-  toNewTokenId? : string;
+  toNewTokenId?: string;
 };
 export type PayloadResponse = {
   binaryPayload: string;
   signature: string;
   payinAddress: string;
   swapId: string;
+  payinExtraId?: string;
 };
 export async function retrievePayload(
   data: PayloadRequestData
@@ -85,6 +86,7 @@ type SwapBackendResponse = {
   createdAt: string; // ISO-8601
   binaryPayload: string;
   signature: string;
+  payinExtraId?: string;
 };
 
 function parseSwapBackendInfo(response: SwapBackendResponse): {
@@ -92,11 +94,13 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
   signature: string;
   payinAddress: string;
   swapId: string;
+  payinExtraId?: string;
 } {
   return {
     binaryPayload: response.binaryPayload,
     signature: response.signature,
     payinAddress: response.payinAddress,
     swapId: response.swapId,
+    payinExtraId: response.payinExtraId,
   };
 }
