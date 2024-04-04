@@ -42,15 +42,14 @@ type TransactionStrategyFunction = (
 const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
 } = {
-  bitcoin: defaultTransaction,
-  ethereum: withoutGasLimitTransaction,
   algorand: defaultTransaction,
-  stellar: stellarTransaction,
+  bitcoin: defaultTransaction,
   cardano: modeSendTransaction,
   celo: defaultTransaction,
   cosmos: defaultTransaction,
   crypto_org: defaultTransaction,
   elrond: elrondTransaction,
+  ethereum: withoutGasLimitTransaction,
   filecoin: defaultTransaction,
   hedera: defaultTransaction,
   near: modeSendTransaction,
@@ -58,8 +57,11 @@ const transactionStrategy: {
   polkadot: defaultTransaction,
   ripple: rippleTransaction,
   solana: solanaTransaction,
+  stacks: defaultTransaction,
+  stellar: stellarTransaction,
   tezos: modeSendTransaction,
   tron: defaultTransaction,
+  vechain: defaultTransaction,
 };
 
 type StartType = InstanceType<typeof WalletAPIClient>["exchange"]["start"];

@@ -156,7 +156,6 @@ export class ExchangeSDK {
       fromAmount,
       feeStrategy,
       customFeeConfig = {},
-      rate,
       quoteId,
       toNewTokenId,
       getSwapPayload,
@@ -230,13 +229,14 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         toAccountId, // this attribute will point the parent account when the token is new.
+        swapId,
         transaction,
         binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
         signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
-        swapId,
-        rate,
         tokenCurrency: toNewTokenId,
+        amountExpectedTo: BigInt(0),
+        magnitudeAwareRate: BigInt(0),
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId).catch(
