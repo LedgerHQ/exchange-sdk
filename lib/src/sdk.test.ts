@@ -1,7 +1,4 @@
 import { Account, Currency } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
-import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
-import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
 import BigNumber from "bignumber.js";
 import { retrievePayload, confirmSwap } from "./api";
 import {

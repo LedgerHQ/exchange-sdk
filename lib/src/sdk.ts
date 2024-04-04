@@ -1,14 +1,12 @@
 import {
   Account,
-  CardanoTransaction,
-  CryptoCurrency,
-  Currency,
   ElrondTransaction,
-  NearTransaction,
-  NeoTransaction,
   RippleTransaction,
   SolanaTransaction,
   StellarTransaction,
+  CryptoCurrency,
+  Currency,
+  CustomModule,
   Transaction,
   TransactionCommon,
   WalletAPIClient,
@@ -28,6 +26,7 @@ import {
   ListCurrencyError,
   UnknownAccountError,
   PayinExtraIdError,
+  ExchangeError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
@@ -66,9 +65,39 @@ const ExchangeType = {
   SWAP_NG: "SWAP_NG",
 } as const;
 
+
+type CustomLogHandlersType = {
+  "custom.throwExchangeErrorToLedgerLive": (_: ExchangeError) => void;
+  "custom.throwGenericErrorToLedgerLive": (_: Error) => void;
+};
+
+class CustomErrorModule extends CustomModule {
+  throwExchangeErrorToLedgerLive(error: ExchangeError) {
+    return this.request<
+      Parameters<
+        CustomLogHandlersType["custom.throwExchangeErrorToLedgerLive"]
+      >[0],
+      ReturnType<CustomLogHandlersType["custom.throwExchangeErrorToLedgerLive"]>
+    >("custom.throwExchangeErrorToLedgerLive", error);
+  }
+  throwGenericErrorToLedgerLive(error: Error) {
+    return this.request<
+      Parameters<
+        CustomLogHandlersType["custom.throwGenericErrorToLedgerLive"]
+      >[0],
+      ReturnType<CustomLogHandlersType["custom.throwGenericErrorToLedgerLive"]>
+    >("custom.throwGenericErrorToLedgerLive", error);
+  }
+}
+
+/**
+ * Should match our swap live apps path naming  :/
+ */
 function getCustomModule(client: WalletAPIClient) {
   return {
     exchange: new ExchangeModule(client),
+    swap: new CustomErrorModule(client), 
+
   };
 }
 
@@ -117,6 +146,7 @@ export class ExchangeSDK {
     solana: solanaTransaction,
     tezos: modeSendTransaction,
     tron: defaultTransaction,
+    vechain: defaultTransaction,
   };
 
   /**
@@ -155,6 +185,24 @@ export class ExchangeSDK {
       setBackendUrl(customUrl);
     }
   }
+
+   throwErrorToLedgerLive = (error: unknown) => {
+    if (error instanceof ExchangeError) {
+      const errorName = "name" in error.cause && (error.cause.name as string);
+      switch (errorName) {
+        case "WrongDeviceForAccount":
+        case "SwapCompleteExchangeError":
+        case "CompleteExchangeError":
+          break;
+        default:
+          this.walletAPI.custom.swap.throwExchangeErrorToLedgerLive(error);
+          break;
+      }
+    } else if (error instanceof Error) {
+      this.walletAPI.custom.swap.throwGenericErrorToLedgerLive(error);
+    }
+  }
+  
 
   /**
    * Ask user to validate a swap transaction.
@@ -227,6 +275,7 @@ export class ExchangeSDK {
         quoteId,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
+        this.throwErrorToLedgerLive(err);
         this.logger.error(err);
         throw err;
       });
@@ -257,6 +306,7 @@ export class ExchangeSDK {
         await cancelSwap(this.providerId, swapId).catch(
           async (error: Error) => {
             const err = new CancelStepError(error);
+            this.throwErrorToLedgerLive(err);
             this.logger.error(err);
             throw err;
           }
@@ -269,6 +319,7 @@ export class ExchangeSDK {
         }
 
         const err = new SignatureStepError(error);
+        this.throwErrorToLedgerLive(err);
         this.logger.error(err);
         throw err;
       });
@@ -278,6 +329,7 @@ export class ExchangeSDK {
     await confirmSwap(this.providerId, swapId, tx).catch(
       async (error: Error) => {
         const err = new ConfirmStepError(error);
+        this.throwErrorToLedgerLive(err);
         this.logger.error(err);
         throw err;
       }
@@ -306,13 +358,13 @@ export class ExchangeSDK {
         throw err;
       });
 
-    const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
+    const fromAccount = allAccounts.find((value: { id: string; }) => value.id === fromAccountId);
     if (!fromAccount) {
       const err = new UnknownAccountError(new Error("Unknown fromAccountId"));
       this.logger.error(err);
       throw err;
     }
-    const toAccount = allAccounts.find((value) => value.id === toAccountId);
+    const toAccount = allAccounts.find((value: { id: string; }) => value.id === toAccountId);
     if (!toAccount) {
       const err = new UnknownAccountError(new Error("Unknown toAccountId"));
       this.logger.error(err);
