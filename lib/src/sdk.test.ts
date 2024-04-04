@@ -71,7 +71,7 @@ jest.mock("@ledgerhq/wallet-api-client/lib/WalletAPIClient", () => {
 const mockAccountList = jest.spyOn(AccountModule.prototype, "list");
 const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
 const mockStartExchange = jest
-  .spyOn(ExchangeModule.prototype, "start")
+  .spyOn(ExchangeModule.prototype, "startSell")
   .mockResolvedValue("DeviceTransactionId");
 const mockStartSwapExchange = jest
   .spyOn(ExchangeModule.prototype, "startSwap")
