@@ -186,22 +186,33 @@ export class ExchangeSDK {
     }
   }
 
-   throwErrorToLedgerLive = (error: unknown) => {
-    if (error instanceof ExchangeError) {
-      const errorName = "name" in error.cause && (error.cause.name as string);
-      switch (errorName) {
-        case "WrongDeviceForAccount":
-        case "SwapCompleteExchangeError":
-        case "CompleteExchangeError":
-          break;
-        default:
-          this.walletAPI.custom.swap.throwExchangeErrorToLedgerLive(error);
-          break;
+  handleErrors = (error: unknown) => {
+    // When user rejects transaction, or transaction broadcast is disabled, it is not a UX error
+    // name definition in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
+    const { name, cause } = (error as any) || {};
+    const { message } = cause || {};
+    if (
+      message !== "User refused" &&
+      name !== "DisabledTransactionBroadcastError"
+    ) {
+      if (error instanceof ExchangeError) {
+        const errorName =
+          "name" in error.cause && (error.cause.name as string);
+
+        switch (errorName) {
+          case "WrongDeviceForAccount":
+          case "SwapCompleteExchangeError":
+            break;
+          default:
+            this.walletAPI.custom.swap.throwExchangeErrorToLedgerLive(error);
+            break;
+        }
+      } else if (error instanceof Error) {
+        this.walletAPI.custom.swap.throwGenericErrorToLedgerLive(error);
       }
-    } else if (error instanceof Error) {
-      this.walletAPI.custom.swap.throwGenericErrorToLedgerLive(error);
+      throw error; // Sentry track
     }
-  }
+  };
   
 
   /**
@@ -275,7 +286,7 @@ export class ExchangeSDK {
         quoteId,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
-        this.throwErrorToLedgerLive(err);
+        this.handleErrors(err);
         this.logger.error(err);
         throw err;
       });
@@ -306,7 +317,7 @@ export class ExchangeSDK {
         await cancelSwap(this.providerId, swapId).catch(
           async (error: Error) => {
             const err = new CancelStepError(error);
-            this.throwErrorToLedgerLive(err);
+            this.handleErrors(err);
             this.logger.error(err);
             throw err;
           }
@@ -319,7 +330,7 @@ export class ExchangeSDK {
         }
 
         const err = new SignatureStepError(error);
-        this.throwErrorToLedgerLive(err);
+        this.handleErrors(err);
         this.logger.error(err);
         throw err;
       });
@@ -329,7 +340,7 @@ export class ExchangeSDK {
     await confirmSwap(this.providerId, swapId, tx).catch(
       async (error: Error) => {
         const err = new ConfirmStepError(error);
-        this.throwErrorToLedgerLive(err);
+        this.handleErrors(err);
         this.logger.error(err);
         throw err;
       }
