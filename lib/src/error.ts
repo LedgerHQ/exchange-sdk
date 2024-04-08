@@ -3,6 +3,7 @@ export class ExchangeError extends Error {
     swapCode: string;
     [key: string]: string | Error | undefined;
   };
+  message: string;
   constructor(code = "swap000", nestedError?: Error) {
     super();
     this.name = "ExchangeError";
@@ -15,6 +16,7 @@ export class ExchangeError extends Error {
         : {}),
       ...nestedError,
     };
+    this.message = nestedError.message ? nestedError.message : `${nestedError}`;
   }
 }
 
