@@ -16,7 +16,7 @@ export class ExchangeError extends Error {
         : {}),
       ...nestedError,
     };
-    this.message = nestedError.message ? nestedError.message : `${nestedError}`;
+    this.message = nestedError?.message ? nestedError.message : `${nestedError}`;
   }
 }
 
