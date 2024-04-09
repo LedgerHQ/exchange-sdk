@@ -1,24 +1,20 @@
-import { Account, Currency } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-client/lib/modules/Exchange";
+import BigNumber from "bignumber.js";
+import {
+  Account,
+  Currency,
+  WalletAPIClient,
+  defaultLogger,
+} from "@ledgerhq/wallet-api-client";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
-import BigNumber from "bignumber.js";
 import { retrievePayload, confirmSwap } from "./api";
-import {
-  ExchangeSDK,
-  FeeStrategy,
-  defaultTransaction,
-  elrondTransaction,
-  modeSendTransaction,
-  rippleTransaction,
-  solanaTransaction,
-  stellarTransaction,
-  withoutGasLimitTransaction,
-} from "./sdk";
-import { WalletAPIClient } from "@ledgerhq/wallet-api-client/lib/WalletAPIClient";
+import { ExchangeSDK, FeeStrategy } from "./sdk";
+import { getCustomModule } from "./wallet-api";
 import { PayinExtraIdError } from "./error";
 
 jest.mock("./api");
+
 const accounts: Array<Partial<Account>> = [
   {
     id: "id-1",
@@ -41,44 +37,43 @@ const accounts: Array<Partial<Account>> = [
     spendableBalance: new BigNumber(100000000),
   },
 ];
+const mockAccountList = jest.spyOn(AccountModule.prototype, "list");
+const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
+const mockStartExchange = jest
+  .spyOn(ExchangeModule.prototype, "startSell")
+  .mockResolvedValue("DeviceTransactionId");
+const mockStartSwapExchange = jest
+  .spyOn(ExchangeModule.prototype, "startSwap")
+  .mockResolvedValue("DeviceTransactionId");
+const mockCompleteSwap = jest.spyOn(ExchangeModule.prototype, "completeSwap")
+  .mockResolvedValue("TransactionId");
+const mockCompleteSell = jest.spyOn(ExchangeModule.prototype, "completeSell")
+  .mockResolvedValue("TransactionId");
 
-const mockedCurrencies: any[] = [];
+const mockedTransport = {
+  onMessage: jest.fn(),
+  send: jest.fn(),
+};
+const walletApiClient = new WalletAPIClient(
+  mockedTransport,
+  defaultLogger,
+  getCustomModule
+);
+const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
-function setMockedCurrencies(newCurrencies: any[]) {
-  mockedCurrencies.length = 0; // Clear existing currencies
-  mockedCurrencies.push(...newCurrencies);
-}
+beforeEach(() => {
+  mockAccountList.mockClear();
+  mockAccountList.mockResolvedValue(accounts as Array<Account>);
 
-jest.mock("@ledgerhq/wallet-api-client/lib/WalletAPIClient", () => {
-  // Mock the WalletAPIClient as a named export
-  const startSwap = jest.fn().mockResolvedValue("DeviceTransactionId");
-  const completeSwap = jest.fn().mockResolvedValue("TransactionId");
-
-  return {
-    WalletAPIClient: jest.fn().mockImplementation(() => ({
-      custom: {
-        exchange: {
-          startSwap,
-          completeSwap,
-        },
-      },
-      account: {
-        list: jest.fn().mockResolvedValue(accounts as Array<Account>),
-      },
-      currency: {
-        // can be updated in each test using the setMockedCurrencies
-        list: jest.fn(() => Promise.resolve(mockedCurrencies)),
-      },
-    })),
-  };
+  mockCurrenciesList.mockClear();
+  mockStartExchange.mockClear();
+  mockStartSwapExchange.mockClear();
+  mockCompleteSwap.mockClear();
+  mockCompleteSell.mockClear();
 });
 
 describe("swap", () => {
-  it("sends back the 'transactionId' from the WalletAPI", async () => {
-    const mockedTransport = {
-      onMessage: jest.fn(),
-      send: jest.fn(),
-    };
+  beforeAll(() => {
     (retrievePayload as jest.Mock).mockResolvedValue({
       binaryPayload: "",
       signature: "",
@@ -86,7 +81,10 @@ describe("swap", () => {
       swapId: "swap-id",
     });
     (confirmSwap as jest.Mock).mockResolvedValue({});
+  });
 
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+    // GIVEN
     const currencies: Array<Partial<Currency>> = [
       {
         id: "currency-id-1",
@@ -94,10 +92,8 @@ describe("swap", () => {
         family: "ethereum",
       },
     ];
-    setMockedCurrencies(currencies);
+    mockCurrenciesList.mockResolvedValue(currencies as any);
 
-    const walletApiClient = new WalletAPIClient(mockedTransport);
-    const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
     const swapData = {
       quoteId: "quoteId",
       fromAccountId: "id-1",
@@ -111,23 +107,14 @@ describe("swap", () => {
     const transactionId = await sdk.swap(swapData);
 
     // THEN
-    expect(walletApiClient.account.list).toBeCalled();
+    expect(mockStartSwapExchange).toBeCalled();
+    expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).toBeCalled();
+    expect(mockCompleteSell).not.toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
 
   it("throws PayinExtraIdError error when no payinExtraId provided for stellar", async () => {
-    const mockedTransport = {
-      onMessage: jest.fn(),
-      send: jest.fn(),
-    };
-    (retrievePayload as jest.Mock).mockResolvedValue({
-      binaryPayload: "",
-      signature: "",
-      payinAddress: "",
-      swapId: "swap-id",
-    });
-    (confirmSwap as jest.Mock).mockResolvedValue({});
-
     const currencies: Array<Partial<Currency>> = [
       {
         id: "stellar",
@@ -135,10 +122,8 @@ describe("swap", () => {
         decimals: 4,
       },
     ];
-    setMockedCurrencies(currencies);
+    mockCurrenciesList.mockResolvedValue(currencies as any);
 
-    const walletApiClient = new WalletAPIClient(mockedTransport);
-    const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
     const swapData = {
       quoteId: "quoteId",
       fromAccountId: "id-stellar",
@@ -152,18 +137,6 @@ describe("swap", () => {
   });
 
   it("throws PayinExtraIdError error when no payinExtraId provided for ripple", async () => {
-    const mockedTransport = {
-      onMessage: jest.fn(),
-      send: jest.fn(),
-    };
-    (retrievePayload as jest.Mock).mockResolvedValue({
-      binaryPayload: "",
-      signature: "",
-      payinAddress: "",
-      swapId: "swap-id",
-    });
-    (confirmSwap as jest.Mock).mockResolvedValue({});
-
     const currencies: Array<Partial<Currency>> = [
       {
         id: "ripple",
@@ -171,10 +144,8 @@ describe("swap", () => {
         decimals: 4,
       },
     ];
-    setMockedCurrencies(currencies);
+    mockCurrenciesList.mockResolvedValue(currencies as any);
 
-    const walletApiClient = new WalletAPIClient(mockedTransport);
-    const sdk = new ExchangeSDK("provider-id", undefined, walletApiClient);
     const swapData = {
       quoteId: "quoteId",
       fromAccountId: "id-ripple",
@@ -188,170 +159,41 @@ describe("swap", () => {
   });
 });
 
-describe("defaultTransaction function", () => {
-  it("creates a Transaction with correct properties", () => {
-    const transaction = defaultTransaction({
-      family: "algorand",
+describe("sell", () => {
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+    // GIVEN
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "currency-id-1",
+        decimals: 4,
+        family: "ethereum",
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    const mockSellPayload = jest.fn();
+    mockSellPayload.mockResolvedValue({
+      recipientAddress: "0xfff",
+      amount: new BigNumber("1.907"),
+      binaryPayload: Buffer.from(""),
+      signature: Buffer.from(""),
+    });
+    const swapData = {
+      quoteId: "quoteId",
+      accountId: "id-1",
       amount: new BigNumber("1.908"),
-      recipient: "ADDRESS",
-      customFeeConfig: { fee: new BigNumber("0.1") },
-    });
+      feeStrategy: "SLOW" as FeeStrategy,
+      getSellPayload: mockSellPayload,
+    };
 
-    expect(transaction).toEqual({
-      family: "algorand",
-      amount: new BigNumber("1.908"),
-      recipient: "ADDRESS",
-      fee: new BigNumber("0.1"),
-    });
-  });
+    // WHEN
+    const transactionId = await sdk.sell(swapData);
 
-  it("ignores unexpected properties in customFeeConfig", () => {
-    const transaction = defaultTransaction({
-      family: "cardano",
-      amount: new BigNumber("5"),
-      recipient: "ADDRESS",
-      customFeeConfig: { fee: new BigNumber("0.2") },
-    });
-
-    expect(transaction).toEqual({
-      family: "cardano",
-      amount: new BigNumber("5"),
-      recipient: "ADDRESS",
-      fee: new BigNumber("0.2"),
-    });
-  });
-});
-
-describe("modeSendTransaction function", () => {
-  it('creates a Transaction with mode: "send"', () => {
-    const transaction = modeSendTransaction({
-      family: "cardano",
-      amount: new BigNumber("5"),
-      recipient: "ADDRESS",
-      customFeeConfig: { fee: new BigNumber("0.01") },
-    });
-
-    expect(transaction).toEqual({
-      family: "cardano",
-      amount: new BigNumber("5"),
-      recipient: "ADDRESS",
-      mode: "send",
-      fee: new BigNumber("0.01"),
-    });
-  });
-});
-
-describe("stellarTransaction function", () => {
-  it("throws PayinExtraIdError if payinExtraId is missing", () => {
-    expect(() =>
-      stellarTransaction({
-        family: "stellar",
-        amount: new BigNumber("1.908"),
-        recipient: "ADDRESS",
-        customFeeConfig: {},
-      })
-    ).toThrowError(PayinExtraIdError);
-  });
-
-  it("creates a StellarTransaction with memoValue and memoType", () => {
-    const transaction = stellarTransaction({
-      family: "stellar",
-      amount: new BigNumber("1.908"),
-      recipient: "ADDRESS",
-      customFeeConfig: {},
-      payinExtraId: "MEMO",
-    });
-
-    expect(transaction).toEqual({
-      family: "stellar",
-      amount: new BigNumber("1.908"),
-      recipient: "ADDRESS",
-      memoValue: "MEMO",
-      memoType: "MEMO_TEXT",
-    });
-  });
-});
-
-describe("rippleTransaction function", () => {
-  it("throws PayinExtraIdError if payinExtraId is missing", () => {
-    expect(() =>
-      rippleTransaction({
-        family: "ripple",
-        amount: new BigNumber("10"),
-        recipient: "ADDRESS",
-        customFeeConfig: {},
-      })
-    ).toThrowError(PayinExtraIdError);
-  });
-
-  it("creates a RippleTransaction with tag", () => {
-    const transaction = rippleTransaction({
-      family: "ripple",
-      amount: new BigNumber("10"),
-      recipient: "ADDRESS",
-      customFeeConfig: {},
-      payinExtraId: "123456",
-    });
-
-    expect(transaction).toEqual({
-      family: "ripple",
-      amount: new BigNumber("10"),
-      recipient: "ADDRESS",
-      tag: 123456,
-    });
-  });
-});
-
-describe("withoutGasLimitTransaction function", () => {
-  it("removes gasLimit from customFeeConfig", () => {
-    const transaction = withoutGasLimitTransaction({
-      family: "bitcoin",
-      amount: new BigNumber("1"),
-      recipient: "ADDRESS",
-      customFeeConfig: { gasLimit: new BigNumber("21000") },
-    });
-
-    expect(transaction).toEqual({
-      family: "bitcoin",
-      amount: new BigNumber("1"),
-      recipient: "ADDRESS",
-    });
-  });
-});
-
-describe("solanaTransaction function", () => {
-  it("creates a SolanaTransaction with model object", () => {
-    const transaction = solanaTransaction({
-      family: "solana",
-      amount: new BigNumber("0.5"),
-      recipient: "ADDRESS",
-      customFeeConfig: {},
-    });
-
-    expect(transaction).toEqual({
-      family: "solana",
-      amount: new BigNumber("0.5"),
-      recipient: "ADDRESS",
-      model: { kind: "transfer", uiState: {} },
-    });
-  });
-});
-
-describe("elrondTransaction function", () => {
-  it('creates an ElrondTransaction with mode: "send"', () => {
-    const transaction = elrondTransaction({
-      family: "elrond",
-      amount: new BigNumber("10"),
-      recipient: "ADDRESS",
-      customFeeConfig: {},
-    });
-
-    expect(transaction).toEqual({
-      family: "elrond",
-      amount: new BigNumber("10"),
-      recipient: "ADDRESS",
-      mode: "send",
-      gasLimit: 0,
-    });
+    // THEN
+    expect(mockStartExchange).toBeCalled();
+    expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteSell).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
   });
 });

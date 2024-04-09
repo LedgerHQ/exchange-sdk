@@ -1,21 +1,13 @@
 import {
   Account,
-  CardanoTransaction,
   CryptoCurrency,
   Currency,
-  ElrondTransaction,
-  NearTransaction,
-  NeoTransaction,
-  RippleTransaction,
-  SolanaTransaction,
-  StellarTransaction,
   Transaction,
-  TransactionCommon,
+  Transport,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import BigNumber from "bignumber.js";
 import {
   NonceStepError,
@@ -27,11 +19,16 @@ import {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
-  PayinExtraIdError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
+import walletApiDecorator, {
+  type WalletApiDecorator,
+  getCustomModule,
+} from "./wallet-api";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
+export type GetSwapPayload = typeof retrievePayload;
 /**
  * Swap information required to request user's a swap transaction.
  */
@@ -46,43 +43,47 @@ export type SwapInfo = {
   };
   rate: number;
   toNewTokenId?: string;
+  getSwapPayload?: GetSwapPayload;
+};
+
+/**
+ * Sell lambda call during sell process.
+ * @param {nonce}
+ * @param {sellAddress}
+ * @param {amount} amount choosen by User, but in lowest atomic unit (ex: Satoshi, Wei)
+ */
+export type GetSellPayload = (
+  nonce: string,
+  sellAddress: string,
+  amount: bigint
+) => Promise<{
+  recipientAddress: string;
+  amount: bigint;
+  binaryPayload: Buffer;
+  signature: Buffer;
+}>;
+/**
+ * Sell information required to request user's a sell transaction.
+ */
+export type SellInfo = {
+  quoteId?: string;
+  accountId: string;
+  amount: BigNumber;
+  feeStrategy: FeeStrategy;
+  customFeeConfig?: {
+    [key: string]: BigNumber;
+  };
+  getSellPayload: GetSellPayload;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-
-type UserAccounts = {
-  fromAccount: Account;
-  toAccount: Account;
-  fromCurrency: Currency;
-};
 
 // Should be available from the WalletAPI (zod :( )
 const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
   SWAP: "SWAP",
-  FUND_NG: "FUND_NG",
-  SELL_NG: "SELL_NG",
-  SWAP_NG: "SWAP_NG",
 } as const;
-
-function getCustomModule(client: WalletAPIClient) {
-  return {
-    exchange: new ExchangeModule(client),
-  };
-}
-
-type TransactionWithCustomFee = TransactionCommon & {
-  customFeeConfig: {
-    [key: string]: BigNumber;
-  };
-  payinExtraId?: string;
-};
-
-// Define a specific type for the strategy functions, assuming they might need parameters
-type TransactionStrategyFunction = (
-  params: TransactionWithCustomFee
-) => Transaction;
 
 /**
  * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
@@ -91,33 +92,18 @@ type TransactionStrategyFunction = (
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
-  readonly walletAPI: WalletAPIClient<typeof getCustomModule>;
 
-  private transport: WindowMessageTransport | undefined;
-  private logger: Logger = new Logger();
+  private walletAPIDecorator: WalletApiDecorator;
+  private transport: WindowMessageTransport | Transport | undefined;
+  private logger: Logger = new Logger(true);
 
-  private transactionStrategy: {
-    [K in Transaction["family"]]: TransactionStrategyFunction;
-  } = {
-    bitcoin: defaultTransaction,
-    ethereum: withoutGasLimitTransaction,
-    algorand: defaultTransaction,
-    stellar: stellarTransaction,
-    cardano: modeSendTransaction,
-    celo: defaultTransaction,
-    cosmos: defaultTransaction,
-    crypto_org: defaultTransaction,
-    elrond: elrondTransaction,
-    filecoin: defaultTransaction,
-    hedera: defaultTransaction,
-    near: modeSendTransaction,
-    neo: defaultTransaction,
-    polkadot: defaultTransaction,
-    ripple: rippleTransaction,
-    solana: solanaTransaction,
-    tezos: modeSendTransaction,
-    tron: defaultTransaction,
-  };
+  get walletAPI(): WalletAPIClient {
+    return this.walletAPIDecorator.walletClient;
+  }
+
+  private get exchangeModule(): ExchangeModule {
+    return (this.walletAPI.custom as any).exchange as ExchangeModule;
+  }
 
   /**
    *
@@ -128,26 +114,25 @@ export class ExchangeSDK {
    */
   constructor(
     providerId: string,
-    transport?: WindowMessageTransport,
+    transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
       if (!transport) {
-        this.transport = new WindowMessageTransport();
-        this.transport.connect();
+        const transport = new WindowMessageTransport();
+        transport.connect();
+        this.transport = transport;
       } else {
         this.transport = transport;
       }
 
-      this.walletAPI = new WalletAPIClient(
-        this.transport,
-        defaultLogger,
-        getCustomModule
+      this.walletAPIDecorator = walletApiDecorator(
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
       );
     } else {
-      this.walletAPI = walletAPI;
+      this.walletAPIDecorator = walletApiDecorator(walletAPI);
     }
 
     if (customUrl) {
@@ -171,24 +156,21 @@ export class ExchangeSDK {
       fromAmount,
       feeStrategy,
       customFeeConfig = {},
-      rate,
       quoteId,
       toNewTokenId,
+      getSwapPayload,
     } = info;
-    const userAccounts = await this.retrieveUserAccounts({
-      fromAccountId,
-      toAccountId,
-    }).catch((error: Error) => {
-      throw error;
-    });
-    const { fromAccount, toAccount, fromCurrency } = userAccounts || {};
-    if (!(fromAccount && toAccount && fromCurrency))
-      return void this.logger.log(
-        "User info",
-        fromAccount,
-        toAccount,
-        fromCurrency
-      );
+    const { account: fromAccount, currency: fromCurrency } =
+      await this.walletAPIDecorator
+        .retrieveUserAccount(fromAccountId)
+        .catch((error: Error) => {
+          throw error;
+        });
+    const { account: toAccount } = await this.walletAPIDecorator
+      .retrieveUserAccount(toAccountId)
+      .catch((error: Error) => {
+        throw error;
+      });
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
@@ -199,7 +181,7 @@ export class ExchangeSDK {
     }
 
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.walletAPI.custom.exchange
+    const deviceTransactionId = await this.exchangeModule
       .startSwap({
         exchangeType: ExchangeType.SWAP,
         provider: this.providerId,
@@ -215,15 +197,17 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
+    const payloadRequest =
+      getSwapPayload !== undefined ? getSwapPayload : retrievePayload;
     const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
-      await retrievePayload({
+      await payloadRequest({
         provider: this.providerId,
         deviceTransactionId,
         fromAccount: fromAccount,
         toAccount: toAccount,
         toNewTokenId,
         amount: fromAmount,
-        amountInAtomicUnit: BigInt("0"),
+        amountInAtomicUnit: fromAmountAtomic,
         quoteId,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
@@ -232,7 +216,7 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = await this.createTransaction({
+    const transaction = await this.walletAPIDecorator.createTransaction({
       recipient: payinAddress,
       amount: fromAmountAtomic,
       currency: fromCurrency,
@@ -240,18 +224,19 @@ export class ExchangeSDK {
       payinExtraId,
     });
 
-    const tx = await this.walletAPI.custom.exchange
+    const tx = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
         toAccountId, // this attribute will point the parent account when the token is new.
+        swapId,
         transaction,
         binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
         signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
-        swapId,
-        rate,
         tokenCurrency: toNewTokenId,
+        amountExpectedTo: BigInt(0),
+        magnitudeAwareRate: BigInt(0),
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId).catch(
@@ -286,200 +271,113 @@ export class ExchangeSDK {
   }
 
   /**
+   * Ask user to validate a sell transaction.
+   * @param {SellInfo} info - Information necessary to create a sell transaction {@see SellInfo}.
+   * @return {Promise} Promise of hash of send transaction.
+   * @throws {ExchangeError}
+   */
+  async sell(info: SellInfo): Promise<string | void> {
+    this.logger.log("*** Start Sell ***");
+
+    const {
+      accountId,
+      amount: fromAmount,
+      feeStrategy,
+      customFeeConfig = {},
+      getSellPayload,
+    } = info;
+
+    const { account, currency } = await this.walletAPIDecorator
+      .retrieveUserAccount(accountId)
+      .catch((error: Error) => {
+        throw error;
+      });
+
+    // Check enough fund
+    const fromAmountAtomic = convertToAtomicUnit(fromAmount, currency);
+    if (canSpendAmount(account, fromAmountAtomic) === false) {
+      const err = new NotEnoughFunds();
+      this.logger.error(err);
+      throw err;
+    }
+
+    // 1 - Ask for deviceTransactionId
+    const deviceTransactionId = await this.exchangeModule
+      .startSell({
+        provider: this.providerId,
+      })
+      .catch((error: Error) => {
+        const err = new NonceStepError(error);
+        this.logger.error(err);
+        throw err;
+      });
+    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
+
+    // 2 - Ask for payload creation
+    this.logger.log("Call getSellDestinationAccount");
+    const { recipientAddress, amount, binaryPayload, signature } =
+      await getSellPayload(
+        deviceTransactionId,
+        account.address,
+        BigInt(fromAmountAtomic.toString())
+      );
+    this.logger.log("Payload received:", {
+      recipientAddress,
+      amount,
+      binaryPayload,
+      signature,
+    });
+
+    // 3 - Send payload
+    const transaction = await this.walletAPIDecorator.createTransaction({
+      recipient: recipientAddress,
+      amount,
+      currency,
+      customFeeConfig,
+    });
+
+    const tx = await this.exchangeModule
+      .completeSell({
+        provider: this.providerId,
+        fromAccountId: accountId,
+        transaction,
+        binaryPayload,
+        signature,
+        feeStrategy,
+      })
+      .catch(async (error: Error) => {
+        const err = new SignatureStepError(error);
+        this.logger.error(err);
+        throw err;
+      });
+
+    this.logger.log("Transaction sent:", tx);
+    this.logger.log("*** End Sell ***");
+
+    return tx;
+  }
+
+  /**
    * Convenient method to disconnect this instance to the
    * {@link https://github.com/LedgerHQ/wallet-api WalletAPI} server.
    */
   disconnect() {
-    this.transport?.disconnect();
-  }
-
-  private async retrieveUserAccounts(accounts: {
-    fromAccountId: string;
-    toAccountId: string;
-  }): Promise<UserAccounts> {
-    const { fromAccountId, toAccountId } = accounts;
-    const allAccounts = await this.walletAPI.account
-      .list()
-      .catch(async (error: Error) => {
-        const err = new ListAccountError(error);
-        this.logger.error(err);
-        throw err;
-      });
-
-    const fromAccount = allAccounts.find((value) => value.id === fromAccountId);
-    if (!fromAccount) {
-      const err = new UnknownAccountError(new Error("Unknown fromAccountId"));
-      this.logger.error(err);
-      throw err;
+    if (this.transport && "disconnect" in this.transport) {
+      this.transport.disconnect();
     }
-    const toAccount = allAccounts.find((value) => value.id === toAccountId);
-    if (!toAccount) {
-      const err = new UnknownAccountError(new Error("Unknown toAccountId"));
-      this.logger.error(err);
-      throw err;
-    }
-    const [fromCurrency]: Array<Currency> = await this.walletAPI.currency
-      .list({
-        currencyIds: [fromAccount.currency],
-      })
-      .catch(async (error: Error) => {
-        const err = new ListCurrencyError(error);
-        this.logger.error(err);
-        throw err;
-      });
-    if (!fromCurrency) {
-      const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
-      this.logger.error(err);
-      throw err;
-    }
-    return {
-      fromAccount,
-      toAccount,
-      fromCurrency,
-    };
-  }
-
-  private async createTransaction({
-    recipient,
-    amount,
-    currency,
-    customFeeConfig,
-    payinExtraId,
-  }: {
-    recipient: string;
-    amount: BigNumber;
-    currency: Currency;
-    customFeeConfig: {
-      [key: string]: BigNumber;
-    };
-    payinExtraId?: string;
-  }): Promise<Transaction> {
-    let family: Transaction["family"];
-    if (currency.type === "TokenCurrency") {
-      const currencies = await this.walletAPI.currency.list({
-        currencyIds: [currency.parent],
-      });
-
-      family = (currencies[0] as CryptoCurrency).family;
-    } else {
-      family = currency.family;
-    }
-
-    // TODO: remove next line when wallet-api support btc utxoStrategy
-    delete customFeeConfig.utxoStrategy;
-
-    const strategy = this.transactionStrategy[family];
-
-    if (!strategy) {
-      throw new Error(`No strategy found for family: ${family}`);
-    }
-
-    return strategy({
-      family,
-      amount,
-      recipient,
-      customFeeConfig,
-      payinExtraId,
-    });
   }
 }
 
-function canSpendAmount(account: Account, amount: BigNumber): boolean {
-  return account.spendableBalance.isGreaterThanOrEqualTo(amount);
+function canSpendAmount(account: Account, amount: bigint): boolean {
+  return account.spendableBalance.isGreaterThanOrEqualTo(
+    new BigNumber(amount.toString())
+  );
 }
 
-function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
-  return amount.shiftedBy(currency.decimals);
-}
-
-export function defaultTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-}: TransactionWithCustomFee): Transaction {
-  return {
-    family,
-    amount,
-    recipient,
-    ...customFeeConfig,
-  } as Transaction;
-}
-
-export function modeSendTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-}: TransactionWithCustomFee): Transaction {
-  return {
-    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    mode: "send",
-  };
-}
-
-export function stellarTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-  payinExtraId,
-}: TransactionWithCustomFee): StellarTransaction {
-  if (!payinExtraId) throw new PayinExtraIdError();
-
-  return {
-    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    memoValue: payinExtraId,
-    memoType: "MEMO_TEXT",
-  } as StellarTransaction;
-}
-
-export function rippleTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-  payinExtraId,
-}: TransactionWithCustomFee): RippleTransaction {
-  if (!payinExtraId) throw new PayinExtraIdError();
-
-  return {
-    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    tag: new BigNumber(payinExtraId).toNumber(),
-  } as RippleTransaction;
-}
-
-// Function to remove gasLimit from customFeeConfig for Ethereum or Bitcoin
-export function withoutGasLimitTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-}: TransactionWithCustomFee): Transaction {
-  delete customFeeConfig.gasLimit;
-  return defaultTransaction({ family, amount, recipient, customFeeConfig });
-}
-
-export function solanaTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-}: TransactionWithCustomFee): SolanaTransaction {
-  return {
-    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    model: { kind: "transfer", uiState: {} },
-  } as SolanaTransaction;
-}
-
-export function elrondTransaction({
-  family,
-  amount,
-  recipient,
-  customFeeConfig,
-}: TransactionWithCustomFee): ElrondTransaction {
-  return {
-    ...modeSendTransaction({ family, amount, recipient, customFeeConfig }),
-    gasLimit: 0, // FIXME: Placeholder, adjust as needed
-  } as ElrondTransaction;
+function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
+  const convertedNumber = amount.shiftedBy(currency.decimals);
+  if (!convertedNumber.isInteger()) {
+    throw new Error("Unable to convert amount to atomic unit");
+  }
+  return BigInt(convertedNumber.toString());
 }
