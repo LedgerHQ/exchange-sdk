@@ -147,6 +147,7 @@ export class ExchangeSDK {
     tezos: modeSendTransaction,
     tron: defaultTransaction,
     vechain: defaultTransaction,
+    stacks: defaultTransaction,
   };
 
   /**
@@ -186,7 +187,9 @@ export class ExchangeSDK {
     }
   }
 
-  handleErrors = (error: unknown) => {
+  handleErrors = (error: any) => {
+    this.walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error});
+
     // When user rejects transaction, or transaction broadcast is disabled, it is not a UX error
     // name definition in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
     const { name, cause } = (error as any) || {};
@@ -204,11 +207,11 @@ export class ExchangeSDK {
           case "SwapCompleteExchangeError":
             break;
           default:
-            this.walletAPI.custom.swap.throwExchangeErrorToLedgerLive(error);
+            this.walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error});
             break;
         }
       } else if (error instanceof Error) {
-        this.walletAPI.custom.swap.throwGenericErrorToLedgerLive(error);
+        this.walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error: undefined});
       }
       throw error; // Sentry track
     }
@@ -310,7 +313,6 @@ export class ExchangeSDK {
         signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
         swapId,
-        rate,
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
