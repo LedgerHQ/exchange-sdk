@@ -2,8 +2,6 @@ import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
 import { ExchangeError } from "./error";
 
 export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
-    walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error});
-
     // Continue with the existing logic...
     const { name, cause } = (error as any) || {};
     const { message } = cause || {};
@@ -14,7 +12,6 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
       if (error instanceof ExchangeError) {
         const errorName =
           "name" in error.cause && (error.cause.name as string);
-
         switch (errorName) {
           case "WrongDeviceForAccount":
           case "WrongDeviceForAccountPayout":
