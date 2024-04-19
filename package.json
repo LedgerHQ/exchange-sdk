@@ -2,12 +2,14 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "example",
+    "examples/sell",
+    "examples/swap",
     "lib"
   ],
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev:sell": "pnpm turbo run dev --filter=exchange-sdk-sell-example",
+    "dev:swap": "pnpm turbo run dev --filter=exchange-sdk-swap-example",
     "clean": "git clean -fdX",
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test"

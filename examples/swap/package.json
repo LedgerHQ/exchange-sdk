@@ -1,5 +1,5 @@
 {
-  "name": "exchange-sdk-example",
+  "name": "exchange-sdk-swap-example",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ledgerhq/exchange-sdk": "workspace:*",
-    "@ledgerhq/wallet-api-client": "^1.5.0",
+    "@ledgerhq/wallet-api-client": "^1.5.5",
     "bignumber.js": "^9.1.2",
     "next": "^13.4.1",
     "react": "^18.2.0",
