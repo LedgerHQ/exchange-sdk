@@ -1,8 +1,6 @@
 import {
   Account,
-  CryptoCurrency,
   Currency,
-  Transaction,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
@@ -16,12 +14,10 @@ import {
   CancelStepError,
   ConfirmStepError,
   SignatureStepError,
-  ListAccountError,
-  ListCurrencyError,
-  UnknownAccountError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
+import { handleErrors } from "./handleErrors";
 import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
@@ -140,6 +136,10 @@ export class ExchangeSDK {
       setBackendUrl(customUrl);
     }
   }
+  
+  private handleError = (error: any) => {
+    handleErrors(this.walletAPI, error);
+  };
 
   /**
    * Ask user to validate a swap transaction.
@@ -211,6 +211,7 @@ export class ExchangeSDK {
         quoteId,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
+        this.handleError(err);
         this.logger.error(err);
         throw err;
       });
@@ -234,14 +235,13 @@ export class ExchangeSDK {
         binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
         signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
-        tokenCurrency: toNewTokenId,
-        amountExpectedTo: BigInt(0),
-        magnitudeAwareRate: BigInt(0),
+        tokenCurrency: toNewTokenId
       })
       .catch(async (error: Error) => {
         await cancelSwap(this.providerId, swapId).catch(
           async (error: Error) => {
             const err = new CancelStepError(error);
+            this.handleError(err);
             this.logger.error(err);
             throw err;
           }
@@ -254,6 +254,7 @@ export class ExchangeSDK {
         }
 
         const err = new SignatureStepError(error);
+        this.handleError(err);
         this.logger.error(err);
         throw err;
       });
@@ -263,6 +264,7 @@ export class ExchangeSDK {
     await confirmSwap(this.providerId, swapId, tx).catch(
       async (error: Error) => {
         const err = new ConfirmStepError(error);
+        this.handleError(err);
         this.logger.error(err);
         throw err;
       }
