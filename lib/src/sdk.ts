@@ -204,6 +204,9 @@ export class ExchangeSDK {
 
         switch (errorName) {
           case "WrongDeviceForAccount":
+          case "WrongDeviceForAccountPayout":
+          case "WrongDeviceForAccountRefund":
+          case "CancelStepError":
           case "SwapCompleteExchangeError":
             break;
           default:
