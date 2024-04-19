@@ -137,10 +137,9 @@ export class ExchangeSDK {
     }
   }
   
-    // Method to use the extracted function
-    handleError = (error: any) => {
-      handleErrors(this.walletAPI, error);
-    };
+  private handleError = (error: any) => {
+    handleErrors(this.walletAPI, error);
+  };
 
   /**
    * Ask user to validate a swap transaction.
