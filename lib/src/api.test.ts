@@ -97,7 +97,11 @@ describe("confirmSwap", () => {
 
   it("calls 'accepted' endpoint", async () => {
     // WHEN
-    await confirmSwap("provider-name", "swap-id", "transaction-id");
+    await confirmSwap({
+      provider: "provider-name",
+      swapId: "swap-id",
+      transactionId: "transaction-id",
+    });
 
     // THEN
     expect(mockPost.mock.calls[0][0]).toEqual("accepted");
@@ -111,7 +115,10 @@ describe("cancelSwap", () => {
 
   it("calls 'cancelled' endpoint", async () => {
     // WHEN
-    await cancelSwap("provider-name", "swap-id");
+    await cancelSwap({
+      provider: "provider-name",
+      swapId: "swap-id",
+    });
 
     // THEN
     expect(mockPost.mock.calls[0][0]).toEqual("cancelled");
@@ -122,7 +129,7 @@ function createAccount(
   id: string,
   name: string,
   currency: string,
-  address = "0x999"
+  address = "0x999",
 ): Account {
   return {
     id,

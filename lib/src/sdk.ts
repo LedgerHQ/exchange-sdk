@@ -14,6 +14,7 @@ import {
   CancelStepError,
   ConfirmStepError,
   SignatureStepError,
+  CompleteExchangeError,
 } from "./error";
 import { Logger } from "./log";
 import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
@@ -51,7 +52,7 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint
+  amount: bigint,
 ) => Promise<{
   recipientAddress: string;
   amount: bigint;
@@ -70,6 +71,11 @@ export type SellInfo = {
     [key: string]: BigNumber;
   };
   getSellPayload: GetSellPayload;
+};
+
+export type SwapMetadata = {
+  hardwareWalletType?: string;
+  swapType?: string;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -92,6 +98,7 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
+  private swapMetadata: SwapMetadata;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -107,12 +114,14 @@ export class ExchangeSDK {
    * @param {WindowMessageTransport} transport
    * @param {WalletAPIClient} walletAPI
    * @param {string} customUrl - Backend url environment
+   * @param {SwapMetadata} swapMetadata - Metadata to be sent to the backend (e.g. hardwareWalletType, swapType)
    */
   constructor(
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string
+    customUrl?: string,
+    swapMetadata?: SwapMetadata,
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -125,7 +134,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -135,8 +144,10 @@ export class ExchangeSDK {
       // Set API environment
       setBackendUrl(customUrl);
     }
+
+    this.swapMetadata = swapMetadata || {};
   }
-  
+
   private handleError = (error: any) => {
     handleErrors(this.walletAPI, error);
   };
@@ -235,17 +246,27 @@ export class ExchangeSDK {
         binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
         signature: signature as any, // TODO fix later when customAPI types are fixed
         feeStrategy,
-        tokenCurrency: toNewTokenId
+        tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        await cancelSwap(this.providerId, swapId).catch(
-          async (error: Error) => {
-            const err = new CancelStepError(error);
-            this.handleError(err);
-            this.logger.error(err);
-            throw err;
-          }
-        );
+        await cancelSwap({
+          provider: this.providerId,
+          swapId: swapId ?? "",
+          ...((error as CompleteExchangeError).step
+            ? { swapStep: (error as CompleteExchangeError).step }
+            : {}),
+          statusCode: error.name,
+          errorMessage: error.message,
+          sourceCurrencyId: fromAccount.currency,
+          targetCurrencyId: toAccount.currency,
+          hardwareWalletType: this.swapMetadata.hardwareWalletType,
+          swapType: this.swapMetadata.swapType,
+        }).catch(async (error: Error) => {
+          const err = new CancelStepError(error);
+          this.handleError(err);
+          this.logger.error(err);
+          throw err;
+        });
 
         // defined in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
         // used for development
@@ -261,14 +282,19 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(this.providerId, swapId, tx).catch(
-      async (error: Error) => {
-        const err = new ConfirmStepError(error);
-        this.handleError(err);
-        this.logger.error(err);
-        throw err;
-      }
-    );
+    await confirmSwap({
+      provider: this.providerId,
+      swapId: swapId ?? "",
+      transactionId: tx,
+      sourceCurrencyId: fromAccount.currency,
+      targetCurrencyId: toAccount.currency,
+      hardwareWalletType: this.swapMetadata.hardwareWalletType,
+    }).catch(async (error: Error) => {
+      const err = new ConfirmStepError(error);
+      this.handleError(err);
+      this.logger.error(err);
+      throw err;
+    });
     return tx;
   }
 
@@ -321,7 +347,7 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(fromAmountAtomic.toString())
+        BigInt(fromAmountAtomic.toString()),
       );
     this.logger.log("Payload received:", {
       recipientAddress,
@@ -372,7 +398,7 @@ export class ExchangeSDK {
 
 function canSpendAmount(account: Account, amount: bigint): boolean {
   return account.spendableBalance.isGreaterThanOrEqualTo(
-    new BigNumber(amount.toString())
+    new BigNumber(amount.toString()),
   );
 }
 

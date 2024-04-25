@@ -16,7 +16,9 @@ export class ExchangeError extends Error {
         : {}),
       ...nestedError,
     };
-    this.message = nestedError?.message ? nestedError.message : `${nestedError}`;
+    this.message = nestedError?.message
+      ? nestedError.message
+      : `${nestedError}`;
   }
 }
 
@@ -87,5 +89,25 @@ export class PayinExtraIdError extends ExchangeError {
   constructor(nestedError?: Error) {
     super("swap010", nestedError);
     this.name = "PayinExtraIdError";
+  }
+}
+
+export type CompleteExchangeStep =
+  | "INIT"
+  | "SET_PARTNER_KEY"
+  | "CHECK_PARTNER"
+  | "PROCESS_TRANSACTION"
+  | "CHECK_TRANSACTION_SIGNATURE"
+  | "CHECK_PAYOUT_ADDRESS"
+  | "CHECK_REFUND_ADDRESS"
+  | "SIGN_COIN_TRANSACTION";
+
+export class CompleteExchangeError extends Error {
+  step: CompleteExchangeStep;
+
+  constructor(step: CompleteExchangeStep, message?: string) {
+    super(message);
+    this.name = "CompleteExchangeError";
+    this.step = step;
   }
 }

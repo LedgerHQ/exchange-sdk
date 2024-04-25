@@ -36,7 +36,7 @@ export type PayloadResponse = {
   payinExtraId?: string;
 };
 export async function retrievePayload(
-  data: PayloadRequestData
+  data: PayloadRequestData,
 ): Promise<PayloadResponse> {
   const request = {
     provider: data.provider,
@@ -54,20 +54,33 @@ export async function retrievePayload(
   return parseSwapBackendInfo(res.data);
 }
 
-export async function confirmSwap(
-  provider: string,
-  swapId: string,
-  transactionId: string
-) {
-  await axiosClient.post("accepted", {
-    provider,
-    swapId,
-    transactionId,
-  });
+export type ConfirmSwapRequest = {
+  provider: string;
+  swapId: string;
+  transactionId: string;
+  sourceCurrencyId?: string;
+  targetCurrencyId?: string;
+  hardwareWalletType?: string;
+};
+
+export async function confirmSwap(payload: ConfirmSwapRequest) {
+  await axiosClient.post("accepted", payload);
 }
 
-export async function cancelSwap(provider: string, swapId: string) {
-  await axiosClient.post("cancelled", { provider, swapId });
+export type CancelSwapRequest = {
+  provider: string;
+  swapId: string;
+  statusCode?: string;
+  errorMessage?: string;
+  sourceCurrencyId?: string;
+  targetCurrencyId?: string;
+  hardwareWalletType?: string;
+  swapType?: string;
+  swapStep?: string;
+};
+
+export async function cancelSwap(payload: CancelSwapRequest) {
+  await axiosClient.post("cancelled", payload);
 }
 
 type SwapBackendResponse = {
