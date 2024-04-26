@@ -40,8 +40,6 @@ The ExchangeSDK can throw differents kind of errors:
 - ListAccountError: unable to retrieve account list
 - ListCurrencyError: unable to retrieve list currency
 - UnknownAccountError: unable to find from/to account in user account/currency list
-- CancelStepError: cancel backend swap call is failing
-- ConfirmStepError: confirm backend swap call is failing
 - PayinExtraIdError: transactions sometimes require an extra identifier to successfully process a transaction. This identifier is known as payinExtraId in our system. For XLM (Stellar Lumens) a `memoValue` required for transaction reference. For XRP, a destination `tag` is needed to identify the recipient in shared wallets.
 
 All those errors (except _NotEnoughFunds_) embed the root error/cause.
