@@ -265,7 +265,7 @@ export class ExchangeSDK {
           const err = new CancelStepError(error);
           this.handleError(err);
           this.logger.error(err);
-          throw err;
+          throw error; //throw orignal error for dev
         });
 
         // defined in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
@@ -293,7 +293,7 @@ export class ExchangeSDK {
       const err = new ConfirmStepError(error);
       this.handleError(err);
       this.logger.error(err);
-      throw err;
+      // do not throw error, let the integrating app everything is OK for the swap 
     });
     return tx;
   }
