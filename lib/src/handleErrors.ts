@@ -14,6 +14,7 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
       "WrongDeviceForAccountPayout",
       "WrongDeviceForAccountRefund",
       "CancelStepError",
+      "ConfirmStepError",
       "SwapCompleteExchangeError",
   ]);
 
