@@ -249,6 +249,7 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
+        const { deviceId } = await this.exchangeModule.getDevice();
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
@@ -259,7 +260,7 @@ export class ExchangeSDK {
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
           targetCurrencyId: toAccount.currency,
-          hardwareWalletType: this.swapMetadata.hardwareWalletType,
+          hardwareWalletType: deviceId,
           swapType: this.swapMetadata.swapType,
         }).catch(async (error: Error) => {
           const err = new CancelStepError(error);
@@ -282,18 +283,19 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
+    const { deviceId } = await this.exchangeModule.getDevice();
     await confirmSwap({
       provider: this.providerId,
       swapId: swapId ?? "",
       transactionId: tx,
       sourceCurrencyId: fromAccount.currency,
       targetCurrencyId: toAccount.currency,
-      hardwareWalletType: this.swapMetadata.hardwareWalletType,
+      hardwareWalletType: deviceId,
     }).catch(async (error: Error) => {
       const err = new ConfirmStepError(error);
       this.handleError(err);
       this.logger.error(err);
-      // do not throw error, let the integrating app everything is OK for the swap 
+      // do not throw error, let the integrating app everything is OK for the swap
     });
     return tx;
   }

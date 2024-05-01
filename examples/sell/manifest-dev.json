@@ -40,7 +40,8 @@
     "exchange.start",
     "exchange.complete",
     "custom.exchange.start",
-    "custom.exchange.complete"
+    "custom.exchange.complete",
+    "custom.device.get"
   ],
   "domains": [
     "https://*"
