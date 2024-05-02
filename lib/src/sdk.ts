@@ -73,11 +73,6 @@ export type SellInfo = {
   getSellPayload: GetSellPayload;
 };
 
-export type SwapMetadata = {
-  hardwareWalletType?: string;
-  swapType?: string;
-};
-
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 
 // Should be available from the WalletAPI (zod :( )
@@ -98,7 +93,6 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
-  private swapMetadata: SwapMetadata;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -114,14 +108,12 @@ export class ExchangeSDK {
    * @param {WindowMessageTransport} transport
    * @param {WalletAPIClient} walletAPI
    * @param {string} customUrl - Backend url environment
-   * @param {SwapMetadata} swapMetadata - Metadata to be sent to the backend (e.g. hardwareWalletType, swapType)
    */
   constructor(
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string,
-    swapMetadata?: SwapMetadata,
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -144,8 +136,6 @@ export class ExchangeSDK {
       // Set API environment
       setBackendUrl(customUrl);
     }
-
-    this.swapMetadata = swapMetadata || {};
   }
 
   private handleError = (error: any) => {
@@ -249,7 +239,7 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        const { deviceId } = await this.exchangeModule.getDevice();
+        const { modelId } = await this.exchangeModule.getDevice();
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
@@ -260,8 +250,8 @@ export class ExchangeSDK {
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
           targetCurrencyId: toAccount.currency,
-          hardwareWalletType: deviceId,
-          swapType: this.swapMetadata.swapType,
+          hardwareWalletType: modelId,
+          swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
           const err = new CancelStepError(error);
           this.handleError(err);
@@ -283,14 +273,14 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    const { deviceId } = await this.exchangeModule.getDevice();
+    const { modelId } = await this.exchangeModule.getDevice();
     await confirmSwap({
       provider: this.providerId,
       swapId: swapId ?? "",
       transactionId: tx,
       sourceCurrencyId: fromAccount.currency,
       targetCurrencyId: toAccount.currency,
-      hardwareWalletType: deviceId,
+      hardwareWalletType: modelId,
     }).catch(async (error: Error) => {
       const err = new ConfirmStepError(error);
       this.handleError(err);
