@@ -36,8 +36,7 @@
     "wallet.userId",
     "wallet.info",
     "custom.exchange.start",
-    "custom.exchange.complete",
-    "custom.device.get"
+    "custom.exchange.complete"
   ],
   "domains": ["https://*"]
 }
