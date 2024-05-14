@@ -182,19 +182,20 @@ export class ExchangeSDK {
     }
 
     // 1 - Ask for deviceTransactionId
-    const deviceTransactionId = await this.exchangeModule
-      .startSwap({
-        exchangeType: ExchangeType.SWAP,
-        provider: this.providerId,
-        fromAccountId,
-        toAccountId,
-        tokenCurrency: toNewTokenId || "",
-      })
-      .catch((error: Error) => {
-        const err = new NonceStepError(error);
-        this.logger.error(err);
-        throw err;
-      });
+    const { transactionId: deviceTransactionId, device } =
+      await this.exchangeModule
+        .startSwap({
+          exchangeType: ExchangeType.SWAP,
+          provider: this.providerId,
+          fromAccountId,
+          toAccountId,
+          tokenCurrency: toNewTokenId || "",
+        })
+        .catch((error: Error) => {
+          const err = new NonceStepError(error);
+          this.logger.error(err);
+          throw err;
+        });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
@@ -239,7 +240,6 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        const { modelId } = await this.exchangeModule.getDevice();
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
@@ -250,7 +250,7 @@ export class ExchangeSDK {
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
           targetCurrencyId: toAccount.currency,
-          hardwareWalletType: modelId,
+          hardwareWalletType: device?.modelId ?? "",
           swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
           const err = new CancelStepError(error);
@@ -273,14 +273,13 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Swap ***");
-    const { modelId } = await this.exchangeModule.getDevice();
     await confirmSwap({
       provider: this.providerId,
       swapId: swapId ?? "",
       transactionId: tx,
       sourceCurrencyId: fromAccount.currency,
       targetCurrencyId: toAccount.currency,
-      hardwareWalletType: modelId,
+      hardwareWalletType: device?.modelId ?? "",
     }).catch(async (error: Error) => {
       const err = new ConfirmStepError(error);
       this.handleError(err);
