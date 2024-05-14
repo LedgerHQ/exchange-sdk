@@ -37,6 +37,11 @@ const accounts: Array<Partial<Account>> = [
     spendableBalance: new BigNumber(100000000),
   },
 ];
+
+const device = {
+  modelId: "nanoX",
+  deviceId: "device-id",
+};
 const mockAccountList = jest.spyOn(AccountModule.prototype, "list");
 const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
 const mockStartExchange = jest
@@ -44,10 +49,15 @@ const mockStartExchange = jest
   .mockResolvedValue("DeviceTransactionId");
 const mockStartSwapExchange = jest
   .spyOn(ExchangeModule.prototype, "startSwap")
-  .mockResolvedValue("DeviceTransactionId");
-const mockCompleteSwap = jest.spyOn(ExchangeModule.prototype, "completeSwap")
+  .mockResolvedValue({
+    device,
+    transactionId: "DeviceTransactionId",
+  });
+const mockCompleteSwap = jest
+  .spyOn(ExchangeModule.prototype, "completeSwap")
   .mockResolvedValue("TransactionId");
-const mockCompleteSell = jest.spyOn(ExchangeModule.prototype, "completeSell")
+const mockCompleteSell = jest
+  .spyOn(ExchangeModule.prototype, "completeSell")
   .mockResolvedValue("TransactionId");
 
 const mockedTransport = {
@@ -57,7 +67,7 @@ const mockedTransport = {
 const walletApiClient = new WalletAPIClient(
   mockedTransport,
   defaultLogger,
-  getCustomModule
+  getCustomModule,
 );
 const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
