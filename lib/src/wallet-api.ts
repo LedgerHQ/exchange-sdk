@@ -36,7 +36,7 @@ type TransactionWithCustomFee = TransactionCommon & {
 
 // Define a specific type for the strategy functions, assuming they might need parameters
 type TransactionStrategyFunction = (
-  params: TransactionWithCustomFee
+  params: TransactionWithCustomFee,
 ) => Transaction;
 
 const transactionStrategy: {
@@ -62,6 +62,8 @@ const transactionStrategy: {
   tezos: modeSendTransaction,
   tron: defaultTransaction,
   vechain: defaultTransaction,
+  casper: defaultTransaction,
+  internet_computer: defaultTransaction,
 };
 
 type StartType = InstanceType<typeof WalletAPIClient>["exchange"]["start"];
@@ -90,7 +92,7 @@ export type WalletApiDecorator = {
 };
 
 export default function walletApiDecorator(
-  walletAPIClient: WalletAPIClient
+  walletAPIClient: WalletAPIClient,
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
@@ -140,9 +142,10 @@ export default function walletApiDecorator(
         currencyIds: [currency.parent],
       });
 
-      family = (currencies[0] as CryptoCurrency).family;
+      family = (currencies[0] as CryptoCurrency)
+        .family as Transaction["family"];
     } else {
-      family = currency.family;
+      family = currency.family as Transaction["family"];
     }
 
     // TODO: remove next line when wallet-api support btc utxoStrategy

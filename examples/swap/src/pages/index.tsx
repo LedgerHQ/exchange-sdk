@@ -60,7 +60,7 @@ const IndexPage = () => {
           case InternalParams.Rate:
             setRate(+value);
             break;
-          case QueryParams.toNewTokenId:
+          case QueryParams.ToNewTokenId:
             setToNewTokenId(value);
             break;
           case QueryParams.CustomFeeConfig:
@@ -94,7 +94,7 @@ const IndexPage = () => {
       const parentCurrency = await exchangeSDK.current?.walletAPI.currency.list(
         {
           currencyIds: [parentId.currency],
-        }
+        },
       );
       console.log("initFeeCurrency (token)", parentCurrency);
     } else {
@@ -153,7 +153,7 @@ const IndexPage = () => {
         console.error(
           "%cExchangeSDK error:",
           "background: #7f0000; color: #fff",
-          err
+          err,
         );
       });
   }, [
