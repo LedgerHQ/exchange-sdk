@@ -52,10 +52,10 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint,
+  amount: bigint
 ) => Promise<{
   recipientAddress: string;
-  amount: bigint;
+  amount: BigNumber;
   binaryPayload: Buffer;
   signature: Buffer;
 }>;
@@ -113,7 +113,7 @@ export class ExchangeSDK {
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string,
+    customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -126,7 +126,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -312,14 +312,6 @@ export class ExchangeSDK {
         throw error;
       });
 
-    // Check enough fund
-    const fromAmountAtomic = convertToAtomicUnit(fromAmount, currency);
-    if (canSpendAmount(account, fromAmountAtomic) === false) {
-      const err = new NotEnoughFunds();
-      this.logger.error(err);
-      throw err;
-    }
-
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
       .startSell({
@@ -338,11 +330,19 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(fromAmountAtomic.toString()),
+        BigInt(fromAmount.toString())
       );
+
+    // Check enough fund
+    const fromAmountAtomic = convertToAtomicUnit(amount, currency);
+    if (canSpendAmount(account, fromAmountAtomic) === false) {
+      const err = new NotEnoughFunds();
+      this.logger.error(err);
+      throw err;
+    }
     this.logger.log("Payload received:", {
       recipientAddress,
-      amount,
+      amount: fromAmountAtomic,
       binaryPayload,
       signature,
     });
@@ -350,7 +350,7 @@ export class ExchangeSDK {
     // 3 - Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
       recipient: recipientAddress,
-      amount,
+      amount: fromAmountAtomic,
       currency,
       customFeeConfig,
     });
@@ -389,7 +389,7 @@ export class ExchangeSDK {
 
 function canSpendAmount(account: Account, amount: bigint): boolean {
   return account.spendableBalance.isGreaterThanOrEqualTo(
-    new BigNumber(amount.toString()),
+    new BigNumber(amount.toString())
   );
 }
 
