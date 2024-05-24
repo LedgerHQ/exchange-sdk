@@ -327,11 +327,7 @@ export class ExchangeSDK {
     // 2 - Ask for payload creation
     this.logger.log("Call getSellDestinationAccount");
     const { recipientAddress, amount, binaryPayload, signature } =
-      await getSellPayload(
-        deviceTransactionId,
-        account.address,
-        BigInt(fromAmount.toString())
-      );
+      await getSellPayload(deviceTransactionId, account.address, BigInt(0));
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
