@@ -175,11 +175,7 @@ export class ExchangeSDK {
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
-    if (canSpendAmount(fromAccount, fromAmountAtomic) === false) {
-      const err = new NotEnoughFunds();
-      this.logger.error(err);
-      throw err;
-    }
+    canSpendAmount(fromAccount, fromAmountAtomic, this.logger);
 
     // 1 - Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
@@ -312,6 +308,10 @@ export class ExchangeSDK {
         throw error;
       });
 
+    // Check enough fund on the amount set when the sell sdk is called
+    const initialAtomicAmount = convertToAtomicUnit(fromAmount, currency);
+    canSpendAmount(account, initialAtomicAmount, this.logger);
+
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
       .startSell({
@@ -327,15 +327,16 @@ export class ExchangeSDK {
     // 2 - Ask for payload creation
     this.logger.log("Call getSellDestinationAccount");
     const { recipientAddress, amount, binaryPayload, signature } =
-      await getSellPayload(deviceTransactionId, account.address, BigInt(0));
+      await getSellPayload(
+        deviceTransactionId,
+        account.address,
+        BigInt(initialAtomicAmount.toString())
+      );
 
-    // Check enough fund
+    // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
-    if (canSpendAmount(account, fromAmountAtomic) === false) {
-      const err = new NotEnoughFunds();
-      this.logger.error(err);
-      throw err;
-    }
+    canSpendAmount(account, fromAmountAtomic, this.logger);
+
     this.logger.log("Payload received:", {
       recipientAddress,
       amount: fromAmountAtomic,
@@ -383,10 +384,21 @@ export class ExchangeSDK {
   }
 }
 
-function canSpendAmount(account: Account, amount: bigint): boolean {
-  return account.spendableBalance.isGreaterThanOrEqualTo(
-    new BigNumber(amount.toString())
-  );
+function canSpendAmount(
+  account: Account,
+  amount: bigint,
+  logger: Logger
+): void {
+  if (
+    account.spendableBalance.isGreaterThanOrEqualTo(
+      new BigNumber(amount.toString())
+    ) === false
+  ) {
+    const err = new NotEnoughFunds();
+    logger.error(err);
+    throw err;
+  }
+  return;
 }
 
 function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
