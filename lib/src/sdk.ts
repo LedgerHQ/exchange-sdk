@@ -52,10 +52,10 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint,
+  amount: bigint
 ) => Promise<{
   recipientAddress: string;
-  amount: bigint;
+  amount: BigNumber;
   binaryPayload: Buffer;
   signature: Buffer;
 }>;
@@ -113,7 +113,7 @@ export class ExchangeSDK {
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string,
+    customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -126,7 +126,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -175,11 +175,7 @@ export class ExchangeSDK {
 
     // Check enough fund
     const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
-    if (canSpendAmount(fromAccount, fromAmountAtomic) === false) {
-      const err = new NotEnoughFunds();
-      this.logger.error(err);
-      throw err;
-    }
+    canSpendAmount(fromAccount, fromAmountAtomic, this.logger);
 
     // 1 - Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
@@ -312,13 +308,9 @@ export class ExchangeSDK {
         throw error;
       });
 
-    // Check enough fund
-    const fromAmountAtomic = convertToAtomicUnit(fromAmount, currency);
-    if (canSpendAmount(account, fromAmountAtomic) === false) {
-      const err = new NotEnoughFunds();
-      this.logger.error(err);
-      throw err;
-    }
+    // Check enough fund on the amount set when the sell sdk is called
+    const initialAtomicAmount = convertToAtomicUnit(fromAmount, currency);
+    canSpendAmount(account, initialAtomicAmount, this.logger);
 
     // 1 - Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
@@ -338,11 +330,16 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(fromAmountAtomic.toString()),
+        BigInt(initialAtomicAmount.toString())
       );
+
+    // Check enough fund on the amount being set on the sell payload
+    const fromAmountAtomic = convertToAtomicUnit(amount, currency);
+    canSpendAmount(account, fromAmountAtomic, this.logger);
+
     this.logger.log("Payload received:", {
       recipientAddress,
-      amount,
+      amount: fromAmountAtomic,
       binaryPayload,
       signature,
     });
@@ -350,7 +347,7 @@ export class ExchangeSDK {
     // 3 - Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
       recipient: recipientAddress,
-      amount,
+      amount: fromAmountAtomic,
       currency,
       customFeeConfig,
     });
@@ -387,10 +384,21 @@ export class ExchangeSDK {
   }
 }
 
-function canSpendAmount(account: Account, amount: bigint): boolean {
-  return account.spendableBalance.isGreaterThanOrEqualTo(
-    new BigNumber(amount.toString()),
-  );
+function canSpendAmount(
+  account: Account,
+  amount: bigint,
+  logger: Logger
+): void {
+  if (
+    account.spendableBalance.isGreaterThanOrEqualTo(
+      new BigNumber(amount.toString())
+    ) === false
+  ) {
+    const err = new NotEnoughFunds();
+    logger.error(err);
+    throw err;
+  }
+  return;
 }
 
 function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
