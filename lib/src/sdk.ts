@@ -52,7 +52,7 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint
+  amount: bigint,
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
@@ -113,7 +113,7 @@ export class ExchangeSDK {
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string
+    customUrl?: string,
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -126,7 +126,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -236,12 +236,16 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
+        let swapStep = "";
+        if ((error as CompleteExchangeError).step) {
+          swapStep = (error as CompleteExchangeError).step;
+        } else if (error.name === "DisabledTransactionBroadcastError") {
+          swapStep = "SIGN_COIN_TRANSACTION";
+        }
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
-          ...((error as CompleteExchangeError).step
-            ? { swapStep: (error as CompleteExchangeError).step }
-            : {}),
+          swapStep,
           statusCode: error.name,
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
@@ -330,7 +334,7 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(initialAtomicAmount.toString())
+        BigInt(initialAtomicAmount.toString()),
       );
 
     // Check enough fund on the amount being set on the sell payload
@@ -387,11 +391,11 @@ export class ExchangeSDK {
 function canSpendAmount(
   account: Account,
   amount: bigint,
-  logger: Logger
+  logger: Logger,
 ): void {
   if (
     account.spendableBalance.isGreaterThanOrEqualTo(
-      new BigNumber(amount.toString())
+      new BigNumber(amount.toString()),
     ) === false
   ) {
     const err = new NotEnoughFunds();

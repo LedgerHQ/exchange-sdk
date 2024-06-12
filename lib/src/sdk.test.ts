@@ -8,10 +8,10 @@ import {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
-import { retrievePayload, confirmSwap } from "./api";
+import { retrievePayload, confirmSwap, cancelSwap } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { PayinExtraIdError } from "./error";
+import { CompleteExchangeError, PayinExtraIdError } from "./error";
 
 jest.mock("./api");
 
@@ -91,6 +91,7 @@ describe("swap", () => {
       swapId: "swap-id",
     });
     (confirmSwap as jest.Mock).mockResolvedValue({});
+    (cancelSwap as jest.Mock).mockResolvedValue({});
   });
 
   it("sends back the 'transactionId' from the WalletAPI", async () => {
@@ -166,6 +167,47 @@ describe("swap", () => {
     };
 
     await expect(sdk.swap(swapData)).rejects.toThrow(PayinExtraIdError);
+  });
+
+  it("sends swapStep to cancelled operation when CompleteExchangeError is thrown", async () => {
+    // GIVEN
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "currency-id-1",
+        decimals: 4,
+        family: "ethereum",
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    const swapData = {
+      quoteId: "quoteId",
+      fromAccountId: "id-1",
+      toAccountId: "id-2",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+      rate: 1.2,
+    };
+
+    mockCompleteSwap.mockRejectedValueOnce(
+      new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"),
+    );
+
+    // WHEN
+    await expect(sdk.swap(swapData)).rejects.toThrowError();
+
+    // THEN
+    expect(cancelSwap as jest.Mock).toHaveBeenCalledWith({
+      provider: "provider-id",
+      swapId: "swap-id",
+      statusCode: "CompleteExchangeError",
+      errorMessage: "error message",
+      sourceCurrencyId: "currency-id-1",
+      targetCurrencyId: "currency-id-2",
+      hardwareWalletType: "nanoX",
+      swapType: "fixed",
+      swapStep: "SIGN_COIN_TRANSACTION",
+    });
   });
 });
 
