@@ -52,7 +52,7 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint
+  amount: bigint,
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
@@ -113,7 +113,7 @@ export class ExchangeSDK {
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string
+    customUrl?: string,
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -126,7 +126,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -239,9 +239,7 @@ export class ExchangeSDK {
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
-          ...((error as CompleteExchangeError).step
-            ? { swapStep: (error as CompleteExchangeError).step }
-            : {}),
+          swapStep: getSwapStep(error),
           statusCode: error.name,
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
@@ -330,7 +328,7 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(initialAtomicAmount.toString())
+        BigInt(initialAtomicAmount.toString()),
       );
 
     // Check enough fund on the amount being set on the sell payload
@@ -387,11 +385,11 @@ export class ExchangeSDK {
 function canSpendAmount(
   account: Account,
   amount: bigint,
-  logger: Logger
+  logger: Logger,
 ): void {
   if (
     account.spendableBalance.isGreaterThanOrEqualTo(
-      new BigNumber(amount.toString())
+      new BigNumber(amount.toString()),
     ) === false
   ) {
     const err = new NotEnoughFunds();
@@ -407,4 +405,14 @@ function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
     throw new Error("Unable to convert amount to atomic unit");
   }
   return BigInt(convertedNumber.toString());
+}
+
+function getSwapStep(error: Error): string {
+  if ((error as CompleteExchangeError).step) {
+    return (error as CompleteExchangeError).step;
+  } else if (error.name === "DisabledTransactionBroadcastError") {
+    return "SIGN_COIN_TRANSACTION";
+  }
+
+  return "UNKNOWN_STEP";
 }
