@@ -16,6 +16,7 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
       "CancelStepError",
       "ConfirmStepError",
       "SwapCompleteExchangeError",
+      "DeviceDisconnectedError",
   ]);
 
   const ignoredMessages = new Set([
@@ -29,6 +30,7 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
   // Log and throw to Ledger Live if not ignored
   if (error instanceof ExchangeError && cause) {
       walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error});
-  } 
+  }
+
   throw error;
 }
