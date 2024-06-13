@@ -236,16 +236,10 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        let swapStep = "";
-        if ((error as CompleteExchangeError).step) {
-          swapStep = (error as CompleteExchangeError).step;
-        } else if (error.name === "DisabledTransactionBroadcastError") {
-          swapStep = "SIGN_COIN_TRANSACTION";
-        }
         await cancelSwap({
           provider: this.providerId,
           swapId: swapId ?? "",
-          swapStep,
+          swapStep: getSwapStep(error),
           statusCode: error.name,
           errorMessage: error.message,
           sourceCurrencyId: fromAccount.currency,
@@ -411,4 +405,14 @@ function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
     throw new Error("Unable to convert amount to atomic unit");
   }
   return BigInt(convertedNumber.toString());
+}
+
+function getSwapStep(error: Error): string {
+  if ((error as CompleteExchangeError).step) {
+    return (error as CompleteExchangeError).step;
+  } else if (error.name === "DisabledTransactionBroadcastError") {
+    return "SIGN_COIN_TRANSACTION";
+  }
+
+  return "UNKNOWN_STEP";
 }
