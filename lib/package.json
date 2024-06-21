@@ -7,6 +7,7 @@
   "main": "./dist",
   "scripts": {
     "build": "rimraf dist && pnpm exec rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "dev": "$npm_execpath --silent build --watch",
     "clean": "rm -rf node_modules lib",
     "lint": "eslint --cache --ext .ts \"src\"",
     "test": "jest"
