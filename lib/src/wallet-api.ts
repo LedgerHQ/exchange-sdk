@@ -1,11 +1,8 @@
 import {
   Account,
-  CardanoTransaction,
   CryptoCurrency,
   Currency,
   ElrondTransaction,
-  NearTransaction,
-  NeoTransaction,
   RippleTransaction,
   SolanaTransaction,
   StellarTransaction,
@@ -60,19 +57,11 @@ const transactionStrategy: {
   stacks: defaultTransaction,
   stellar: stellarTransaction,
   tezos: modeSendTransaction,
-  tron: defaultTransaction,
+  tron: modeSendTransaction,
   vechain: defaultTransaction,
   casper: defaultTransaction,
   internet_computer: defaultTransaction,
 };
-
-type StartType = InstanceType<typeof WalletAPIClient>["exchange"]["start"];
-type CompleteSwapType = InstanceType<
-  typeof WalletAPIClient
->["exchange"]["completeSwap"];
-type CompleteSellType = InstanceType<
-  typeof WalletAPIClient
->["exchange"]["completeSell"];
 
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
 export type CreateTransactionArg = {
@@ -129,7 +118,7 @@ export default function walletApiDecorator(
     };
   }
 
-  async function createTransaction({
+async function createTransaction({
     recipient,
     amount: amountBigInt,
     currency,
