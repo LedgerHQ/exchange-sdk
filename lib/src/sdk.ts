@@ -52,7 +52,7 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint,
+  amount: bigint
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
@@ -113,7 +113,7 @@ export class ExchangeSDK {
     providerId: string,
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string,
+    customUrl?: string
   ) {
     this.providerId = providerId;
     if (!walletAPI) {
@@ -126,7 +126,7 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
+        new WalletAPIClient(this.transport, defaultLogger, getCustomModule)
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -303,6 +303,7 @@ export class ExchangeSDK {
     const { account, currency } = await this.walletAPIDecorator
       .retrieveUserAccount(accountId)
       .catch((error: Error) => {
+        this.handleError(error);
         throw error;
       });
 
@@ -328,7 +329,7 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(initialAtomicAmount.toString()),
+        BigInt(initialAtomicAmount.toString())
       );
 
     // Check enough fund on the amount being set on the sell payload
@@ -385,11 +386,11 @@ export class ExchangeSDK {
 function canSpendAmount(
   account: Account,
   amount: bigint,
-  logger: Logger,
+  logger: Logger
 ): void {
   if (
     account.spendableBalance.isGreaterThanOrEqualTo(
-      new BigNumber(amount.toString()),
+      new BigNumber(amount.toString())
     ) === false
   ) {
     const err = new NotEnoughFunds();
