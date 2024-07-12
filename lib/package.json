@@ -5,6 +5,9 @@
   "repository": "git@github.com:LedgerHQ/exchange-sdk.git",
   "types": "./dist/types",
   "main": "./dist",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rimraf dist && pnpm exec rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
     "dev": "$npm_execpath --silent build --watch",
