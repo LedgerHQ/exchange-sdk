@@ -405,7 +405,7 @@ function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
   if (!convertedNumber.isInteger()) {
     throw new Error("Unable to convert amount to atomic unit");
   }
-  return BigInt(convertedNumber.toString());
+  return BigInt(convertedNumber.toNumber());
 }
 
 function getSwapStep(error: Error): string {
