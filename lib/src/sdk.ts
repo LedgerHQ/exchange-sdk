@@ -331,7 +331,6 @@ export class ExchangeSDK {
         account.address,
         BigInt(initialAtomicAmount.toString())
       ).catch((error: Error) => {
-        this.handleError(error);
         throw error;
       });
 
@@ -355,7 +354,6 @@ export class ExchangeSDK {
         customFeeConfig,
       })
       .catch((error: Error) => {
-        this.handleError(error);
         throw error;
       });
 
