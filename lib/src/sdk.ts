@@ -330,7 +330,9 @@ export class ExchangeSDK {
         deviceTransactionId,
         account.address,
         BigInt(initialAtomicAmount.toString())
-      );
+      ).catch((error: Error) => {
+        throw error;
+      });
 
     // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
@@ -344,12 +346,16 @@ export class ExchangeSDK {
     });
 
     // 3 - Send payload
-    const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: recipientAddress,
-      amount: fromAmountAtomic,
-      currency,
-      customFeeConfig,
-    });
+    const transaction = await this.walletAPIDecorator
+      .createTransaction({
+        recipient: recipientAddress,
+        amount: fromAmountAtomic,
+        currency,
+        customFeeConfig,
+      })
+      .catch((error: Error) => {
+        throw error;
+      });
 
     const tx = await this.exchangeModule
       .completeSell({
