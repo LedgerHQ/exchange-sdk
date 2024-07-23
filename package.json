@@ -15,7 +15,12 @@
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test"
   },
+  "dependencies": {
+    "@ledgerhq/hw-app-exchange": "latest",
+    "protobufjs": "^7.3.2"
+  },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
     "@types/node": "^12.12.21",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.1",
@@ -29,5 +34,5 @@
     "node": ">=18.16",
     "pnpm": ">=8.6"
   },
-  "packageManager": "pnpm@8.6.12"
+  "packageManager": "pnpm@9.1.1"
 }

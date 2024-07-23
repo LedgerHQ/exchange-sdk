@@ -24,6 +24,48 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+// import { decodePayloadProtobuf } from "@ledgerhq/hw-app-exchange";
+var protobuf = require("protobufjs");
+// var protoJson = require("./test.json");
+import * as protoJson from "./test.json";
+
+type SwapProtobufPayload = {
+  payinAddress: string;
+  payinExtraId?: string;
+  refundAddress: string;
+  refundExtraId?: string;
+  payoutAddress: string;
+  payoutExtraId?: string;
+  currencyFrom: string;
+  currencyTo: string;
+  amountToProvider: Buffer;
+  amountToWallet: Buffer;
+  message?: string;
+  deviceTransactionId?: string;
+  deviceTransactionIdNg?: Buffer;
+};
+
+export type SwapPayload = {
+  payinAddress: string;
+  payinExtraId?: string;
+  refundAddress: string;
+  refundExtraId?: string;
+  payoutAddress: string;
+  payoutExtraId?: string;
+  currencyFrom: string;
+  currencyTo: string;
+  amountToProvider: bigint;
+  amountToWallet: bigint;
+  message?: string;
+  deviceTransactionId?: string;
+  deviceTransactionIdNg?: string;
+};
+
+function isHexadecimal(str: string): boolean {
+  return /^[A-F0-9]+$/i.test(str);
+}
+
+// export async function
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -141,6 +183,54 @@ export class ExchangeSDK {
   private handleError = (error: any) => {
     handleErrors(this.walletAPI, error);
   };
+
+  private async decodePayloadProtobuf(payload: string): Promise<SwapPayload> {
+    const buffer = isHexadecimal(payload)
+      ? Buffer.from(payload, "hex")
+      : Buffer.from(payload, "base64");
+
+    const root: { [key: string]: any } =
+      protobuf.Root.fromJSON(protoJson) || {};
+
+    this.logger.log("root", root);
+    const TransactionResponse = root?.nested.ledger_swap?.NewSellResponse;
+    const err = TransactionResponse.verify(buffer);
+    this.logger.log("Txres", TransactionResponse);
+    this.logger.log("verify", err);
+    if (err) {
+      this.logger.log("errors in decode", err);
+      throw Error(err);
+    }
+    const decodePayload = TransactionResponse.decode(
+      buffer
+    ) as unknown as SwapProtobufPayload;
+
+    this.logger.log("decodePayload", decodePayload);
+
+    const {
+      amountToWallet: amountToWalletBuffer,
+      amountToProvider: amountToProviderBuffer,
+      deviceTransactionIdNg: deviceTransactionIdNgBuffer,
+    } = decodePayload;
+    const amountToWalletHexString =
+      Buffer.from(amountToWalletBuffer).toString("hex"); // Gets the hexadecimal representation from the Buffer
+    const amountToWallet = BigInt("0x" + amountToWalletHexString); // Convert hexadecimal representation to a big integer
+
+    const amountToProviderHexString = Buffer.from(
+      amountToProviderBuffer
+    ).toString("hex"); // Gets the hexadecimal representation from the Buffer
+    const amountToProvider = BigInt("0x" + amountToProviderHexString); // Convert hexadecimal representation to a big integer
+
+    const deviceTransactionIdNg =
+      deviceTransactionIdNgBuffer?.toString("hex") || undefined;
+    this.logger.log("Values", { ...decodePayload });
+    return {
+      ...decodePayload,
+      amountToWallet,
+      amountToProvider,
+      deviceTransactionIdNg,
+    };
+  }
 
   /**
    * Ask user to validate a swap transaction.
@@ -331,8 +421,24 @@ export class ExchangeSDK {
         account.address,
         BigInt(initialAtomicAmount.toString())
       ).catch((error: Error) => {
+        this.logger.log("errors?", error);
         throw error;
       });
+
+    this.logger.log("before decoded payload");
+
+    const payloadHex = binaryPayload.toString("hex");
+
+    this.logger.log("payloadHex!!", payloadHex);
+
+    try {
+      const decodedPayload = await this.decodePayloadProtobuf(
+        binaryPayload.toString("hex")
+      );
+      this.logger.log("decoded payload", decodedPayload);
+    } catch (e) {
+      this.logger.log("E", e);
+    }
 
     // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
