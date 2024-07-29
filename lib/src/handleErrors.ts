@@ -18,6 +18,8 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
       "SwapCompleteExchangeError",
       "DisconnectedDevice",
       "NotEnoughBalance",
+      "CompleteExchangeError",
+      "TransportStatusError",
   ]);
 
   const ignoredMessages = new Set([
