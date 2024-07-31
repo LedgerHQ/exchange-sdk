@@ -66,7 +66,7 @@ const transactionStrategy: {
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
 export type CreateTransactionArg = {
   recipient: string;
-  amount: bigint;
+  amount: BigNumber;
   currency: Currency;
   customFeeConfig: {
     [key: string]: BigNumber;
@@ -120,7 +120,7 @@ export default function walletApiDecorator(
 
 async function createTransaction({
     recipient,
-    amount: amountBigInt,
+    amount,
     currency,
     customFeeConfig,
     payinExtraId,
@@ -145,8 +145,6 @@ async function createTransaction({
     if (!strategy) {
       throw new Error(`No strategy found for family: ${family}`);
     }
-
-    const amount = new BigNumber(amountBigInt.toString());
 
     return strategy({
       family,

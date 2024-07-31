@@ -25,7 +25,7 @@ describe("retrievePayload", () => {
       fromAccount: createAccount("12", "btc-account", "bitcoin", "0x998"),
       toAccount: createAccount("13", "eth-account", "ethereum", "0x999"),
       amount: BigNumber("1.908"),
-      amountInAtomicUnit: BigInt(1_908_000_000_000),
+      amountInAtomicUnit: BigNumber(1_908_000_000_000),
       quoteId: "978400",
     };
     const responseData = swapApiResponse();
@@ -66,7 +66,7 @@ describe("retrievePayload", () => {
       fromAccount: createAccount("12", "btc-account", "bitcoin", "0x998"),
       toAccount: createAccount("13", "eth-account", "ethereum", "0x999"),
       amount: BigNumber("1.908"),
-      amountInAtomicUnit: BigInt(1_908_000_000_000),
+      amountInAtomicUnit: BigNumber(1_908_000_000_000),
     };
     const responseData = swapApiResponse();
     mockPost.mockResolvedValueOnce({ data: responseData });

@@ -24,7 +24,7 @@ export type PayloadRequestData = {
   fromAccount: Account;
   toAccount: Account;
   amount: BigNumber;
-  amountInAtomicUnit: bigint;
+  amountInAtomicUnit: BigNumber;
   quoteId?: string;
   toNewTokenId?: string;
 };
