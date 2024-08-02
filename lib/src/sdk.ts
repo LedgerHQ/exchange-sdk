@@ -24,41 +24,19 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
-// import { decodePayloadProtobuf } from "@ledgerhq/hw-app-exchange";
+
+// TODO: Remove later?
 var protobuf = require("protobufjs");
-// var protoJson = require("./test.json");
 import * as protoJson from "./test.json";
 
-type SwapProtobufPayload = {
-  payinAddress: string;
-  payinExtraId?: string;
-  refundAddress: string;
-  refundExtraId?: string;
-  payoutAddress: string;
-  payoutExtraId?: string;
-  currencyFrom: string;
-  currencyTo: string;
-  amountToProvider: Buffer;
-  amountToWallet: Buffer;
-  message?: string;
-  deviceTransactionId?: string;
-  deviceTransactionIdNg?: Buffer;
-};
-
-export type SwapPayload = {
-  payinAddress: string;
-  payinExtraId?: string;
-  refundAddress: string;
-  refundExtraId?: string;
-  payoutAddress: string;
-  payoutExtraId?: string;
-  currencyFrom: string;
-  currencyTo: string;
-  amountToProvider: bigint;
-  amountToWallet: bigint;
-  message?: string;
-  deviceTransactionId?: string;
-  deviceTransactionIdNg?: string;
+export type SellPayload = {
+  deviceTransactionId: object;
+  inAddress: string;
+  inAmount: object;
+  inCurrency: string;
+  outAmount: object;
+  outCurrency: string;
+  traderEmail: string;
 };
 
 function isHexadecimal(str: string): boolean {
@@ -98,7 +76,7 @@ export type GetSellPayload = (
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
-  binaryPayload: Buffer;
+  binaryPayload: string;
   signature: Buffer;
 }>;
 /**
@@ -184,7 +162,7 @@ export class ExchangeSDK {
     handleErrors(this.walletAPI, error);
   };
 
-  private async decodePayloadProtobuf(payload: string): Promise<SwapPayload> {
+  private async decodePayloadProtobuf(payload: string): Promise<SellPayload> {
     const buffer = isHexadecimal(payload)
       ? Buffer.from(payload, "hex")
       : Buffer.from(payload, "base64");
@@ -201,34 +179,11 @@ export class ExchangeSDK {
       this.logger.log("errors in decode", err);
       throw Error(err);
     }
-    const decodePayload = TransactionResponse.decode(
-      buffer
-    ) as unknown as SwapProtobufPayload;
+    const decodePayload = TransactionResponse.decode(buffer);
 
     this.logger.log("decodePayload", decodePayload);
-
-    const {
-      amountToWallet: amountToWalletBuffer,
-      amountToProvider: amountToProviderBuffer,
-      deviceTransactionIdNg: deviceTransactionIdNgBuffer,
-    } = decodePayload;
-    const amountToWalletHexString =
-      Buffer.from(amountToWalletBuffer).toString("hex"); // Gets the hexadecimal representation from the Buffer
-    const amountToWallet = BigInt("0x" + amountToWalletHexString); // Convert hexadecimal representation to a big integer
-
-    const amountToProviderHexString = Buffer.from(
-      amountToProviderBuffer
-    ).toString("hex"); // Gets the hexadecimal representation from the Buffer
-    const amountToProvider = BigInt("0x" + amountToProviderHexString); // Convert hexadecimal representation to a big integer
-
-    const deviceTransactionIdNg =
-      deviceTransactionIdNgBuffer?.toString("hex") || undefined;
-    this.logger.log("Values", { ...decodePayload });
     return {
       ...decodePayload,
-      amountToWallet,
-      amountToProvider,
-      deviceTransactionIdNg,
     };
   }
 
@@ -427,15 +382,10 @@ export class ExchangeSDK {
 
     this.logger.log("before decoded payload");
 
-    const payloadHex = binaryPayload.toString("hex");
-
-    this.logger.log("payloadHex!!", payloadHex);
-
     try {
-      const decodedPayload = await this.decodePayloadProtobuf(
-        binaryPayload.toString("hex")
-      );
-      this.logger.log("decoded payload", decodedPayload);
+      this.logger.log("typeof payload", typeof binaryPayload);
+      const decodedPayload = await this.decodePayloadProtobuf(binaryPayload);
+      this.logger.log("decoded payload SUCCESS", decodedPayload);
     } catch (e) {
       this.logger.log("E", e);
     }
@@ -468,11 +418,13 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId: accountId,
         transaction,
-        binaryPayload,
+        // TODO: update this package to accept a string and buffer it if needed
+        binaryPayload: Buffer.from(binaryPayload),
         signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
+        this.logger.log("Fails here:", error);
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
