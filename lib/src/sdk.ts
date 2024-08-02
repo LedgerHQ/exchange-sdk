@@ -221,6 +221,26 @@ export class ExchangeSDK {
       currency: fromCurrency,
       customFeeConfig,
       payinExtraId,
+    }).catch(async (error) => {
+      await cancelSwap({
+        provider: this.providerId,
+        swapId: swapId ?? "",
+        swapStep: getSwapStep(error),
+        statusCode: error.name,
+        errorMessage: error.message,
+        sourceCurrencyId: fromAccount.currency,
+        targetCurrencyId: toAccount.currency,
+        hardwareWalletType: device?.modelId ?? "",
+        swapType: quoteId ? "fixed" : "float",
+      }).catch(async (error: Error) => {
+        const err = new CancelStepError(error);
+        this.handleError(err);
+        this.logger.error(err);
+        throw error;
+      });
+      this.handleError(error);
+      this.logger.error(error);
+      throw error;
     });
 
     const tx = await this.exchangeModule
