@@ -16,8 +16,7 @@
     "test": "pnpm --filter=exchange-sdk test"
   },
   "dependencies": {
-    "@ledgerhq/hw-app-exchange": "0.6.0-nightly.0",
-    "protobufjs": "^7.3.2"
+    "@ledgerhq/hw-app-exchange": "0.6.0-nightly.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
