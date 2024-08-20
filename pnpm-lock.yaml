@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: latest
-        version: 0.5.1
+        specifier: 0.6.0-nightly.0
+        version: 0.6.0-nightly.0
       protobufjs:
         specifier: ^7.3.2
         version: 7.3.2
@@ -633,14 +633,14 @@ packages:
   '@ledgerhq/devices@8.4.1':
     resolution: {integrity: sha512-Mbjzqlcj4Q2StxEmaYEb5wv6sK5Sk26L4xs0BC9io/AyvpXNTDAp67tryB/klNcvd+WwZPcPdYYvlNzfQ0WTUA==}
 
-  '@ledgerhq/errors@6.16.3':
-    resolution: {integrity: sha512-3w7/SJVXOPa9mpzyll7VKoKnGwDD3BzWgN1Nom8byR40DiQvOKjHX+kKQausCedTHVNBn9euzPCNsftZ9+mxfw==}
+  '@ledgerhq/devices@8.4.2':
+    resolution: {integrity: sha512-oWNTp3jCMaEvRHsXNYE/yo+PFMgXAJGFHLOU1UdE4/fYkniHbD9wdxwyZrZvrxr9hNw4/9wHiThyITwPtMzG7g==}
 
   '@ledgerhq/errors@6.18.0':
     resolution: {integrity: sha512-L3jQWAGyooxRDk/MRlW2v4Ji9+kloBtdmz9wBkHaj2j0n+05rweJSV3GHw9oye1BYMbVFqFffmT4H3hlXlCasw==}
 
-  '@ledgerhq/hw-app-exchange@0.5.1':
-    resolution: {integrity: sha512-Aj6yIVYATzv/8GVYXjfLLcUqAYPoURNjmtHD5iMgjPkJJ1sEmZbs5oucuyA75DAJgP11lnj2KMhkZeqdRUsZSQ==}
+  '@ledgerhq/hw-app-exchange@0.6.0-nightly.0':
+    resolution: {integrity: sha512-BIospUq0Ml1Yi18icjIqp6MWsF7iyalAaFSbjru/sR/8FVPwGU5w2FaHwiASTTXvSspFGXIDlJTmyQxYJqe24g==}
 
   '@ledgerhq/hw-transport@6.30.4':
     resolution: {integrity: sha512-VBcVd7UG8HDrjWMoZI5rqBDz+PBxLHTIPZOGY/fdMoEUwaBbss0Z3MxuJanMyerlfaLqnBSVuL0blz7rOyagkw==}
@@ -650,6 +650,9 @@ packages:
 
   '@ledgerhq/hw-transport@6.31.1':
     resolution: {integrity: sha512-0hVcrqUOM7AYV/JEq8yoeBiXLjpWrentgYt8MC3n+iNFfpORU/SUprcbu0s884IHzj+a8mx0JCZp9y7uPSLlzg==}
+
+  '@ledgerhq/hw-transport@6.31.2':
+    resolution: {integrity: sha512-B27UIzMzm2IXPGYnEB95R7eHxpXBkTBHh6MUJJQZVknt8LilEz1tfpTYUdzAKDGQ+Z5MZyYb01Eh3Zqm3kn3uw==}
 
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
@@ -1759,6 +1762,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
@@ -3672,7 +3676,7 @@ snapshots:
 
   '@ledgerhq/devices@8.2.2':
     dependencies:
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       '@ledgerhq/logs': 6.12.0
       rxjs: 7.8.1
       semver: 7.6.0
@@ -3684,14 +3688,19 @@ snapshots:
       rxjs: 7.8.1
       semver: 7.6.0
 
-  '@ledgerhq/errors@6.16.3': {}
+  '@ledgerhq/devices@8.4.2':
+    dependencies:
+      '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/logs': 6.12.0
+      rxjs: 7.8.1
+      semver: 7.6.0
 
   '@ledgerhq/errors@6.18.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.5.1':
+  '@ledgerhq/hw-app-exchange@0.6.0-nightly.0':
     dependencies:
       '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/hw-transport': 6.31.1
+      '@ledgerhq/hw-transport': 6.31.2
       bignumber.js: 9.1.2
       invariant: 2.2.4
       protobufjs: 7.2.5
@@ -3700,20 +3709,27 @@ snapshots:
   '@ledgerhq/hw-transport@6.30.4':
     dependencies:
       '@ledgerhq/devices': 8.2.2
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       '@ledgerhq/logs': 6.12.0
       events: 3.3.0
 
   '@ledgerhq/hw-transport@6.30.5':
     dependencies:
       '@ledgerhq/devices': 8.2.2
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       '@ledgerhq/logs': 6.12.0
       events: 3.3.0
 
   '@ledgerhq/hw-transport@6.31.1':
     dependencies:
       '@ledgerhq/devices': 8.4.1
+      '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/logs': 6.12.0
+      events: 3.3.0
+
+  '@ledgerhq/hw-transport@6.31.2':
+    dependencies:
+      '@ledgerhq/devices': 8.4.2
       '@ledgerhq/errors': 6.18.0
       '@ledgerhq/logs': 6.12.0
       events: 3.3.0
@@ -3728,7 +3744,7 @@ snapshots:
 
   '@ledgerhq/wallet-api-client@1.5.7':
     dependencies:
-      '@ledgerhq/hw-transport': 6.30.5
+      '@ledgerhq/hw-transport': 6.31.1
       '@ledgerhq/wallet-api-core': 1.9.0
       bignumber.js: 9.1.2
 
@@ -3740,21 +3756,21 @@ snapshots:
 
   '@ledgerhq/wallet-api-core@1.10.1':
     dependencies:
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4
 
   '@ledgerhq/wallet-api-core@1.7.2':
     dependencies:
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4
 
   '@ledgerhq/wallet-api-core@1.9.0':
     dependencies:
-      '@ledgerhq/errors': 6.16.3
+      '@ledgerhq/errors': 6.18.0
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4

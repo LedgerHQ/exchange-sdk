@@ -24,6 +24,7 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 
 // TODO: Remove later?
 var protobuf = require("protobufjs");
@@ -161,31 +162,6 @@ export class ExchangeSDK {
   private handleError = (error: any) => {
     handleErrors(this.walletAPI, error);
   };
-
-  private async decodePayloadProtobuf(payload: string): Promise<SellPayload> {
-    const buffer = isHexadecimal(payload)
-      ? Buffer.from(payload, "hex")
-      : Buffer.from(payload, "base64");
-
-    const root: { [key: string]: any } =
-      protobuf.Root.fromJSON(protoJson) || {};
-
-    this.logger.log("root", root);
-    const TransactionResponse = root?.nested.ledger_swap?.NewSellResponse;
-    const err = TransactionResponse.verify(buffer);
-    this.logger.log("Txres", TransactionResponse);
-    this.logger.log("verify", err);
-    if (err) {
-      this.logger.log("errors in decode", err);
-      throw Error(err);
-    }
-    const decodePayload = TransactionResponse.decode(buffer);
-
-    this.logger.log("decodePayload", decodePayload);
-    return {
-      ...decodePayload,
-    };
-  }
 
   /**
    * Ask user to validate a swap transaction.
@@ -376,18 +352,14 @@ export class ExchangeSDK {
         account.address,
         BigInt(initialAtomicAmount.toString())
       ).catch((error: Error) => {
-        this.logger.log("errors?", error);
         throw error;
       });
 
-    this.logger.log("before decoded payload");
-
+    // Decode the payload in order to send the values to the back-end
     try {
-      this.logger.log("typeof payload", typeof binaryPayload);
-      const decodedPayload = await this.decodePayloadProtobuf(binaryPayload);
-      this.logger.log("decoded payload SUCCESS", decodedPayload);
+      const decodedPayload = await decodeSellPayload(binaryPayload);
     } catch (e) {
-      this.logger.log("E", e);
+      this.logger.log("Error decoding payload", e);
     }
 
     // Check enough fund on the amount being set on the sell payload
@@ -424,7 +396,6 @@ export class ExchangeSDK {
         feeStrategy,
       })
       .catch(async (error: Error) => {
-        this.logger.log("Fails here:", error);
         const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
