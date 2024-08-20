@@ -241,6 +241,7 @@ export class ExchangeSDK {
           this.logger.error(err);
           throw error;
         });
+
         this.handleError(error);
         this.logger.error(error);
         throw error;
