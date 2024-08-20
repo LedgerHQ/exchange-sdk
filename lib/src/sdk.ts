@@ -26,16 +26,6 @@ import walletApiDecorator, {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 
-export type SellPayload = {
-  deviceTransactionId: object;
-  inAddress: string;
-  inAmount: object;
-  inCurrency: string;
-  outAmount: object;
-  outCurrency: string;
-  traderEmail: string;
-};
-
 export type GetSwapPayload = typeof retrievePayload;
 /**
  * Swap information required to request user's a swap transaction.
