@@ -73,7 +73,7 @@ export type SwapInfo = {
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
-  amount: bigint
+  amount: BigNumber
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
@@ -242,6 +242,26 @@ export class ExchangeSDK {
       currency: fromCurrency,
       customFeeConfig,
       payinExtraId,
+    }).catch(async (error) => {
+      await cancelSwap({
+        provider: this.providerId,
+        swapId: swapId ?? "",
+        swapStep: getSwapStep(error),
+        statusCode: error.name,
+        errorMessage: error.message,
+        sourceCurrencyId: fromAccount.currency,
+        targetCurrencyId: toAccount.currency,
+        hardwareWalletType: device?.modelId ?? "",
+        swapType: quoteId ? "fixed" : "float",
+      }).catch(async (error: Error) => {
+        const err = new CancelStepError(error);
+        this.handleError(err);
+        this.logger.error(err);
+        throw error;
+      });
+      this.handleError(error);
+      this.logger.error(error);
+      throw error;
     });
 
     const tx = await this.exchangeModule
@@ -350,7 +370,7 @@ export class ExchangeSDK {
       await getSellPayload(
         deviceTransactionId,
         account.address,
-        BigInt(initialAtomicAmount.toString())
+        initialAtomicAmount
       ).catch((error: Error) => {
         throw error;
       });
@@ -420,12 +440,12 @@ export class ExchangeSDK {
 
 function canSpendAmount(
   account: Account,
-  amount: bigint,
+  amount: BigNumber,
   logger: Logger
 ): void {
   if (
     account.spendableBalance.isGreaterThanOrEqualTo(
-      new BigNumber(amount.toString())
+      amount
     ) === false
   ) {
     const err = new NotEnoughFunds();
@@ -435,12 +455,12 @@ function canSpendAmount(
   return;
 }
 
-function convertToAtomicUnit(amount: BigNumber, currency: Currency): bigint {
+function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
   const convertedNumber = amount.shiftedBy(currency.decimals);
   if (!convertedNumber.isInteger()) {
     throw new Error("Unable to convert amount to atomic unit");
   }
-  return BigInt(convertedNumber.toNumber());
+  return convertedNumber;
 }
 
 function getSwapStep(error: Error): string {
