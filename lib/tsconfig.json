@@ -9,7 +9,8 @@
     "declarationDir": "./dist/types",
     "removeComments": false,
     "noEmitOnError": true,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
   },
   "include": ["src"]
 }

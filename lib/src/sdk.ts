@@ -24,6 +24,7 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -56,7 +57,7 @@ export type GetSellPayload = (
 ) => Promise<{
   recipientAddress: string;
   amount: BigNumber;
-  binaryPayload: Buffer;
+  binaryPayload: string;
   signature: Buffer;
 }>;
 /**
@@ -215,33 +216,36 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: payinAddress,
-      amount: fromAmountAtomic,
-      currency: fromCurrency,
-      customFeeConfig,
-      payinExtraId,
-    }).catch(async (error) => {
-      await cancelSwap({
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        swapStep: getSwapStep(error),
-        statusCode: error.name,
-        errorMessage: error.message,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: device?.modelId ?? "",
-        swapType: quoteId ? "fixed" : "float",
-      }).catch(async (error: Error) => {
-        const err = new CancelStepError(error);
-        this.handleError(err);
-        this.logger.error(err);
+    const transaction = await this.walletAPIDecorator
+      .createTransaction({
+        recipient: payinAddress,
+        amount: fromAmountAtomic,
+        currency: fromCurrency,
+        customFeeConfig,
+        payinExtraId,
+      })
+      .catch(async (error) => {
+        await cancelSwap({
+          provider: this.providerId,
+          swapId: swapId ?? "",
+          swapStep: getSwapStep(error),
+          statusCode: error.name,
+          errorMessage: error.message,
+          sourceCurrencyId: fromAccount.currency,
+          targetCurrencyId: toAccount.currency,
+          hardwareWalletType: device?.modelId ?? "",
+          swapType: quoteId ? "fixed" : "float",
+        }).catch(async (error: Error) => {
+          const err = new CancelStepError(error);
+          this.handleError(err);
+          this.logger.error(err);
+          throw error;
+        });
+
+        this.handleError(error);
+        this.logger.error(error);
         throw error;
       });
-      this.handleError(error);
-      this.logger.error(error);
-      throw error;
-    });
 
     const tx = await this.exchangeModule
       .completeSwap({
@@ -354,6 +358,13 @@ export class ExchangeSDK {
         throw error;
       });
 
+    // Decode the payload in order to send the values to the back-end
+    try {
+      const decodedPayload = await decodeSellPayload(binaryPayload);
+    } catch (e) {
+      this.logger.log("Error decoding payload", e);
+    }
+
     // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
     canSpendAmount(account, fromAmountAtomic, this.logger);
@@ -382,7 +393,7 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId: accountId,
         transaction,
-        binaryPayload,
+        binaryPayload: Buffer.from(binaryPayload),
         signature,
         feeStrategy,
       })
@@ -414,11 +425,7 @@ function canSpendAmount(
   amount: BigNumber,
   logger: Logger
 ): void {
-  if (
-    account.spendableBalance.isGreaterThanOrEqualTo(
-      amount
-    ) === false
-  ) {
+  if (account.spendableBalance.isGreaterThanOrEqualTo(amount) === false) {
     const err = new NotEnoughFunds();
     logger.error(err);
     throw err;
