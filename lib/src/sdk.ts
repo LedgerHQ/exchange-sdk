@@ -26,10 +26,6 @@ import walletApiDecorator, {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 
-// TODO: Remove later?
-var protobuf = require("protobufjs");
-import * as protoJson from "./test.json";
-
 export type SellPayload = {
   deviceTransactionId: object;
   inAddress: string;
@@ -39,12 +35,6 @@ export type SellPayload = {
   outCurrency: string;
   traderEmail: string;
 };
-
-function isHexadecimal(str: string): boolean {
-  return /^[A-F0-9]+$/i.test(str);
-}
-
-// export async function
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -236,33 +226,35 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: payinAddress,
-      amount: fromAmountAtomic,
-      currency: fromCurrency,
-      customFeeConfig,
-      payinExtraId,
-    }).catch(async (error) => {
-      await cancelSwap({
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        swapStep: getSwapStep(error),
-        statusCode: error.name,
-        errorMessage: error.message,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: device?.modelId ?? "",
-        swapType: quoteId ? "fixed" : "float",
-      }).catch(async (error: Error) => {
-        const err = new CancelStepError(error);
-        this.handleError(err);
-        this.logger.error(err);
+    const transaction = await this.walletAPIDecorator
+      .createTransaction({
+        recipient: payinAddress,
+        amount: fromAmountAtomic,
+        currency: fromCurrency,
+        customFeeConfig,
+        payinExtraId,
+      })
+      .catch(async (error) => {
+        await cancelSwap({
+          provider: this.providerId,
+          swapId: swapId ?? "",
+          swapStep: getSwapStep(error),
+          statusCode: error.name,
+          errorMessage: error.message,
+          sourceCurrencyId: fromAccount.currency,
+          targetCurrencyId: toAccount.currency,
+          hardwareWalletType: device?.modelId ?? "",
+          swapType: quoteId ? "fixed" : "float",
+        }).catch(async (error: Error) => {
+          const err = new CancelStepError(error);
+          this.handleError(err);
+          this.logger.error(err);
+          throw error;
+        });
+        this.handleError(error);
+        this.logger.error(error);
         throw error;
       });
-      this.handleError(error);
-      this.logger.error(error);
-      throw error;
-    });
 
     const tx = await this.exchangeModule
       .completeSwap({
@@ -410,7 +402,6 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId: accountId,
         transaction,
-        // TODO: update this package to accept a string and buffer it if needed
         binaryPayload: Buffer.from(binaryPayload),
         signature,
         feeStrategy,
@@ -443,11 +434,7 @@ function canSpendAmount(
   amount: BigNumber,
   logger: Logger
 ): void {
-  if (
-    account.spendableBalance.isGreaterThanOrEqualTo(
-      amount
-    ) === false
-  ) {
+  if (account.spendableBalance.isGreaterThanOrEqualTo(amount) === false) {
     const err = new NotEnoughFunds();
     logger.error(err);
     throw err;
