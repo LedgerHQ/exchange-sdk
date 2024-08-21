@@ -25,6 +25,7 @@ import walletApiDecorator, {
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
+import axios from "axios";
 
 export type GetSwapPayload = typeof retrievePayload;
 /**
@@ -50,6 +51,13 @@ export type SwapInfo = {
  * @param {sellAddress}
  * @param {amount} amount choosen by User, but in lowest atomic unit (ex: Satoshi, Wei)
  */
+
+type BEData = {
+  quoteId: string;
+  inAmount: number;
+  outAmount: number;
+};
+
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
@@ -59,6 +67,7 @@ export type GetSellPayload = (
   amount: BigNumber;
   binaryPayload: string;
   signature: Buffer;
+  beData: BEData;
 }>;
 /**
  * Sell information required to request user's a sell transaction.
@@ -82,6 +91,9 @@ const ExchangeType = {
   SELL: "SELL",
   SWAP: "SWAP",
 } as const;
+
+const buyApiUrl =
+  "https://buy.api.aws.stg.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
 
 /**
  * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
@@ -324,6 +336,7 @@ export class ExchangeSDK {
       getSellPayload,
     } = info;
 
+    this.logger.log("Info", info);
     const { account, currency } = await this.walletAPIDecorator
       .retrieveUserAccount(accountId)
       .catch((error: Error) => {
@@ -349,7 +362,7 @@ export class ExchangeSDK {
 
     // 2 - Ask for payload creation
     this.logger.log("Call getSellDestinationAccount");
-    const { recipientAddress, amount, binaryPayload, signature } =
+    const { recipientAddress, amount, binaryPayload, signature, beData } =
       await getSellPayload(
         deviceTransactionId,
         account.address,
@@ -358,12 +371,7 @@ export class ExchangeSDK {
         throw error;
       });
 
-    // Decode the payload in order to send the values to the back-end
-    try {
-      const decodedPayload = await decodeSellPayload(binaryPayload);
-    } catch (e) {
-      this.logger.log("Error decoding payload", e);
-    }
+    decodePayloadAndPost(binaryPayload, beData, this.providerId);
 
     // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
@@ -449,4 +457,35 @@ function getSwapStep(error: Error): string {
   }
 
   return "UNKNOWN_STEP";
+}
+
+async function decodePayloadAndPost(
+  binaryPayload: string,
+  beData: BEData,
+  providerId: string
+) {
+  try {
+    const { inCurrency, outCurrency, inAddress } =
+      await decodeSellPayload(binaryPayload);
+
+    const payloadForBackend = {
+      quoteId: beData.quoteId,
+      provider: providerId,
+      fromCurrency: inCurrency,
+      toCurrency: outCurrency,
+      address: inAddress,
+      amountFrom: beData.outAmount,
+      amountTo: beData.inAmount,
+
+      // These 3 values are null for now as we do not receive them.
+      country: null,
+      providerFee: null,
+      referralFee: null,
+    };
+
+    // Send the payload to the backend
+    axios.post(buyApiUrl, payloadForBackend);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
 }
