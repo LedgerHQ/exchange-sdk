@@ -92,9 +92,6 @@ const ExchangeType = {
   SWAP: "SWAP",
 } as const;
 
-const buyApiUrl =
-  "https://buy.api.aws.stg.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
-
 /**
  * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
  * Under the hood it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -336,7 +333,6 @@ export class ExchangeSDK {
       getSellPayload,
     } = info;
 
-    this.logger.log("Info", info);
     const { account, currency } = await this.walletAPIDecorator
       .retrieveUserAccount(accountId)
       .catch((error: Error) => {
@@ -371,6 +367,7 @@ export class ExchangeSDK {
         throw error;
       });
 
+    // Decode the payload and post necessary data to the back-end
     decodePayloadAndPost(binaryPayload, beData, this.providerId);
 
     // Check enough fund on the amount being set on the sell payload
@@ -464,6 +461,9 @@ async function decodePayloadAndPost(
   beData: BEData,
   providerId: string
 ) {
+  const buyApiUrl =
+    "https://buy.api.aws.stg.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
+
   try {
     const { inCurrency, outCurrency, inAddress } =
       await decodeSellPayload(binaryPayload);
