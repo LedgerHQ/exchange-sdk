@@ -18,6 +18,7 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
       "SwapCompleteExchangeError",
       "DisconnectedDevice",
       "NotEnoughBalance",
+      "NotEnoughGas",
       "CompleteExchangeError",
       "TransportStatusError",
   ]);
