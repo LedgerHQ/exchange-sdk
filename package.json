@@ -15,9 +15,6 @@
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test"
   },
-  "dependencies": {
-    "@ledgerhq/hw-app-exchange": "0.6.0-nightly.0"
-  },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
     "@types/node": "^12.12.21",
