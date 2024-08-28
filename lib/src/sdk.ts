@@ -462,7 +462,7 @@ async function decodePayloadAndPost(
   providerId: string
 ) {
   const buyApiUrl =
-    "https://buy.api.aws.stg.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
+    "https://buy.api.aws.prd.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
 
   try {
     const { inCurrency, outCurrency, inAddress } =
