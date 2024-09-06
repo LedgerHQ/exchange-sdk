@@ -17,7 +17,13 @@ import {
   CompleteExchangeError,
 } from "./error";
 import { Logger } from "./log";
-import { cancelSwap, confirmSwap, retrievePayload, setBackendUrl } from "./api";
+import {
+  cancelSwap,
+  confirmSwap,
+  retriveSellPayload,
+  retriveSwapPayload,
+  setBackendUrl,
+} from "./api";
 import { handleErrors } from "./handleErrors";
 import walletApiDecorator, {
   type WalletApiDecorator,
@@ -27,7 +33,7 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import axios from "axios";
 
-export type GetSwapPayload = typeof retrievePayload;
+export type GetSwapPayload = typeof retriveSwapPayload;
 /**
  * Swap information required to request user's a swap transaction.
  */
@@ -69,6 +75,7 @@ export type GetSellPayload = (
   signature: Buffer;
   beData: BEData;
 }>;
+
 /**
  * Sell information required to request user's a sell transaction.
  */
@@ -76,11 +83,13 @@ export type SellInfo = {
   quoteId?: string;
   accountId: string;
   amount: BigNumber;
+  toFiat?: string;
   feeStrategy: FeeStrategy;
+  rate?: number;
   customFeeConfig?: {
     [key: string]: BigNumber;
   };
-  getSellPayload: GetSellPayload;
+  getSellPayload?: GetSellPayload;
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
@@ -99,6 +108,7 @@ const ExchangeType = {
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
+  readonly customUrl?: string;
 
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
@@ -126,6 +136,8 @@ export class ExchangeSDK {
     customUrl?: string
   ) {
     this.providerId = providerId;
+    this.customUrl = customUrl;
+
     if (!walletAPI) {
       if (!transport) {
         const transport = new WindowMessageTransport();
@@ -206,7 +218,7 @@ export class ExchangeSDK {
 
     // 2 - Ask for payload creation
     const payloadRequest =
-      getSwapPayload !== undefined ? getSwapPayload : retrievePayload;
+      getSwapPayload !== undefined ? getSwapPayload : retriveSwapPayload;
     const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await payloadRequest({
         provider: this.providerId,
@@ -357,9 +369,14 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
-    this.logger.log("Call getSellDestinationAccount");
-    const { recipientAddress, amount, binaryPayload, signature, beData } =
-      await getSellPayload(
+    let recipientAddress, binaryPayload, signature, beData;
+    let amount = fromAmount;
+
+    // For providers that send us getSellPayload (Coinify)
+    if (getSellPayload !== undefined) {
+      const payloadRequest = getSellPayload;
+
+      const data = await payloadRequest(
         deviceTransactionId,
         account.address,
         initialAtomicAmount
@@ -367,8 +384,41 @@ export class ExchangeSDK {
         throw error;
       });
 
-    // Decode the payload and post necessary data to the back-end
-    decodePayloadAndPost(binaryPayload, beData, this.providerId);
+      recipientAddress = data.recipientAddress;
+      amount = data.amount;
+      binaryPayload = data.binaryPayload;
+      signature = data.signature;
+      beData = data.beData;
+    } else {
+      // For all other providers
+      const payloadRequest = retriveSellPayload;
+
+      const data = await payloadRequest({
+        quoteId: info.quoteId!,
+        provider: this.providerId,
+        fromCurrency: account.currency,
+        toCurrency: info.toFiat!,
+        refundAddress: account.address,
+        amountFrom: fromAmount.toNumber(),
+        amountTo: info.rate! * fromAmount.toNumber(),
+        nonce: deviceTransactionId,
+      }).catch((error: Error) => {
+        throw error;
+      });
+
+      recipientAddress = data.payinAddress;
+      binaryPayload = data.providerSig.payload;
+      signature = Buffer.from(data.providerSig.signature);
+    }
+
+    if (this.providerId === "coinify") {
+      await decodeSellPayloadAndPost(
+        binaryPayload as string,
+        beData as BEData,
+        this.providerId,
+        this.customUrl
+      );
+    }
 
     // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
@@ -456,19 +506,21 @@ function getSwapStep(error: Error): string {
   return "UNKNOWN_STEP";
 }
 
-async function decodePayloadAndPost(
+async function decodeSellPayloadAndPost(
   binaryPayload: string,
   beData: BEData,
-  providerId: string
+  providerId: string,
+  customUrl?: string
 ) {
   const buyApiUrl =
+    customUrl ??
     "https://buy.api.aws.prd.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
 
   try {
     const { inCurrency, outCurrency, inAddress } =
       await decodeSellPayload(binaryPayload);
 
-    const payloadForBackend = {
+    const payload = {
       quoteId: beData.quoteId,
       provider: providerId,
       fromCurrency: inCurrency,
@@ -484,7 +536,7 @@ async function decodePayloadAndPost(
     };
 
     // Send the payload to the backend
-    axios.post(buyApiUrl, payloadForBackend);
+    axios.post(buyApiUrl, payload);
   } catch (e) {
     console.log("Error decoding payload", e);
   }

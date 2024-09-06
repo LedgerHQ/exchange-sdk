@@ -3,6 +3,7 @@ import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
+const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1/sell";
 
 let axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -18,7 +19,23 @@ export function setBackendUrl(url: string) {
   });
 }
 
-export type PayloadRequestData = {
+function setBackendUrlAsSell() {
+  axiosClient = axios.create({
+    baseURL: SELL_BACKEND_URL,
+  });
+}
+
+function setBackendUrlAsSwap() {
+  axiosClient = axios.create({
+    baseURL: SWAP_BACKEND_URL,
+  });
+}
+
+/**
+ * SWAP *
+ **/
+
+export type SwapPayloadRequestData = {
   provider: string;
   deviceTransactionId: string;
   fromAccount: Account;
@@ -28,16 +45,20 @@ export type PayloadRequestData = {
   quoteId?: string;
   toNewTokenId?: string;
 };
-export type PayloadResponse = {
+export type SwapPayloadResponse = {
   binaryPayload: string;
   signature: string;
   payinAddress: string;
   swapId: string;
   payinExtraId?: string;
 };
-export async function retrievePayload(
-  data: PayloadRequestData,
-): Promise<PayloadResponse> {
+
+export async function retriveSwapPayload(
+  data: SwapPayloadRequestData
+): Promise<SwapPayloadResponse> {
+  // Make sure we are using the correct URL for the BE
+  setBackendUrlAsSwap();
+
   const request = {
     provider: data.provider,
     deviceTransactionId: data.deviceTransactionId,
@@ -116,4 +137,62 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
     swapId: response.swapId,
     payinExtraId: response.payinExtraId,
   };
+}
+
+/**
+ * SELL *
+ **/
+
+export interface SellRequestPayload {
+  quoteId: string;
+  provider: string;
+  fromCurrency: string;
+  toCurrency: string;
+  refundAddress: string;
+  amountFrom: number;
+  amountTo: number;
+  nonce: string;
+}
+
+export interface SellResponsePayload {
+  sellId: string;
+  payinAddress: string;
+  createdAt: string;
+  providerFees: number;
+  referralFees: number;
+  payoutNetworkFees: number;
+  providerSig: {
+    payload: string;
+    signature: string;
+  };
+}
+
+const parseSellBackendInfo = (response: SellResponsePayload) => {
+  return {
+    sellId: response.sellId,
+    payinAddress: response.payinAddress,
+    providerSig: {
+      payload: response.providerSig.payload,
+      signature: response.providerSig.signature,
+    },
+  };
+};
+
+export async function retriveSellPayload(data: SellRequestPayload) {
+  // Make sure we are using the correct URL for the BE
+  setBackendUrlAsSell();
+
+  const request = {
+    quoteId: data.quoteId,
+    provider: data.provider,
+    fromCurrency: data.fromCurrency,
+    toCurrency: data.toCurrency,
+    refundAddress: data.refundAddress,
+    amountFrom: data.amountFrom,
+    amountTo: data.amountTo,
+    nonce: data.nonce,
+  };
+  const res = await axiosClient.post("", request);
+
+  return parseSellBackendInfo(res.data);
 }

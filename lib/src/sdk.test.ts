@@ -8,7 +8,7 @@ import {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
-import { retrievePayload, confirmSwap, cancelSwap } from "./api";
+import { retriveSwapPayload, confirmSwap, cancelSwap } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import { CompleteExchangeError, PayinExtraIdError } from "./error";
@@ -67,7 +67,7 @@ const mockedTransport = {
 const walletApiClient = new WalletAPIClient(
   mockedTransport,
   defaultLogger,
-  getCustomModule,
+  getCustomModule
 );
 const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
@@ -84,7 +84,7 @@ beforeEach(() => {
 
 describe("swap", () => {
   beforeAll(() => {
-    (retrievePayload as jest.Mock).mockResolvedValue({
+    (retriveSwapPayload as jest.Mock).mockResolvedValue({
       binaryPayload: "",
       signature: "",
       payinAddress: "",
@@ -190,7 +190,7 @@ describe("swap", () => {
     };
 
     mockCompleteSwap.mockRejectedValueOnce(
-      new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"),
+      new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message")
     );
 
     // WHEN
@@ -230,7 +230,7 @@ describe("sell", () => {
       binaryPayload: Buffer.from(""),
       signature: Buffer.from(""),
     });
-    const swapData = {
+    const sellData = {
       quoteId: "quoteId",
       accountId: "id-1",
       amount: new BigNumber("1.908"),
@@ -239,7 +239,7 @@ describe("sell", () => {
     };
 
     // WHEN
-    const transactionId = await sdk.sell(swapData);
+    const transactionId = await sdk.sell(sellData);
 
     // THEN
     expect(mockStartExchange).toBeCalled();
