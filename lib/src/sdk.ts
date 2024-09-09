@@ -369,47 +369,19 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // 2 - Ask for payload creation
-    let recipientAddress, binaryPayload, signature, beData;
-    let amount = fromAmount;
 
     // For providers that send us getSellPayload (Coinify)
-    if (getSellPayload !== undefined) {
-      const payloadRequest = getSellPayload;
-
-      const data = await payloadRequest(
+    const { recipientAddress, binaryPayload, signature, amount, beData } =
+      await sellPayloadRequest({
+        info,
+        fromAmount,
+        account,
         deviceTransactionId,
-        account.address,
-        initialAtomicAmount
-      ).catch((error: Error) => {
-        throw error;
+        providerId: this.providerId,
+        initialAtomicAmount,
+        handleError: this.handleError,
+        getSellPayload,
       });
-
-      recipientAddress = data.recipientAddress;
-      amount = data.amount;
-      binaryPayload = data.binaryPayload;
-      signature = data.signature;
-      beData = data.beData;
-    } else {
-      // For all other providers
-      const payloadRequest = retriveSellPayload;
-
-      const data = await payloadRequest({
-        quoteId: info.quoteId!,
-        provider: this.providerId,
-        fromCurrency: account.currency,
-        toCurrency: info.toFiat!,
-        refundAddress: account.address,
-        amountFrom: fromAmount.toNumber(),
-        amountTo: info.rate! * fromAmount.toNumber(),
-        nonce: deviceTransactionId,
-      }).catch((error: Error) => {
-        throw error;
-      });
-
-      recipientAddress = data.payinAddress;
-      binaryPayload = data.providerSig.payload;
-      signature = Buffer.from(data.providerSig.signature);
-    }
 
     if (this.providerId === "coinify") {
       await decodeSellPayloadAndPost(
@@ -420,7 +392,6 @@ export class ExchangeSDK {
       );
     }
 
-    // Check enough fund on the amount being set on the sell payload
     const fromAmountAtomic = convertToAtomicUnit(amount, currency);
     canSpendAmount(account, fromAmountAtomic, this.logger);
 
@@ -540,4 +511,79 @@ async function decodeSellPayloadAndPost(
   } catch (e) {
     console.log("Error decoding payload", e);
   }
+}
+
+async function sellPayloadRequest({
+  fromAmount,
+  info,
+  account,
+  deviceTransactionId,
+  initialAtomicAmount,
+  providerId,
+  handleError,
+  getSellPayload,
+}: {
+  fromAmount: BigNumber;
+  info: SellInfo;
+  account: Account;
+  deviceTransactionId: string;
+  initialAtomicAmount: BigNumber;
+  providerId: string;
+  handleError: (error: Error) => void;
+  getSellPayload?: GetSellPayload;
+}) {
+  let recipientAddress, binaryPayload, signature, beData;
+  let amount = fromAmount;
+
+  // For providers that send us getSellPayload (Coinify)
+  if (getSellPayload !== undefined) {
+    const payloadRequest = getSellPayload;
+
+    const data = await payloadRequest(
+      deviceTransactionId,
+      account.address,
+      initialAtomicAmount
+    ).catch((error: Error) => {
+      const err = new PayloadStepError(error);
+      handleError(err);
+
+      throw error;
+    });
+
+    recipientAddress = data.recipientAddress;
+    amount = data.amount;
+    binaryPayload = data.binaryPayload;
+    signature = data.signature;
+    beData = data.beData;
+  } else {
+    // For all other providers
+    const payloadRequest = retriveSellPayload;
+
+    const data = await payloadRequest({
+      quoteId: info.quoteId!,
+      provider: providerId,
+      fromCurrency: account.currency,
+      toCurrency: info.toFiat!,
+      refundAddress: account.address,
+      amountFrom: fromAmount.toNumber(),
+      amountTo: info.rate! * fromAmount.toNumber(),
+      nonce: deviceTransactionId,
+    }).catch((error: Error) => {
+      const err = new PayloadStepError(error);
+      handleError(err);
+      throw error;
+    });
+
+    recipientAddress = data.payinAddress;
+    binaryPayload = data.providerSig.payload;
+    signature = Buffer.from(data.providerSig.signature);
+  }
+
+  return {
+    recipientAddress,
+    binaryPayload,
+    signature,
+    amount,
+    beData,
+  };
 }
