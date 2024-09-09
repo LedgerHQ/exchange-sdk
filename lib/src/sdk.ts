@@ -153,7 +153,6 @@ export class ExchangeSDK {
 
     if (customUrl) {
       // Set API environment
-      this.logger.log("CUSTOM URL:", customUrl);
       setBackendUrl(customUrl);
     }
   }
