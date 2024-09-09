@@ -376,7 +376,6 @@ export class ExchangeSDK {
         providerId: this.providerId,
         initialAtomicAmount,
         handleError: this.handleError,
-        getSellPayload,
       });
 
     if (this.providerId === "coinify") {
@@ -479,7 +478,6 @@ async function sellPayloadRequest({
   initialAtomicAmount,
   providerId,
   handleError,
-  getSellPayload,
 }: {
   info: SellInfo;
   account: Account;
@@ -487,14 +485,13 @@ async function sellPayloadRequest({
   initialAtomicAmount: BigNumber;
   providerId: string;
   handleError: (error: Error) => void;
-  getSellPayload?: GetSellPayload;
 }) {
   let recipientAddress, binaryPayload, signature, beData;
   let amount = info.amount;
 
   // For providers that send us getSellPayload (Coinify)
-  if (getSellPayload !== undefined) {
-    const payloadRequest = getSellPayload;
+  if (info.getSellPayload !== undefined) {
+    const payloadRequest = info.getSellPayload;
 
     const data = await payloadRequest(
       deviceTransactionId,
