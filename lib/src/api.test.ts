@@ -10,9 +10,9 @@ const mockPost = jest.fn();
   };
 });
 
-import { cancelSwap, confirmSwap, retrievePayload } from "./api";
+import { cancelSwap, confirmSwap, retriveSwapPayload } from "./api";
 
-describe("retrievePayload", () => {
+describe("retrieveSwapPayload", () => {
   afterEach(() => {
     mockPost.mockReset();
   });
@@ -32,7 +32,7 @@ describe("retrievePayload", () => {
     mockPost.mockResolvedValueOnce({ data: responseData });
 
     // WHEN
-    const result = await retrievePayload(data);
+    const result = await retriveSwapPayload(data);
 
     // THEN
     const expectedResult = {
@@ -72,7 +72,7 @@ describe("retrievePayload", () => {
     mockPost.mockResolvedValueOnce({ data: responseData });
 
     // WHEN
-    const result = await retrievePayload(data);
+    const result = await retriveSwapPayload(data);
 
     // THEN
     expect(result).not.toBeUndefined();
