@@ -1,6 +1,8 @@
 import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
+import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
+import { BEData } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1/sell";
@@ -195,4 +197,40 @@ export async function retriveSellPayload(data: SellRequestPayload) {
   const res = await axiosClient.post("", request);
 
   return parseSellBackendInfo(res.data);
+}
+
+export async function decodeSellPayloadAndPost(
+  binaryPayload: string,
+  beData: BEData,
+  providerId: string,
+  customUrl?: string
+) {
+  const buyApiUrl =
+    customUrl ??
+    "https://buy.api.aws.prd.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
+
+  try {
+    const { inCurrency, outCurrency, inAddress } =
+      await decodeSellPayload(binaryPayload);
+
+    const payload = {
+      quoteId: beData.quoteId,
+      provider: providerId,
+      fromCurrency: inCurrency,
+      toCurrency: outCurrency,
+      address: inAddress,
+      amountFrom: beData.outAmount,
+      amountTo: beData.inAmount,
+
+      // These 3 values are null for now as we do not receive them.
+      country: null,
+      providerFee: null,
+      referralFee: null,
+    };
+
+    // Send the payload to the backend
+    axios.post(buyApiUrl, payload);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
 }

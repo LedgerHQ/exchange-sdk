@@ -20,6 +20,7 @@ import { Logger } from "./log";
 import {
   cancelSwap,
   confirmSwap,
+  decodeSellPayloadAndPost,
   retriveSellPayload,
   retriveSwapPayload,
   setBackendUrl,
@@ -30,7 +31,7 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
-import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
+
 import axios from "axios";
 
 export type GetSwapPayload = typeof retriveSwapPayload;
@@ -58,7 +59,7 @@ export type SwapInfo = {
  * @param {amount} amount choosen by User, but in lowest atomic unit (ex: Satoshi, Wei)
  */
 
-type BEData = {
+export type BEData = {
   quoteId: string;
   inAmount: number;
   outAmount: number;
@@ -475,42 +476,6 @@ function getSwapStep(error: Error): string {
   }
 
   return "UNKNOWN_STEP";
-}
-
-async function decodeSellPayloadAndPost(
-  binaryPayload: string,
-  beData: BEData,
-  providerId: string,
-  customUrl?: string
-) {
-  const buyApiUrl =
-    customUrl ??
-    "https://buy.api.aws.prd.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
-
-  try {
-    const { inCurrency, outCurrency, inAddress } =
-      await decodeSellPayload(binaryPayload);
-
-    const payload = {
-      quoteId: beData.quoteId,
-      provider: providerId,
-      fromCurrency: inCurrency,
-      toCurrency: outCurrency,
-      address: inAddress,
-      amountFrom: beData.outAmount,
-      amountTo: beData.inAmount,
-
-      // These 3 values are null for now as we do not receive them.
-      country: null,
-      providerFee: null,
-      referralFee: null,
-    };
-
-    // Send the payload to the backend
-    axios.post(buyApiUrl, payload);
-  } catch (e) {
-    console.log("Error decoding payload", e);
-  }
 }
 
 async function sellPayloadRequest({
