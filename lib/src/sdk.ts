@@ -339,6 +339,9 @@ export class ExchangeSDK {
       amount: fromAmount,
       feeStrategy,
       customFeeConfig = {},
+      quoteId,
+      rate,
+      toFiat,
       getSellPayload,
     } = info;
 
@@ -370,7 +373,11 @@ export class ExchangeSDK {
     // For providers that send us getSellPayload (Coinify)
     const { recipientAddress, binaryPayload, signature, amount, beData } =
       await sellPayloadRequest({
-        info,
+        quoteId,
+        rate,
+        toFiat,
+        amount: fromAmount,
+        getSellPayload,
         account,
         deviceTransactionId,
         providerId: this.providerId,
@@ -472,26 +479,33 @@ function getSwapStep(error: Error): string {
 }
 
 async function sellPayloadRequest({
-  info,
   account,
+  getSellPayload,
+  quoteId,
+  toFiat,
+  rate,
+  amount,
   deviceTransactionId,
   initialAtomicAmount,
   providerId,
   handleError,
 }: {
-  info: SellInfo;
+  amount: BigNumber;
+  getSellPayload: GetSellPayload | undefined;
   account: Account;
   deviceTransactionId: string;
   initialAtomicAmount: BigNumber;
   providerId: string;
   handleError: (error: Error) => void;
+  quoteId: string | undefined;
+  rate: number | undefined;
+  toFiat: string | undefined;
 }) {
   let recipientAddress, binaryPayload, signature, beData;
-  let amount = info.amount;
 
   // For providers that send us getSellPayload (Coinify)
-  if (info.getSellPayload !== undefined) {
-    const payloadRequest = info.getSellPayload;
+  if (getSellPayload !== undefined) {
+    const payloadRequest = getSellPayload;
 
     const data = await payloadRequest(
       deviceTransactionId,
@@ -514,13 +528,13 @@ async function sellPayloadRequest({
     const payloadRequest = retriveSellPayload;
 
     const data = await payloadRequest({
-      quoteId: info.quoteId!,
+      quoteId: quoteId!,
       provider: providerId,
       fromCurrency: account.currency,
-      toCurrency: info.toFiat!,
+      toCurrency: toFiat!,
       refundAddress: account.address,
       amountFrom: amount.toNumber(),
-      amountTo: info.rate! * amount.toNumber(),
+      amountTo: rate! * amount.toNumber(),
       nonce: deviceTransactionId,
     }).catch((error: Error) => {
       const err = new PayloadStepError(error);
