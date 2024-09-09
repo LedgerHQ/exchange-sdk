@@ -371,7 +371,6 @@ export class ExchangeSDK {
     const { recipientAddress, binaryPayload, signature, amount, beData } =
       await sellPayloadRequest({
         info,
-        fromAmount,
         account,
         deviceTransactionId,
         providerId: this.providerId,
@@ -474,7 +473,6 @@ function getSwapStep(error: Error): string {
 }
 
 async function sellPayloadRequest({
-  fromAmount,
   info,
   account,
   deviceTransactionId,
@@ -483,7 +481,6 @@ async function sellPayloadRequest({
   handleError,
   getSellPayload,
 }: {
-  fromAmount: BigNumber;
   info: SellInfo;
   account: Account;
   deviceTransactionId: string;
@@ -493,7 +490,7 @@ async function sellPayloadRequest({
   getSellPayload?: GetSellPayload;
 }) {
   let recipientAddress, binaryPayload, signature, beData;
-  let amount = fromAmount;
+  let amount = info.amount;
 
   // For providers that send us getSellPayload (Coinify)
   if (getSellPayload !== undefined) {
@@ -525,8 +522,8 @@ async function sellPayloadRequest({
       fromCurrency: account.currency,
       toCurrency: info.toFiat!,
       refundAddress: account.address,
-      amountFrom: fromAmount.toNumber(),
-      amountTo: info.rate! * fromAmount.toNumber(),
+      amountFrom: amount.toNumber(),
+      amountTo: info.rate! * amount.toNumber(),
       nonce: deviceTransactionId,
     }).catch((error: Error) => {
       const err = new PayloadStepError(error);
