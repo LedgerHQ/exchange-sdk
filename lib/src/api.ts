@@ -21,18 +21,6 @@ export function setBackendUrl(url: string) {
   });
 }
 
-function setBackendUrlAsSell() {
-  axiosClient = axios.create({
-    baseURL: SELL_BACKEND_URL,
-  });
-}
-
-function setBackendUrlAsSwap() {
-  axiosClient = axios.create({
-    baseURL: SWAP_BACKEND_URL,
-  });
-}
-
 /**
  * SWAP *
  **/
@@ -178,9 +166,6 @@ const parseSellBackendInfo = (response: SellResponsePayload) => {
 };
 
 export async function retriveSellPayload(data: SellRequestPayload) {
-  // Make sure we are using the correct URL for the BE
-  setBackendUrlAsSell();
-
   const request = {
     quoteId: data.quoteId,
     provider: data.provider,
