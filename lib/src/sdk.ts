@@ -32,8 +32,6 @@ import walletApiDecorator, {
 } from "./wallet-api";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
-import axios from "axios";
-
 export type GetSwapPayload = typeof retriveSwapPayload;
 /**
  * Swap information required to request user's a swap transaction.
