@@ -107,7 +107,6 @@ const ExchangeType = {
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
-  readonly customUrl?: string;
 
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
@@ -135,7 +134,6 @@ export class ExchangeSDK {
     customUrl?: string
   ) {
     this.providerId = providerId;
-    this.customUrl = customUrl;
 
     if (!walletAPI) {
       if (!transport) {
@@ -155,6 +153,7 @@ export class ExchangeSDK {
 
     if (customUrl) {
       // Set API environment
+      this.logger.log("CUSTOM URL:", customUrl);
       setBackendUrl(customUrl);
     }
   }
@@ -386,8 +385,7 @@ export class ExchangeSDK {
       await decodeSellPayloadAndPost(
         binaryPayload as string,
         beData as BEData,
-        this.providerId,
-        this.customUrl
+        this.providerId
       );
     }
 

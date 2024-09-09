@@ -5,7 +5,7 @@ import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import { BEData } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1/sell";
+const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1";
 
 let axiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -58,9 +58,6 @@ export type SwapPayloadResponse = {
 export async function retriveSwapPayload(
   data: SwapPayloadRequestData
 ): Promise<SwapPayloadResponse> {
-  // Make sure we are using the correct URL for the BE
-  setBackendUrlAsSwap();
-
   const request = {
     provider: data.provider,
     deviceTransactionId: data.deviceTransactionId,
@@ -194,7 +191,7 @@ export async function retriveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const res = await axiosClient.post("", request);
+  const res = await axiosClient.post("/sell", request);
 
   return parseSellBackendInfo(res.data);
 }
@@ -202,13 +199,8 @@ export async function retriveSellPayload(data: SellRequestPayload) {
 export async function decodeSellPayloadAndPost(
   binaryPayload: string,
   beData: BEData,
-  providerId: string,
-  customUrl?: string
+  providerId: string
 ) {
-  const buyApiUrl =
-    customUrl ??
-    "https://buy.api.aws.prd.ldg-tech.com/sell/v1/forgeTransaction/offRamp";
-
   try {
     const { inCurrency, outCurrency, inAddress } =
       await decodeSellPayload(binaryPayload);
@@ -228,8 +220,7 @@ export async function decodeSellPayloadAndPost(
       referralFee: null,
     };
 
-    // Send the payload to the backend
-    axios.post(buyApiUrl, payload);
+    axiosClient.post("/forgeTransaction/offRamp", payload);
   } catch (e) {
     console.log("Error decoding payload", e);
   }
