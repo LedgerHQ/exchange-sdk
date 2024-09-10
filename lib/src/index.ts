@@ -1,15 +1,13 @@
-export { QueryParams } from "./liveapp";
-export type { FeeStrategy } from "./sdk";
-export { ExchangeSDK } from "./sdk";
 export {
   ExchangeError,
-  NonceStepError,
-  PayloadStepError,
-  CancelStepError,
-  ConfirmStepError,
-  SignatureStepError,
-  NotEnoughFunds,
   ListAccountError,
   ListCurrencyError,
+  NonceStepError,
+  NotEnoughFunds,
+  PayloadStepError,
+  SignatureStepError,
   UnknownAccountError,
 } from "./error";
+export { QueryParams } from "./liveapp";
+export { ExchangeSDK } from "./sdk";
+export type { FeeStrategy } from "./sdk";

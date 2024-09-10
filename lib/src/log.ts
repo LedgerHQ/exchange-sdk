@@ -16,14 +16,14 @@ export class Logger {
     }
   }
 
-  error(error: ExchangeError) {
+  error(error: ExchangeError | Error) {
     if (this.isActive) {
       const errorParams = [
         `%c${prefix} ERROR`,
         style,
         "%O",
         error,
-        error.cause,
+        "cause" in error ? error.cause : undefined,
       ].filter((x) => x !== undefined);
       console.error(...errorParams);
     }

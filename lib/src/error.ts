@@ -15,9 +15,6 @@ export class ExchangeError extends Error {
         ? { message: `${nestedError}` }
         : {}),
       ...nestedError,
-      ...((nestedError as any)?.response && {
-        statusCode: (nestedError as any).response.status,
-      }),
     };
     this.message = nestedError?.message
       ? nestedError.message
@@ -71,20 +68,6 @@ export class UnknownAccountError extends ExchangeError {
   constructor(nestedError?: Error) {
     super("swap007", nestedError);
     this.name = "UnknownAccountError";
-  }
-}
-
-export class CancelStepError extends ExchangeError {
-  constructor(nestedError?: Error) {
-    super("swap008", nestedError);
-    this.name = "CancelStepError";
-  }
-}
-
-export class ConfirmStepError extends ExchangeError {
-  constructor(nestedError?: Error) {
-    super("swap009", nestedError);
-    this.name = "ConfirmStepError";
   }
 }
 
