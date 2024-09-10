@@ -15,6 +15,9 @@ export class ExchangeError extends Error {
         ? { message: `${nestedError}` }
         : {}),
       ...nestedError,
+      ...((nestedError as any)?.response && {
+        statusCode: (nestedError as any).response.status,
+      }),
     };
     this.message = nestedError?.message
       ? nestedError.message

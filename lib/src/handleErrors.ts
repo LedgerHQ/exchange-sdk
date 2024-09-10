@@ -3,37 +3,36 @@ import { ExchangeError } from "./error";
 
 /**
  * Display error on LL if LL did not do it. Then throw error back to the live app in case they need to react to it
- * @param walletAPI 
- * @param error 
+ * @param walletAPI
+ * @param error
  */
 export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
-  const { message, cause } = error as { message: string; cause: { name: string; message: string; } };
+  const { message, cause } = error as {
+    message: string;
+    cause: { name: string; message: string };
+  };
 
   const ignoredErrorNames = new Set([
-      "WrongDeviceForAccount",
-      "WrongDeviceForAccountPayout",
-      "WrongDeviceForAccountRefund",
-      "CancelStepError",
-      "ConfirmStepError",
-      "SwapCompleteExchangeError",
-      "DisconnectedDevice",
-      "NotEnoughBalance",
-      "NotEnoughGas",
-      "CompleteExchangeError",
-      "TransportStatusError",
+    "WrongDeviceForAccount",
+    "WrongDeviceForAccountPayout",
+    "WrongDeviceForAccountRefund",
+    "SwapCompleteExchangeError",
+    "DisconnectedDevice",
+    "NotEnoughBalance",
+    "NotEnoughGas",
+    "CompleteExchangeError",
+    "TransportStatusError",
   ]);
 
-  const ignoredMessages = new Set([
-      "User refused"
-  ]);
+  const ignoredMessages = new Set(["User refused"]);
 
   if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name)) {
-      throw error;
+    throw error;
   }
 
   // Log and throw to Ledger Live if not ignored
   if (error instanceof ExchangeError && cause) {
-      walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({error});
+    walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }
 
   throw error;

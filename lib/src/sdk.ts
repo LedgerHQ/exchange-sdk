@@ -6,17 +6,8 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import BigNumber from "bignumber.js";
-import {
-  NonceStepError,
-  NotEnoughFunds,
-  PayloadStepError,
-  CancelStepError,
-  ConfirmStepError,
-  SignatureStepError,
-  CompleteExchangeError,
-} from "./error";
-import { Logger } from "./log";
 import {
   cancelSwap,
   confirmSwap,
@@ -25,12 +16,21 @@ import {
   retriveSwapPayload,
   setBackendUrl,
 } from "./api";
+import {
+  CancelStepError,
+  CompleteExchangeError,
+  ConfirmStepError,
+  NonceStepError,
+  NotEnoughFunds,
+  PayloadStepError,
+  SignatureStepError,
+} from "./error";
 import { handleErrors } from "./handleErrors";
+import { Logger } from "./log";
 import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type GetSwapPayload = typeof retriveSwapPayload;
 /**
@@ -255,7 +255,6 @@ export class ExchangeSDK {
           swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
           const err = new CancelStepError(error);
-          this.handleError(err);
           this.logger.error(err);
           throw error;
         });
@@ -290,7 +289,6 @@ export class ExchangeSDK {
           swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
           const err = new CancelStepError(error);
-          this.handleError(err);
           this.logger.error(err);
           throw error; //throw orignal error for dev
         });
@@ -318,7 +316,6 @@ export class ExchangeSDK {
       hardwareWalletType: device?.modelId ?? "",
     }).catch(async (error: Error) => {
       const err = new ConfirmStepError(error);
-      this.handleError(err);
       this.logger.error(err);
       // do not throw error, let the integrating app everything is OK for the swap
     });
