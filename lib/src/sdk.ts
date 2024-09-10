@@ -1,7 +1,6 @@
 import {
   Account,
   Currency,
-  Transaction,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
@@ -232,7 +231,7 @@ export class ExchangeSDK {
       });
 
     // 3 - Send payload
-    const transaction: Transaction = await this.walletAPIDecorator
+    const transaction = await this.walletAPIDecorator
       .createTransaction({
         recipient: payinAddress,
         amount: fromAmountAtomic,
