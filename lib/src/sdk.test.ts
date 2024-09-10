@@ -241,8 +241,6 @@ describe("sell", () => {
       amount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
       getSellPayload: mockSellPayload,
-      toFiat: "USD",
-      rate: 1.2,
     };
 
     // WHEN
