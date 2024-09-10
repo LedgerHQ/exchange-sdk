@@ -8,7 +8,12 @@ import {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
-import { retriveSwapPayload, confirmSwap, cancelSwap } from "./api";
+import {
+  retriveSwapPayload,
+  confirmSwap,
+  cancelSwap,
+  retriveSellPayload,
+} from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import { CompleteExchangeError, PayinExtraIdError } from "./error";
@@ -236,6 +241,8 @@ describe("sell", () => {
       amount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
       getSellPayload: mockSellPayload,
+      toFiat: "USD",
+      rate: 1.2,
     };
 
     // WHEN
@@ -245,6 +252,45 @@ describe("sell", () => {
     expect(mockStartExchange).toBeCalled();
     expect(mockAccountList).toBeCalled();
     expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteSell).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
+  });
+
+  it("handles the scenario when no getSellPayload is provided", async () => {
+    // GIVEN
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "currency-id-1",
+        decimals: 4,
+        family: "ethereum",
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    // Mock `retriveSellPayload` since `getSellPayload` is not provided
+    (retriveSellPayload as jest.Mock).mockResolvedValue({
+      payinAddress: "0xfff",
+      providerSig: {
+        payload: Buffer.from(""),
+        signature: Buffer.from(""),
+      },
+    });
+
+    const sellData = {
+      quoteId: "quoteId",
+      accountId: "id-1",
+      amount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+      toFiat: "EUR",
+      rate: 1000,
+    };
+
+    // WHEN
+    const transactionId = await sdk.sell(sellData);
+
+    // THEN
+    expect(mockStartExchange).toBeCalled();
+    expect(mockAccountList).toBeCalled();
     expect(mockCompleteSell).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
