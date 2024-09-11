@@ -237,8 +237,8 @@ describe("sell", () => {
     });
     const sellData = {
       quoteId: "quoteId",
-      accountId: "id-1",
-      amount: new BigNumber("1.908"),
+      fromAccountId: "id-1",
+      fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
       getSellPayload: mockSellPayload,
     };
@@ -276,8 +276,8 @@ describe("sell", () => {
 
     const sellData = {
       quoteId: "quoteId",
-      accountId: "id-1",
-      amount: new BigNumber("1.908"),
+      fromAccountId: "id-1",
+      fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
       toFiat: "EUR",
       rate: 1000,

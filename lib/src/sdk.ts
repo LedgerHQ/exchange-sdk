@@ -80,10 +80,10 @@ export type GetSellPayload = (
  */
 export type SellInfo = {
   quoteId?: string;
-  accountId: string;
-  amount: BigNumber;
+  fromAccountId: string;
+  fromAmount: BigNumber;
   toFiat?: string;
-  feeStrategy: FeeStrategy;
+  feeStrategy?: FeeStrategy;
   rate?: number;
   customFeeConfig?: {
     [key: string]: BigNumber;
@@ -92,6 +92,13 @@ export type SellInfo = {
 };
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
+
+enum FeeStrategyEnum {
+  SLOW = "SLOW",
+  MEDIUM = "MEDIUM",
+  FAST = "FAST",
+  CUSTOM = "CUSTOM",
+}
 
 // Should be available from the WalletAPI (zod :( )
 const ExchangeType = {
@@ -335,9 +342,9 @@ export class ExchangeSDK {
     this.logger.log("*** Start Sell ***");
 
     const {
-      accountId,
-      amount: fromAmount,
-      feeStrategy,
+      fromAccountId,
+      fromAmount,
+      feeStrategy = FeeStrategyEnum.MEDIUM,
       customFeeConfig = {},
       quoteId,
       rate,
@@ -346,7 +353,7 @@ export class ExchangeSDK {
     } = info;
 
     const { account, currency } = await this.walletAPIDecorator
-      .retrieveUserAccount(accountId)
+      .retrieveUserAccount(fromAccountId)
       .catch((error: Error) => {
         this.handleError(error);
         throw error;
@@ -418,7 +425,7 @@ export class ExchangeSDK {
     const tx = await this.exchangeModule
       .completeSell({
         provider: this.providerId,
-        fromAccountId: accountId,
+        fromAccountId,
         transaction,
         binaryPayload: Buffer.from(binaryPayload),
         signature,
