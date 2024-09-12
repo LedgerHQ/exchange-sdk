@@ -129,8 +129,8 @@ const IndexPage = () => {
     exchangeSDK.current
       ?.sell({
         quoteId,
-        accountId: fromAccount,
-        amount: new BigNumber(amount),
+        fromAccountId: fromAccount,
+        fromAmount: new BigNumber(amount),
         feeStrategy: feeSelected as FeeStrategy,
         customFeeConfig,
         getSellPayload: async (nonce, address, amount) => {
