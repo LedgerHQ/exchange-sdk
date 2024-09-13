@@ -71,20 +71,6 @@ export class UnknownAccountError extends ExchangeError {
   }
 }
 
-export class CancelStepError extends ExchangeError {
-  constructor(nestedError?: Error) {
-    super("swap008", nestedError);
-    this.name = "CancelStepError";
-  }
-}
-
-export class ConfirmStepError extends ExchangeError {
-  constructor(nestedError?: Error) {
-    super("swap009", nestedError);
-    this.name = "ConfirmStepError";
-  }
-}
-
 export class PayinExtraIdError extends ExchangeError {
   constructor(nestedError?: Error) {
     super("swap010", nestedError);

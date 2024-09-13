@@ -6,17 +6,8 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import BigNumber from "bignumber.js";
-import {
-  NonceStepError,
-  NotEnoughFunds,
-  PayloadStepError,
-  CancelStepError,
-  ConfirmStepError,
-  SignatureStepError,
-  CompleteExchangeError,
-} from "./error";
-import { Logger } from "./log";
 import {
   cancelSwap,
   confirmSwap,
@@ -25,12 +16,19 @@ import {
   retriveSwapPayload,
   setBackendUrl,
 } from "./api";
+import {
+  CompleteExchangeError,
+  NonceStepError,
+  NotEnoughFunds,
+  PayloadStepError,
+  SignatureStepError,
+} from "./error";
 import { handleErrors } from "./handleErrors";
+import { Logger } from "./log";
 import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type GetSwapPayload = typeof retriveSwapPayload;
 /**
@@ -236,7 +234,6 @@ export class ExchangeSDK {
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
         this.handleError(err);
-        this.logger.error(err);
         throw err;
       });
 
@@ -261,15 +258,11 @@ export class ExchangeSDK {
           hardwareWalletType: device?.modelId ?? "",
           swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
-          const err = new CancelStepError(error);
-          this.handleError(err);
-          this.logger.error(err);
-          throw error;
+          this.logger.error(error);
         });
 
         this.handleError(error);
-        this.logger.error(error);
-        throw error;
+        throw error; // Required for typescript Error
       });
 
     const tx = await this.exchangeModule
@@ -296,10 +289,7 @@ export class ExchangeSDK {
           hardwareWalletType: device?.modelId ?? "",
           swapType: quoteId ? "fixed" : "float",
         }).catch(async (error: Error) => {
-          const err = new CancelStepError(error);
-          this.handleError(err);
-          this.logger.error(err);
-          throw error; //throw orignal error for dev
+          this.logger.error(error);
         });
 
         // defined in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
@@ -310,8 +300,7 @@ export class ExchangeSDK {
 
         const err = new SignatureStepError(error);
         this.handleError(err);
-        this.logger.error(err);
-        throw err;
+        throw err; // Required for typescript Error
       });
 
     this.logger.log("Transaction sent:", tx);
@@ -324,9 +313,7 @@ export class ExchangeSDK {
       targetCurrencyId: toAccount.currency,
       hardwareWalletType: device?.modelId ?? "",
     }).catch(async (error: Error) => {
-      const err = new ConfirmStepError(error);
-      this.handleError(err);
-      this.logger.error(err);
+      this.logger.error(error);
       // do not throw error, let the integrating app everything is OK for the swap
     });
     return tx;
@@ -521,7 +508,6 @@ async function sellPayloadRequest({
     ).catch((error: Error) => {
       const err = new PayloadStepError(error);
       handleError(err);
-
       throw error;
     });
 
