@@ -1,4 +1,5 @@
 import { ExchangeType } from "@ledgerhq/wallet-api-client";
+import { ErrorOrigin } from "./sdk";
 
 export class ExchangeError extends Error {
   cause: {
@@ -39,7 +40,7 @@ export class PayloadStepError extends ExchangeError {
 }
 
 export class SignatureStepError extends ExchangeError {
-  constructor(origin: "SELL" | "SWAP" | "FUND", nestedError?: Error) {
+  constructor(origin: ErrorOrigin, nestedError?: Error) {
     super(`${origin}003`, nestedError);
     this.name = "SignatureStepError";
   }

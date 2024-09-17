@@ -95,6 +95,12 @@ export const ExchangeType = {
   SWAP: "SWAP",
 } as const;
 
+export enum ErrorOrigin {
+  "sell",
+  "swap",
+  "fund",
+}
+
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on the WalletAPI.
@@ -270,7 +276,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new SignatureStepError(ExchangeType.SWAP, error);
+        const err = new SignatureStepError(ErrorOrigin.swap, error);
         this.handleError(err);
         throw err;
       });
@@ -379,7 +385,7 @@ export class ExchangeSDK {
         feeStrategy,
       })
       .catch((error: Error) => {
-        const err = new SignatureStepError(ExchangeType.SELL, error);
+        const err = new SignatureStepError(ErrorOrigin.sell, error);
         this.logger.error(err);
         throw err;
       });
