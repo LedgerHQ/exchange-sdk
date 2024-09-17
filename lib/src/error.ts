@@ -1,3 +1,5 @@
+import { ExchangeType } from "@ledgerhq/wallet-api-client";
+
 export class ExchangeError extends Error {
   cause: {
     swapCode: string;
@@ -37,7 +39,7 @@ export class PayloadStepError extends ExchangeError {
 }
 
 export class SignatureStepError extends ExchangeError {
-  constructor(nestedError?: Error) {
+  constructor(nestedError?: Error, origin: "SELL" | "SWAP" | "FUND") {
     super("swap003", nestedError);
     this.name = "SignatureStepError";
   }

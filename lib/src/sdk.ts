@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
@@ -7,7 +8,7 @@ import {
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
-import BigNumber from "bignumber.js";
+
 import {
   cancelSwap,
   confirmSwap,
@@ -31,8 +32,9 @@ import walletApiDecorator, {
 } from "./wallet-api";
 
 export type GetSwapPayload = typeof retriveSwapPayload;
+
 /**
- * Swap information required to request user's a swap transaction.
+ * Swap information required to request a user's swap transaction.
  */
 export type SwapInfo = {
   quoteId?: string;
@@ -40,20 +42,11 @@ export type SwapInfo = {
   toAccountId: string;
   fromAmount: BigNumber;
   feeStrategy: FeeStrategy;
-  customFeeConfig?: {
-    [key: string]: BigNumber;
-  };
+  customFeeConfig?: { [key: string]: BigNumber };
   rate: number;
   toNewTokenId?: string;
   getSwapPayload?: GetSwapPayload;
 };
-
-/**
- * Sell lambda call during sell process.
- * @param {nonce}
- * @param {sellAddress}
- * @param {amount} amount choosen by User, but in lowest atomic unit (ex: Satoshi, Wei)
- */
 
 export type BEData = {
   quoteId: string;
@@ -74,7 +67,7 @@ export type GetSellPayload = (
 }>;
 
 /**
- * Sell information required to request user's a sell transaction.
+ * Sell information required to request a user's sell transaction.
  */
 export type SellInfo = {
   quoteId?: string;
@@ -83,9 +76,7 @@ export type SellInfo = {
   toFiat?: string;
   feeStrategy?: FeeStrategy;
   rate?: number;
-  customFeeConfig?: {
-    [key: string]: BigNumber;
-  };
+  customFeeConfig?: { [key: string]: BigNumber };
   getSellPayload?: GetSellPayload;
 };
 
@@ -98,18 +89,16 @@ enum FeeStrategyEnum {
   CUSTOM = "CUSTOM",
 }
 
-// Should be available from the WalletAPI (zod :( )
-const ExchangeType = {
+export const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
   SWAP: "SWAP",
 } as const;
 
 /**
- * ExchangeSDK allows you to send a swap request to Ledger Device, through a Ledger Live request.
- * Under the hood it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
+ * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
+ * Under the hood, it relies on the WalletAPI.
  */
-// Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
 export class ExchangeSDK {
   readonly providerId: string;
 
@@ -126,11 +115,10 @@ export class ExchangeSDK {
   }
 
   /**
-   *
-   * @param {string} providerId - Your providerId that Ledger has assign you.
-   * @param {WindowMessageTransport} transport
-   * @param {WalletAPIClient} walletAPI
-   * @param {string} customUrl - Backend url environment
+   * @param {string} providerId - Your providerId that Ledger has assigned to you.
+   * @param {WindowMessageTransport} [transport]
+   * @param {WalletAPIClient} [walletAPI]
+   * @param {string} [customUrl] - Backend URL environment
    */
   constructor(
     providerId: string,
@@ -142,9 +130,9 @@ export class ExchangeSDK {
 
     if (!walletAPI) {
       if (!transport) {
-        const transport = new WindowMessageTransport();
-        transport.connect();
-        this.transport = transport;
+        const transportInstance = new WindowMessageTransport();
+        transportInstance.connect();
+        this.transport = transportInstance;
       } else {
         this.transport = transport;
       }
@@ -162,14 +150,14 @@ export class ExchangeSDK {
     }
   }
 
-  private handleError = (error: any) => {
+  private handleError(error: any) {
     handleErrors(this.walletAPI, error);
-  };
+  }
 
   /**
    * Ask user to validate a swap transaction.
-   * @param {SwapInfo} info - Information necessary to create a swap transaction {@see SwapInfo}.
-   * @return {Promise} Promise of hash of send transaction.
+   * @param {SwapInfo} info - Information necessary to create a swap transaction.
+   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
    * @throws {ExchangeError}
    */
   async swap(info: SwapInfo): Promise<string | void> {
@@ -185,23 +173,18 @@ export class ExchangeSDK {
       toNewTokenId,
       getSwapPayload,
     } = info;
+
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator
-        .retrieveUserAccount(fromAccountId)
-        .catch((error: Error) => {
-          throw error;
-        });
-    const { account: toAccount } = await this.walletAPIDecorator
-      .retrieveUserAccount(toAccountId)
-      .catch((error: Error) => {
-        throw error;
-      });
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
-    // Check enough fund
-    const fromAmountAtomic = convertToAtomicUnit(fromAmount, fromCurrency);
-    canSpendAmount(fromAccount, fromAmountAtomic, this.logger);
+    const { account: toAccount } =
+      await this.walletAPIDecorator.retrieveUserAccount(toAccountId);
 
-    // 1 - Ask for deviceTransactionId
+    // Check enough funds
+    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
+    this.canSpendAmount(fromAccount, fromAmountAtomic);
+
+    // Step 1: Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
       await this.exchangeModule
         .startSwap({
@@ -218,15 +201,14 @@ export class ExchangeSDK {
         });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
-    // 2 - Ask for payload creation
-    const payloadRequest =
-      getSwapPayload !== undefined ? getSwapPayload : retriveSwapPayload;
+    // Step 2: Ask for payload creation
+    const payloadRequest = getSwapPayload ?? retriveSwapPayload;
     const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await payloadRequest({
         provider: this.providerId,
         deviceTransactionId,
-        fromAccount: fromAccount,
-        toAccount: toAccount,
+        fromAccount,
+        toAccount,
         toNewTokenId,
         amount: fromAmount,
         amountInAtomicUnit: fromAmountAtomic,
@@ -237,7 +219,7 @@ export class ExchangeSDK {
         throw err;
       });
 
-    // 3 - Send payload
+    // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
       .createTransaction({
         recipient: payinAddress,
@@ -247,60 +229,50 @@ export class ExchangeSDK {
         payinExtraId,
       })
       .catch(async (error) => {
-        await cancelSwap({
-          provider: this.providerId,
-          swapId: swapId ?? "",
-          swapStep: getSwapStep(error),
-          statusCode: error.name,
-          errorMessage: error.message,
-          sourceCurrencyId: fromAccount.currency,
-          targetCurrencyId: toAccount.currency,
-          hardwareWalletType: device?.modelId ?? "",
-          swapType: quoteId ? "fixed" : "float",
-        }).catch(async (error: Error) => {
-          this.logger.error(error);
-        });
+        await this.cancelSwapOnError(
+          error,
+          swapId,
+          this.getSwapStep(error),
+          fromAccount,
+          toAccount,
+          device?.modelId,
+          quoteId ? "fixed" : "float"
+        );
 
         this.handleError(error);
-        throw error; // Required for typescript Error
+        throw error;
       });
 
     const tx = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
-        toAccountId, // this attribute will point the parent account when the token is new.
+        toAccountId, // This attribute will point to the parent account when the token is new.
         swapId,
         transaction,
-        binaryPayload: binaryPayload as any, // TODO fix later when customAPI types are fixed
-        signature: signature as any, // TODO fix later when customAPI types are fixed
+        binaryPayload: binaryPayload as any, // TODO: Fix when customAPI types are fixed
+        signature: signature as any, // TODO: Fix when customAPI types are fixed
         feeStrategy,
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        await cancelSwap({
-          provider: this.providerId,
-          swapId: swapId ?? "",
-          swapStep: getSwapStep(error),
-          statusCode: error.name,
-          errorMessage: error.message,
-          sourceCurrencyId: fromAccount.currency,
-          targetCurrencyId: toAccount.currency,
-          hardwareWalletType: device?.modelId ?? "",
-          swapType: quoteId ? "fixed" : "float",
-        }).catch(async (error: Error) => {
-          this.logger.error(error);
-        });
+        await this.cancelSwapOnError(
+          error,
+          swapId,
+          this.getSwapStep(error),
+          fromAccount,
+          toAccount,
+          device?.modelId,
+          quoteId ? "fixed" : "float"
+        );
 
-        // defined in https://github.com/LedgerHQ/ledger-live/blob/develop/libs/ledgerjs/packages/errors/src/index.ts
-        // used for development
         if (error.name === "DisabledTransactionBroadcastError") {
           throw error;
         }
 
-        const err = new SignatureStepError(error);
+        const err = new SignatureStepError(error, ExchangeType.SWAP);
         this.handleError(err);
-        throw err; // Required for typescript Error
+        throw err;
       });
 
     this.logger.log("Transaction sent:", tx);
@@ -312,17 +284,17 @@ export class ExchangeSDK {
       sourceCurrencyId: fromAccount.currency,
       targetCurrencyId: toAccount.currency,
       hardwareWalletType: device?.modelId ?? "",
-    }).catch(async (error: Error) => {
+    }).catch((error: Error) => {
       this.logger.error(error);
-      // do not throw error, let the integrating app everything is OK for the swap
+      // Do not throw error; let the integrating app know that everything is OK for the swap
     });
     return tx;
   }
 
   /**
    * Ask user to validate a sell transaction.
-   * @param {SellInfo} info - Information necessary to create a sell transaction {@see SellInfo}.
-   * @return {Promise} Promise of hash of send transaction.
+   * @param {SellInfo} info - Information necessary to create a sell transaction.
+   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
    * @throws {ExchangeError}
    */
   async sell(info: SellInfo): Promise<string | void> {
@@ -339,18 +311,14 @@ export class ExchangeSDK {
       getSellPayload,
     } = info;
 
-    const { account, currency } = await this.walletAPIDecorator
-      .retrieveUserAccount(fromAccountId)
-      .catch((error: Error) => {
-        this.handleError(error);
-        throw error;
-      });
+    const { account, currency } =
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
-    // Check enough fund on the amount set when the sell sdk is called
-    const initialAtomicAmount = convertToAtomicUnit(fromAmount, currency);
-    canSpendAmount(account, initialAtomicAmount, this.logger);
+    // Check enough funds
+    const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
+    this.canSpendAmount(account, initialAtomicAmount);
 
-    // 1 - Ask for deviceTransactionId
+    // Step 1: Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
       .startSell({
         provider: this.providerId,
@@ -362,11 +330,9 @@ export class ExchangeSDK {
       });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
-    // 2 - Ask for payload creation
-
-    // For providers that send us getSellPayload (Coinify)
+    // Step 2: Ask for payload creation
     const { recipientAddress, binaryPayload, signature, amount, beData } =
-      await sellPayloadRequest({
+      await this.sellPayloadRequest({
         quoteId,
         rate,
         toFiat,
@@ -374,9 +340,7 @@ export class ExchangeSDK {
         getSellPayload,
         account,
         deviceTransactionId,
-        providerId: this.providerId,
         initialAtomicAmount,
-        handleError: this.handleError,
       });
 
     if (this.providerId === "coinify") {
@@ -387,8 +351,8 @@ export class ExchangeSDK {
       );
     }
 
-    const fromAmountAtomic = convertToAtomicUnit(amount, currency);
-    canSpendAmount(account, fromAmountAtomic, this.logger);
+    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
+    this.canSpendAmount(account, fromAmountAtomic);
 
     this.logger.log("Payload received:", {
       recipientAddress,
@@ -397,17 +361,13 @@ export class ExchangeSDK {
       signature,
     });
 
-    // 3 - Send payload
-    const transaction = await this.walletAPIDecorator
-      .createTransaction({
-        recipient: recipientAddress,
-        amount: fromAmountAtomic,
-        currency,
-        customFeeConfig,
-      })
-      .catch((error: Error) => {
-        throw error;
-      });
+    // Step 3: Send payload
+    const transaction = await this.walletAPIDecorator.createTransaction({
+      recipient: recipientAddress,
+      amount: fromAmountAtomic,
+      currency,
+      customFeeConfig,
+    });
 
     const tx = await this.exchangeModule
       .completeSell({
@@ -418,8 +378,8 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
       })
-      .catch(async (error: Error) => {
-        const err = new SignatureStepError(error);
+      .catch((error: Error) => {
+        const err = new SignatureStepError(error, ExchangeType.SELL);
         this.logger.error(err);
         throw err;
       });
@@ -431,120 +391,135 @@ export class ExchangeSDK {
   }
 
   /**
-   * Convenient method to disconnect this instance to the
-   * {@link https://github.com/LedgerHQ/wallet-api WalletAPI} server.
+   * Disconnects this instance from the WalletAPI server.
    */
   disconnect() {
     if (this.transport && "disconnect" in this.transport) {
       this.transport.disconnect();
     }
   }
-}
 
-function canSpendAmount(
-  account: Account,
-  amount: BigNumber,
-  logger: Logger
-): void {
-  if (account.spendableBalance.isGreaterThanOrEqualTo(amount) === false) {
-    const err = new NotEnoughFunds();
-    logger.error(err);
-    throw err;
-  }
-  return;
-}
-
-function convertToAtomicUnit(amount: BigNumber, currency: Currency): BigNumber {
-  const convertedNumber = amount.shiftedBy(currency.decimals);
-  if (!convertedNumber.isInteger()) {
-    throw new Error("Unable to convert amount to atomic unit");
-  }
-  return convertedNumber;
-}
-
-function getSwapStep(error: Error): string {
-  if ((error as CompleteExchangeError).step) {
-    return (error as CompleteExchangeError).step;
-  } else if (error.name === "DisabledTransactionBroadcastError") {
-    return "SIGN_COIN_TRANSACTION";
+  private canSpendAmount(account: Account, amount: BigNumber): void {
+    if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
+      const err = new NotEnoughFunds();
+      this.logger.error(err);
+      throw err;
+    }
   }
 
-  return "UNKNOWN_STEP";
-}
+  private convertToAtomicUnit(
+    amount: BigNumber,
+    currency: Currency
+  ): BigNumber {
+    const convertedNumber = amount.shiftedBy(currency.decimals);
+    if (!convertedNumber.isInteger()) {
+      throw new Error("Unable to convert amount to atomic unit");
+    }
+    return convertedNumber;
+  }
 
-async function sellPayloadRequest({
-  account,
-  getSellPayload,
-  quoteId,
-  toFiat,
-  rate,
-  amount,
-  deviceTransactionId,
-  initialAtomicAmount,
-  providerId,
-  handleError,
-}: {
-  amount: BigNumber;
-  getSellPayload: GetSellPayload | undefined;
-  account: Account;
-  deviceTransactionId: string;
-  initialAtomicAmount: BigNumber;
-  providerId: string;
-  handleError: (error: Error) => void;
-  quoteId: string | undefined;
-  rate: number | undefined;
-  toFiat: string | undefined;
-}) {
-  let recipientAddress, binaryPayload, signature, beData;
+  private getSwapStep(error: Error): string {
+    if ((error as CompleteExchangeError).step) {
+      return (error as CompleteExchangeError).step;
+    } else if (error.name === "DisabledTransactionBroadcastError") {
+      return "SIGN_COIN_TRANSACTION";
+    }
 
-  // For providers that send us getSellPayload (Coinify)
-  if (getSellPayload !== undefined) {
-    const payloadRequest = getSellPayload;
+    return "UNKNOWN_STEP";
+  }
 
-    const data = await payloadRequest(
-      deviceTransactionId,
-      account.address,
-      initialAtomicAmount
-    ).catch((error: Error) => {
-      const err = new PayloadStepError(error);
-      handleError(err);
-      throw error;
+  private async cancelSwapOnError(
+    error: Error,
+    swapId: string,
+    swapStep: string,
+    fromAccount: Account,
+    toAccount: Account,
+    deviceModelId: string | undefined,
+    swapType: string
+  ) {
+    await cancelSwap({
+      provider: this.providerId,
+      swapId: swapId ?? "",
+      swapStep: swapStep,
+      statusCode: error.name,
+      errorMessage: error.message,
+      sourceCurrencyId: fromAccount.currency,
+      targetCurrencyId: toAccount.currency,
+      hardwareWalletType: deviceModelId ?? "",
+      swapType,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
     });
-
-    recipientAddress = data.recipientAddress;
-    amount = data.amount;
-    binaryPayload = data.binaryPayload;
-    signature = data.signature;
-    beData = data.beData;
-  } else {
-    // For all other providers
-    const payloadRequest = retriveSellPayload;
-
-    const data = await payloadRequest({
-      quoteId: quoteId!,
-      provider: providerId,
-      fromCurrency: account.currency,
-      toCurrency: toFiat!,
-      refundAddress: account.address,
-      amountFrom: amount.toNumber(),
-      amountTo: rate! * amount.toNumber(),
-      nonce: deviceTransactionId,
-    }).catch((error: Error) => {
-      const err = new PayloadStepError(error);
-      handleError(err);
-      throw error;
-    });
-
-    recipientAddress = data.payinAddress;
-    binaryPayload = data.providerSig.payload;
-    signature = Buffer.from(data.providerSig.signature);
   }
 
-  return {
-    recipientAddress,
-    binaryPayload,
-    signature,
+  private async sellPayloadRequest({
+    account,
+    getSellPayload,
+    quoteId,
+    toFiat,
+    rate,
     amount,
-    beData,
-  };
+    deviceTransactionId,
+    initialAtomicAmount,
+  }: {
+    amount: BigNumber;
+    getSellPayload?: GetSellPayload;
+    account: Account;
+    deviceTransactionId: string;
+    initialAtomicAmount: BigNumber;
+    quoteId?: string;
+    rate?: number;
+    toFiat?: string;
+  }) {
+    let recipientAddress: string;
+    let binaryPayload: string;
+    let signature: Buffer;
+    let beData: BEData | undefined;
+    let newAmount = amount;
+
+    if (getSellPayload) {
+      const data = await getSellPayload(
+        deviceTransactionId,
+        account.address,
+        initialAtomicAmount
+      ).catch((error: Error) => {
+        const err = new PayloadStepError(error);
+        this.handleError(err);
+        throw error;
+      });
+
+      recipientAddress = data.recipientAddress;
+      newAmount = data.amount;
+      binaryPayload = data.binaryPayload;
+      signature = data.signature;
+      beData = data.beData;
+    } else {
+      const data = await retriveSellPayload({
+        quoteId: quoteId!,
+        provider: this.providerId,
+        fromCurrency: account.currency,
+        toCurrency: toFiat!,
+        refundAddress: account.address,
+        amountFrom: amount.toNumber(),
+        amountTo: rate! * amount.toNumber(),
+        nonce: deviceTransactionId,
+      }).catch((error: Error) => {
+        const err = new PayloadStepError(error);
+        this.handleError(err);
+        throw error;
+      });
+
+      recipientAddress = data.payinAddress;
+      binaryPayload = data.providerSig.payload;
+      signature = Buffer.from(data.providerSig.signature);
+    }
+
+    return {
+      recipientAddress,
+      binaryPayload,
+      signature,
+      amount: newAmount,
+      beData,
+    };
+  }
 }
