@@ -270,7 +270,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new SignatureStepError(error, ExchangeType.SWAP);
+        const err = new SignatureStepError(ExchangeType.SWAP, error);
         this.handleError(err);
         throw err;
       });
@@ -379,7 +379,7 @@ export class ExchangeSDK {
         feeStrategy,
       })
       .catch((error: Error) => {
-        const err = new SignatureStepError(error, ExchangeType.SELL);
+        const err = new SignatureStepError(ExchangeType.SELL, error);
         this.logger.error(err);
         throw err;
       });

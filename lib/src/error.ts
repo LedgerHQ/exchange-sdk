@@ -39,8 +39,8 @@ export class PayloadStepError extends ExchangeError {
 }
 
 export class SignatureStepError extends ExchangeError {
-  constructor(nestedError?: Error, origin: "SELL" | "SWAP" | "FUND") {
-    super("swap003", nestedError);
+  constructor(origin: "SELL" | "SWAP" | "FUND", nestedError?: Error) {
+    super(`${origin}003`, nestedError);
     this.name = "SignatureStepError";
   }
 }
