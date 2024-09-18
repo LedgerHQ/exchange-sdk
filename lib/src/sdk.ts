@@ -23,7 +23,6 @@ import {
   NotEnoughFunds,
   PayloadStepError,
   SignatureStepError,
-  ErrorOrigin,
 } from "./error";
 import { handleErrors } from "./handleErrors";
 import { Logger } from "./log";
@@ -271,7 +270,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new SignatureStepError(ErrorOrigin.swap, error);
+        const err = new SignatureStepError(error);
         this.handleError(err);
         throw err;
       });
@@ -380,7 +379,7 @@ export class ExchangeSDK {
         feeStrategy,
       })
       .catch((error: Error) => {
-        const err = new SignatureStepError(ErrorOrigin.sell, error);
+        const err = new SignatureStepError(error);
         this.logger.error(err);
         throw err;
       });
