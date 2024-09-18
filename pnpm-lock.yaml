@@ -137,8 +137,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: 0.6.0-nightly.0
-        version: 0.6.0-nightly.0
+        specifier: 0.6.0
+        version: 0.6.0
       axios:
         specifier: ^1.3.4
         version: 1.3.4
@@ -515,6 +515,7 @@ packages:
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
+    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -522,6 +523,7 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.2':
     resolution: {integrity: sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==}
+    deprecated: Use @eslint/object-schema instead
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -626,17 +628,20 @@ packages:
   '@ledgerhq/devices@8.2.2':
     resolution: {integrity: sha512-SKahGA4p0mZ3ovypOJ2wa5mUvUkArE3HBrwWKYf+cRs+t/Licp3OJfhj+DHIxP3AfyH2xR6CFFWECYHeKwGsDQ==}
 
-  '@ledgerhq/devices@8.4.1':
-    resolution: {integrity: sha512-Mbjzqlcj4Q2StxEmaYEb5wv6sK5Sk26L4xs0BC9io/AyvpXNTDAp67tryB/klNcvd+WwZPcPdYYvlNzfQ0WTUA==}
-
   '@ledgerhq/devices@8.4.2':
     resolution: {integrity: sha512-oWNTp3jCMaEvRHsXNYE/yo+PFMgXAJGFHLOU1UdE4/fYkniHbD9wdxwyZrZvrxr9hNw4/9wHiThyITwPtMzG7g==}
+
+  '@ledgerhq/devices@8.4.3':
+    resolution: {integrity: sha512-+ih+M27E6cm6DHrmw3GbS3mEaznCyFc0e62VdQux40XK2psgYhL2yBPftM4KCrBYm1UbHqXzqLN+Jb7rNIzsHg==}
 
   '@ledgerhq/errors@6.18.0':
     resolution: {integrity: sha512-L3jQWAGyooxRDk/MRlW2v4Ji9+kloBtdmz9wBkHaj2j0n+05rweJSV3GHw9oye1BYMbVFqFffmT4H3hlXlCasw==}
 
-  '@ledgerhq/hw-app-exchange@0.6.0-nightly.0':
-    resolution: {integrity: sha512-BIospUq0Ml1Yi18icjIqp6MWsF7iyalAaFSbjru/sR/8FVPwGU5w2FaHwiASTTXvSspFGXIDlJTmyQxYJqe24g==}
+  '@ledgerhq/errors@6.19.0':
+    resolution: {integrity: sha512-c3Jid7euMSnpHFp8H7iPtsmKDjwbTjlG46YKdw+RpCclsqtBx1uQDlYmcbP1Yv9201kVlUFUhhP4H623k8xzlQ==}
+
+  '@ledgerhq/hw-app-exchange@0.6.0':
+    resolution: {integrity: sha512-cFIgv4cg8O56Ud624HPYn1hHvisBIxnwkV8EQiJvXCoDCG5bG2hSCjE7JPII3SUXQoAUK23FPk0azSik375C4w==}
 
   '@ledgerhq/hw-transport@6.30.4':
     resolution: {integrity: sha512-VBcVd7UG8HDrjWMoZI5rqBDz+PBxLHTIPZOGY/fdMoEUwaBbss0Z3MxuJanMyerlfaLqnBSVuL0blz7rOyagkw==}
@@ -644,11 +649,11 @@ packages:
   '@ledgerhq/hw-transport@6.30.5':
     resolution: {integrity: sha512-JMl//7BgPBvWxrWyMu82jj6JEYtsQyOyhYtonWNgtxn6KUZWht3gU4gxmLpeIRr+DiS7e50mW7m3GA+EudZmmA==}
 
-  '@ledgerhq/hw-transport@6.31.1':
-    resolution: {integrity: sha512-0hVcrqUOM7AYV/JEq8yoeBiXLjpWrentgYt8MC3n+iNFfpORU/SUprcbu0s884IHzj+a8mx0JCZp9y7uPSLlzg==}
-
   '@ledgerhq/hw-transport@6.31.2':
     resolution: {integrity: sha512-B27UIzMzm2IXPGYnEB95R7eHxpXBkTBHh6MUJJQZVknt8LilEz1tfpTYUdzAKDGQ+Z5MZyYb01Eh3Zqm3kn3uw==}
+
+  '@ledgerhq/hw-transport@6.31.3':
+    resolution: {integrity: sha512-rFplkHWF5NXtlYwAusqLlMu298NHtRD+2q/jrTYc//uu/xJO9LkDIgKid6IVF2+e1Wj7yX6YQVrU6L0Yu1ntEw==}
 
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
@@ -1758,6 +1763,7 @@ packages:
 
   glob@7.1.7:
     resolution: {integrity: sha512-OvD9ENzPLbegENnYP5UUfJIirTg4+XwMWGaQfQTY0JenxNvvIKP3U3/tAQSPIu/lHxXYSZmpXlUHeqAIdKzBLQ==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
@@ -1766,6 +1772,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -1848,6 +1855,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -2689,6 +2697,7 @@ packages:
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@5.0.1:
@@ -3676,26 +3685,28 @@ snapshots:
       rxjs: 7.8.1
       semver: 7.6.0
 
-  '@ledgerhq/devices@8.4.1':
+  '@ledgerhq/devices@8.4.2':
     dependencies:
-      '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/errors': 6.19.0
       '@ledgerhq/logs': 6.12.0
       rxjs: 7.8.1
       semver: 7.6.0
 
-  '@ledgerhq/devices@8.4.2':
+  '@ledgerhq/devices@8.4.3':
     dependencies:
-      '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/errors': 6.19.0
       '@ledgerhq/logs': 6.12.0
       rxjs: 7.8.1
       semver: 7.6.0
 
   '@ledgerhq/errors@6.18.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.6.0-nightly.0':
+  '@ledgerhq/errors@6.19.0': {}
+
+  '@ledgerhq/hw-app-exchange@0.6.0':
     dependencies:
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/hw-transport': 6.31.2
+      '@ledgerhq/errors': 6.19.0
+      '@ledgerhq/hw-transport': 6.31.3
       bignumber.js: 9.1.2
       invariant: 2.2.4
       protobufjs: 7.2.5
@@ -3715,17 +3726,17 @@ snapshots:
       '@ledgerhq/logs': 6.12.0
       events: 3.3.0
 
-  '@ledgerhq/hw-transport@6.31.1':
-    dependencies:
-      '@ledgerhq/devices': 8.4.1
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/logs': 6.12.0
-      events: 3.3.0
-
   '@ledgerhq/hw-transport@6.31.2':
     dependencies:
       '@ledgerhq/devices': 8.4.2
       '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/logs': 6.12.0
+      events: 3.3.0
+
+  '@ledgerhq/hw-transport@6.31.3':
+    dependencies:
+      '@ledgerhq/devices': 8.4.3
+      '@ledgerhq/errors': 6.19.0
       '@ledgerhq/logs': 6.12.0
       events: 3.3.0
 
@@ -3739,7 +3750,7 @@ snapshots:
 
   '@ledgerhq/wallet-api-client@1.5.7':
     dependencies:
-      '@ledgerhq/hw-transport': 6.31.1
+      '@ledgerhq/hw-transport': 6.31.2
       '@ledgerhq/wallet-api-core': 1.9.0
       bignumber.js: 9.1.2
 
