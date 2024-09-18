@@ -12,8 +12,10 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
   const { message, cause } = error as {
     message: string;
     cause: {
-      swapCode: string; name: string; message: string 
-};
+      swapCode: string;
+      name: string;
+      message: string;
+    };
   };
 
   const ignoredErrorNames = new Set([
@@ -22,16 +24,14 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
     "WrongDeviceForAccountRefund",
   ]);
 
-  const ignoredMessages = new Set([
-    "User refused"
-  ]);
+  const ignoredMessages = new Set(["User refused"]);
 
   if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name)) {
     throw { ...error, handled: true }; // retry ready
   }
 
   // Log and throw to Ledger Live if not ignored
-  if (error instanceof ExchangeError && cause && cause.swapCode !== "swap003") {
+  if (error instanceof ExchangeError && cause) {
     walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }
 
