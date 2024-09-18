@@ -1,5 +1,8 @@
-import { ExchangeType } from "@ledgerhq/wallet-api-client";
-import { ErrorOrigin } from "./sdk";
+export enum ErrorOrigin {
+  "sell",
+  "swap",
+  "fund",
+}
 
 export class ExchangeError extends Error {
   cause: {

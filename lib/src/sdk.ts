@@ -23,6 +23,7 @@ import {
   NotEnoughFunds,
   PayloadStepError,
   SignatureStepError,
+  ErrorOrigin,
 } from "./error";
 import { handleErrors } from "./handleErrors";
 import { Logger } from "./log";
@@ -95,15 +96,9 @@ export const ExchangeType = {
   SWAP: "SWAP",
 } as const;
 
-export enum ErrorOrigin {
-  "sell",
-  "swap",
-  "fund",
-}
-
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
- * Under the hood, it relies on the WalletAPI.
+ * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
  */
 export class ExchangeSDK {
   readonly providerId: string;
