@@ -29,6 +29,7 @@ type TransactionWithCustomFee = TransactionCommon & {
     [key: string]: BigNumber;
   };
   payinExtraId?: string;
+  extraTransactionParameters?: string;
 };
 
 // Define a specific type for the strategy functions, assuming they might need parameters
@@ -40,7 +41,7 @@ const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
 } = {
   algorand: defaultTransaction,
-  bitcoin: defaultTransaction,
+  bitcoin: bitcoinTransaction,
   cardano: modeSendTransaction,
   celo: defaultTransaction,
   cosmos: defaultTransaction,
@@ -72,6 +73,7 @@ export type CreateTransactionArg = {
     [key: string]: BigNumber;
   };
   payinExtraId?: string;
+  extraTransactionParameters?: string;
 };
 
 export type WalletApiDecorator = {
@@ -124,6 +126,7 @@ async function createTransaction({
     currency,
     customFeeConfig,
     payinExtraId,
+    extraTransactionParameters,
   }: CreateTransactionArg): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
@@ -152,6 +155,7 @@ async function createTransaction({
       recipient,
       customFeeConfig,
       payinExtraId,
+      smartContractData: extraTransactionParameters,
     });
   }
 
@@ -234,6 +238,31 @@ export function withoutGasLimitTransaction({
 }: TransactionWithCustomFee): Transaction {
   delete customFeeConfig.gasLimit;
   return defaultTransaction({ family, amount, recipient, customFeeConfig });
+}
+
+export function bitcoinTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+  extraTransactionParameters
+}: TransactionWithCustomFee): Transaction {
+  if (extraTransactionParameters)
+    {
+    return {
+      family,
+      amount,
+      recipient,
+      ...customFeeConfig,
+      opReturnData: Buffer.from(extraTransactionParameters, "utf-8"),
+    } as Transaction;
+  }
+  return {
+    family,
+    amount,
+    recipient,
+    ...customFeeConfig,
+  } as Transaction;
 }
 
 export function solanaTransaction({

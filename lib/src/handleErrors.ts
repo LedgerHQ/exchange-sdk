@@ -19,9 +19,21 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
   };
 
   const ignoredErrorNames = new Set([
-    "WrongDeviceForAccount",
-    "WrongDeviceForAccountPayout",
-    "WrongDeviceForAccountRefund",
+      "WrongDeviceForAccount",
+      "WrongDeviceForAccountPayout",
+      "WrongDeviceForAccountRefund",
+      "CancelStepError",
+      "ConfirmStepError",
+      "SwapCompleteExchangeError",
+      "DisconnectedDevice",
+      "NotEnoughBalance",
+      "NotEnoughGas",
+      "CompleteExchangeError",
+      "TransportStatusError",
+      "FirmwareOrAppUpdateRequired",
+      "WrongDeviceForAccount",
+      "WrongDeviceForAccountPayout",
+      "WrongDeviceForAccountRefund",
   ]);
 
   const ignoredMessages = new Set(["User refused"]);
