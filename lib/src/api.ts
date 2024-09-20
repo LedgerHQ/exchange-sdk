@@ -213,7 +213,7 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const res = await sellAxiosClient.post("/sell/v1/remit", request);
+  const res = await sellAxiosClient.post("", request);
 
   return parseSellBackendInfo(res.data);
 }
