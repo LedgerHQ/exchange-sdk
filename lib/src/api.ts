@@ -2,7 +2,7 @@ import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
-import { BEData } from "./sdk";
+import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1/remit";
@@ -91,14 +91,17 @@ export type ConfirmSellRequest = {
   provider: string;
   sellId: string;
   transactionId: string;
+  type: string;
 };
 
 export async function confirmSwap(payload: ConfirmSwapRequest) {
   await swapAxiosClient.post("accepted", payload);
 }
 
-export async function confirmSell(payload: ConfirmSellRequest) {
-  await sellAxiosClient.post("accepted", payload);
+export async function confirmSell(data: ConfirmSellRequest) {
+  const { type, ...payload } = data
+  const axiosClient = type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
+  await axiosClient.post("accepted", payload);
 }
 
 export type CancelSwapRequest = {
@@ -118,14 +121,17 @@ export type CancelSellRequest = {
   sellId: string;
   statusCode?: string;
   errorMessage?: string;
+  type: string;
 };
 
 export async function cancelSwap(payload: CancelSwapRequest) {
   await swapAxiosClient.post("cancelled", payload);
 }
 
-export async function cancelSell(payload: CancelSellRequest) {
-  await sellAxiosClient.post("cancelled", payload);
+export async function cancelSell(data: CancelSellRequest) {
+  const { type, ...payload } = data
+  const axiosClient = type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
+  await axiosClient.post("cancelled", payload);
 }
 
 type SwapBackendResponse = {
@@ -176,6 +182,7 @@ export interface SellRequestPayload {
   amountFrom: number;
   amountTo: number;
   nonce: string;
+  type: string;
 }
 
 export interface SellResponsePayload {
@@ -213,8 +220,8 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const res = await sellAxiosClient.post("", request);
-
+  const axiosClient = data.type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
+  const res = await axiosClient.post("", request);
   return parseSellBackendInfo(res.data);
 }
 

@@ -33,6 +33,22 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
+
+enum FeeStrategyEnum {
+  SLOW = "SLOW",
+  MEDIUM = "MEDIUM",
+  FAST = "FAST",
+  CUSTOM = "CUSTOM",
+}
+
+export const ExchangeType = {
+  FUND: "FUND",
+  SELL: "SELL",
+  SWAP: "SWAP",
+  CARD: "CARD"
+} as const;
+
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
 /**
@@ -80,22 +96,8 @@ export type SellInfo = {
   rate?: number;
   customFeeConfig?: { [key: string]: BigNumber };
   getSellPayload?: GetSellPayload;
+  type?: string;
 };
-
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-
-enum FeeStrategyEnum {
-  SLOW = "SLOW",
-  MEDIUM = "MEDIUM",
-  FAST = "FAST",
-  CUSTOM = "CUSTOM",
-}
-
-export const ExchangeType = {
-  FUND: "FUND",
-  SELL: "SELL",
-  SWAP: "SWAP",
-} as const;
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -311,6 +313,7 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
+      type = ExchangeType.CARD
     } = info;
 
     const { account, currency } =
@@ -343,6 +346,7 @@ export class ExchangeSDK {
         account,
         deviceTransactionId,
         initialAtomicAmount,
+        type
       });
 
     if (getSellPayload) {
@@ -374,6 +378,7 @@ export class ExchangeSDK {
       await this.cancelSellOnError({
         error,
         sellId: quoteId,
+        type
       });
 
       this.handleError(error);
@@ -393,6 +398,7 @@ export class ExchangeSDK {
         await this.cancelSellOnError({
           error,
           sellId: quoteId,
+          type
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -410,6 +416,7 @@ export class ExchangeSDK {
       provider: this.providerId,
       sellId: quoteId ?? "",
       transactionId: tx,
+      type
     }).catch((error: Error) => {
       this.logger.error(error);
     });
@@ -481,15 +488,18 @@ export class ExchangeSDK {
   private async cancelSellOnError({
     error,
     sellId,
+    type
   }: {
     error: Error,
     sellId?: string,
+    type: string
   }) {
     await cancelSell({
       provider: this.providerId,
       sellId: sellId ?? "",
       statusCode: error.name,
       errorMessage: error.message,
+      type
     }).catch((cancelError: Error) => {
       this.logger.error(cancelError);
     });
@@ -504,6 +514,7 @@ export class ExchangeSDK {
     amount,
     deviceTransactionId,
     initialAtomicAmount,
+    type,
   }: {
     amount: BigNumber;
     getSellPayload?: GetSellPayload;
@@ -513,6 +524,7 @@ export class ExchangeSDK {
     quoteId?: string;
     rate?: number;
     toFiat?: string;
+    type: string;
   }) {
     let recipientAddress: string;
     let binaryPayload: string;
@@ -546,6 +558,7 @@ export class ExchangeSDK {
         amountFrom: amount.toNumber(),
         amountTo: rate! * amount.toNumber(),
         nonce: deviceTransactionId,
+        type,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
         this.handleError(err);
