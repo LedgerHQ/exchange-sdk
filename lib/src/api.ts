@@ -87,8 +87,18 @@ export type ConfirmSwapRequest = {
   hardwareWalletType?: string;
 };
 
+export type ConfirmSellRequest = {
+  provider: string;
+  sellId: string;
+  transactionId: string;
+};
+
 export async function confirmSwap(payload: ConfirmSwapRequest) {
   await swapAxiosClient.post("accepted", payload);
+}
+
+export async function confirmSell(payload: ConfirmSellRequest) {
+  await sellAxiosClient.post("accepted", payload);
 }
 
 export type CancelSwapRequest = {
@@ -103,8 +113,19 @@ export type CancelSwapRequest = {
   swapStep?: string;
 };
 
+export type CancelSellRequest = {
+  provider: string;
+  sellId: string;
+  statusCode?: string;
+  errorMessage?: string;
+};
+
 export async function cancelSwap(payload: CancelSwapRequest) {
   await swapAxiosClient.post("cancelled", payload);
+}
+
+export async function cancelSell(payload: CancelSellRequest) {
+  await sellAxiosClient.post("cancelled", payload);
 }
 
 type SwapBackendResponse = {

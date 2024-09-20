@@ -12,6 +12,8 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import {
   cancelSwap,
   confirmSwap,
+  cancelSell,
+  confirmSell,
   decodeSellPayloadAndPost,
   retrieveSellPayload,
   retrieveSwapPayload,
@@ -367,6 +369,15 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency,
       customFeeConfig,
+    })
+    .catch(async (error) => {
+      await this.cancelSellOnError({
+        error,
+        sellId: quoteId,
+      });
+
+      this.handleError(error);
+      throw error;
     });
 
     const tx = await this.exchangeModule
@@ -378,15 +389,30 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
       })
-      .catch((error: Error) => {
+      .catch(async(error: Error) => {
+        await this.cancelSellOnError({
+          error,
+          sellId: quoteId,
+        });
+
+        if (error.name === "DisabledTransactionBroadcastError") {
+          throw error;
+        }
+
         const err = new SignatureStepError(error);
-        this.logger.error(err);
+        this.handleError(err);
         throw err;
       });
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Sell ***");
-
+    await confirmSell({
+      provider: this.providerId,
+      sellId: quoteId ?? "",
+      transactionId: tx,
+    }).catch((error: Error) => {
+      this.logger.error(error);
+    });
     return tx;
   }
 
@@ -447,6 +473,23 @@ export class ExchangeSDK {
       targetCurrencyId: toAccount.currency,
       hardwareWalletType: deviceModelId ?? "",
       swapType,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
+    });
+  }
+
+  private async cancelSellOnError({
+    error,
+    sellId,
+  }: {
+    error: Error,
+    sellId?: string,
+  }) {
+    await cancelSell({
+      provider: this.providerId,
+      sellId: sellId ?? "",
+      statusCode: error.name,
+      errorMessage: error.message,
     }).catch((cancelError: Error) => {
       this.logger.error(cancelError);
     });
