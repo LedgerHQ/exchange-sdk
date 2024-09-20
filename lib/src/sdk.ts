@@ -343,7 +343,7 @@ export class ExchangeSDK {
         initialAtomicAmount,
       });
 
-    if (this.providerId === "coinify") {
+    if (getSellPayload) {
       await decodeSellPayloadAndPost(
         binaryPayload as string,
         beData as BEData,
