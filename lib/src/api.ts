@@ -5,8 +5,8 @@ import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1/remit";
-const CARD_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/card/v1/remit";
+const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1";
+const CARD_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/card/v1";
 
 
 let swapAxiosClient = axios.create({
@@ -221,7 +221,7 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     nonce: data.nonce,
   };
   const axiosClient = data.type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
-  const res = await axiosClient.post("", request);
+  const res = await axiosClient.post("/remit", request);
   return parseSellBackendInfo(res.data);
 }
 
