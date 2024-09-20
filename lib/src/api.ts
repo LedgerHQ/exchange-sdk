@@ -59,7 +59,7 @@ export type SwapPayloadResponse = {
   payinExtraId?: string;
 };
 
-export async function retriveSwapPayload(
+export async function retrieveSwapPayload(
   data: SwapPayloadRequestData
 ): Promise<SwapPayloadResponse> {
   const request = {
@@ -181,7 +181,7 @@ const parseSellBackendInfo = (response: SellResponsePayload) => {
   };
 };
 
-export async function retriveSellPayload(data: SellRequestPayload) {
+export async function retrieveSellPayload(data: SellRequestPayload) {
   const request = {
     quoteId: data.quoteId,
     provider: data.provider,

@@ -13,8 +13,8 @@ import {
   cancelSwap,
   confirmSwap,
   decodeSellPayloadAndPost,
-  retriveSellPayload,
-  retriveSwapPayload,
+  retrieveSellPayload,
+  retrieveSwapPayload,
   setBackendUrl,
 } from "./api";
 import {
@@ -31,7 +31,7 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 
-export type GetSwapPayload = typeof retriveSwapPayload;
+export type GetSwapPayload = typeof retrieveSwapPayload;
 
 /**
  * Swap information required to request a user's swap transaction.
@@ -202,7 +202,7 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
-    const payloadRequest = getSwapPayload ?? retriveSwapPayload;
+    const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
     const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await payloadRequest({
         provider: this.providerId,
@@ -494,7 +494,7 @@ export class ExchangeSDK {
       signature = data.signature;
       beData = data.beData;
     } else {
-      const data = await retriveSellPayload({
+      const data = await retrieveSellPayload({
         quoteId: quoteId!,
         provider: this.providerId,
         fromCurrency: account.currency,
