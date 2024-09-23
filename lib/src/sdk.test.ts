@@ -9,10 +9,12 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
 import {
-  retriveSwapPayload,
+  retrieveSwapPayload,
   confirmSwap,
   cancelSwap,
-  retriveSellPayload,
+  retrieveSellPayload,
+  confirmSell,
+  cancelSell,
 } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
@@ -89,7 +91,7 @@ beforeEach(() => {
 
 describe("swap", () => {
   beforeAll(() => {
-    (retriveSwapPayload as jest.Mock).mockResolvedValue({
+    (retrieveSwapPayload as jest.Mock).mockResolvedValue({
       binaryPayload: "",
       signature: "",
       payinAddress: "",
@@ -217,6 +219,16 @@ describe("swap", () => {
 });
 
 describe("sell", () => {
+  beforeAll(() => {
+    (retrieveSellPayload as jest.Mock).mockResolvedValue({
+      binaryPayload: "",
+      signature: "",
+      payinAddress: "",
+      quoteId: "sell-id",
+    });
+    (confirmSell as jest.Mock).mockResolvedValue({});
+    (cancelSell as jest.Mock).mockResolvedValue({});
+  });
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
     const currencies: Array<Partial<Currency>> = [
@@ -265,8 +277,8 @@ describe("sell", () => {
     ];
     mockCurrenciesList.mockResolvedValue(currencies as any);
 
-    // Mock `retriveSellPayload` since `getSellPayload` is not provided
-    (retriveSellPayload as jest.Mock).mockResolvedValue({
+    // Mock `retrieveSellPayload` since `getSellPayload` is not provided
+    (retrieveSellPayload as jest.Mock).mockResolvedValue({
       payinAddress: "0xfff",
       providerSig: {
         payload: Buffer.from(""),

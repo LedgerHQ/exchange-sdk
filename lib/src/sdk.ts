@@ -12,9 +12,11 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import {
   cancelSwap,
   confirmSwap,
+  cancelSell,
+  confirmSell,
   decodeSellPayloadAndPost,
-  retriveSellPayload,
-  retriveSwapPayload,
+  retrieveSellPayload,
+  retrieveSwapPayload,
   setBackendUrl,
 } from "./api";
 import {
@@ -31,7 +33,23 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 
-export type GetSwapPayload = typeof retriveSwapPayload;
+export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
+
+enum FeeStrategyEnum {
+  SLOW = "SLOW",
+  MEDIUM = "MEDIUM",
+  FAST = "FAST",
+  CUSTOM = "CUSTOM",
+}
+
+export const ExchangeType = {
+  FUND: "FUND",
+  SELL: "SELL",
+  SWAP: "SWAP",
+  CARD: "CARD"
+} as const;
+
+export type GetSwapPayload = typeof retrieveSwapPayload;
 
 /**
  * Swap information required to request a user's swap transaction.
@@ -78,22 +96,8 @@ export type SellInfo = {
   rate?: number;
   customFeeConfig?: { [key: string]: BigNumber };
   getSellPayload?: GetSellPayload;
+  type?: string;
 };
-
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-
-enum FeeStrategyEnum {
-  SLOW = "SLOW",
-  MEDIUM = "MEDIUM",
-  FAST = "FAST",
-  CUSTOM = "CUSTOM",
-}
-
-export const ExchangeType = {
-  FUND: "FUND",
-  SELL: "SELL",
-  SWAP: "SWAP",
-} as const;
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -202,7 +206,7 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
-    const payloadRequest = getSwapPayload ?? retriveSwapPayload;
+    const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
     const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
       await payloadRequest({
         provider: this.providerId,
@@ -309,6 +313,7 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
+      type = ExchangeType.SELL
     } = info;
 
     const { account, currency } =
@@ -341,9 +346,10 @@ export class ExchangeSDK {
         account,
         deviceTransactionId,
         initialAtomicAmount,
+        type
       });
 
-    if (this.providerId === "coinify") {
+    if (getSellPayload) {
       await decodeSellPayloadAndPost(
         binaryPayload as string,
         beData as BEData,
@@ -367,6 +373,15 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency,
       customFeeConfig,
+    })
+    .catch(async (error) => {
+      await this.cancelSellOnError({
+        error,
+        quoteId,
+      });
+
+      this.handleError(error);
+      throw error;
     });
 
     const tx = await this.exchangeModule
@@ -378,15 +393,30 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
       })
-      .catch((error: Error) => {
+      .catch(async(error: Error) => {
+        await this.cancelSellOnError({
+          error,
+          quoteId,
+        });
+
+        if (error.name === "DisabledTransactionBroadcastError") {
+          throw error;
+        }
+
         const err = new SignatureStepError(error);
-        this.logger.error(err);
+        this.handleError(err);
         throw err;
       });
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Sell ***");
-
+    await confirmSell({
+      provider: this.providerId,
+      quoteId: quoteId ?? "",
+      transactionId: tx,
+    }).catch((error: Error) => {
+      this.logger.error(error);
+    }); 
     return tx;
   }
 
@@ -452,6 +482,23 @@ export class ExchangeSDK {
     });
   }
 
+  private async cancelSellOnError({
+    error,
+    quoteId,
+  }: {
+    error: Error,
+    quoteId?: string,
+  }) {
+    await cancelSell({
+      provider: this.providerId,
+      quoteId: quoteId ?? "",
+      statusCode: error.name,
+      errorMessage: error.message,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
+    });
+  }
+
   private async sellPayloadRequest({
     account,
     getSellPayload,
@@ -461,6 +508,7 @@ export class ExchangeSDK {
     amount,
     deviceTransactionId,
     initialAtomicAmount,
+    type,
   }: {
     amount: BigNumber;
     getSellPayload?: GetSellPayload;
@@ -470,6 +518,7 @@ export class ExchangeSDK {
     quoteId?: string;
     rate?: number;
     toFiat?: string;
+    type: string;
   }) {
     let recipientAddress: string;
     let binaryPayload: string;
@@ -494,7 +543,7 @@ export class ExchangeSDK {
       signature = data.signature;
       beData = data.beData;
     } else {
-      const data = await retriveSellPayload({
+      const data = await retrieveSellPayload({
         quoteId: quoteId!,
         provider: this.providerId,
         fromCurrency: account.currency,
@@ -503,6 +552,7 @@ export class ExchangeSDK {
         amountFrom: amount.toNumber(),
         amountTo: rate! * amount.toNumber(),
         nonce: deviceTransactionId,
+        type,
       }).catch((error: Error) => {
         const err = new PayloadStepError(error);
         this.handleError(err);
