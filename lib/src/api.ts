@@ -5,20 +5,15 @@ import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/sell/v1";
-const CARD_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/card/v1";
+const BUY_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
 
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
 });
 
-let sellAxiosClient = axios.create({
-  baseURL: SELL_BACKEND_URL,
-});
-
-let cardAxiosClient = axios.create({
-  baseURL: CARD_BACKEND_URL,
+let buyAxiosClient = axios.create({
+  baseURL: BUY_BACKEND_URL,
 });
 
 /**
@@ -29,10 +24,7 @@ export function setBackendUrl(url: string) {
   swapAxiosClient = axios.create({
     baseURL: url,
   });
-  sellAxiosClient = axios.create({
-    baseURL: url,
-  });
-  cardAxiosClient = axios.create({
+  buyAxiosClient = axios.create({
     baseURL: url,
   });
 }
@@ -89,9 +81,8 @@ export type ConfirmSwapRequest = {
 
 export type ConfirmSellRequest = {
   provider: string;
-  sellId: string;
+  quoteId: string;
   transactionId: string;
-  type: string;
 };
 
 export async function confirmSwap(payload: ConfirmSwapRequest) {
@@ -99,9 +90,8 @@ export async function confirmSwap(payload: ConfirmSwapRequest) {
 }
 
 export async function confirmSell(data: ConfirmSellRequest) {
-  const { type, ...payload } = data
-  const axiosClient = type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
-  await axiosClient.post("accepted", payload);
+  const { quoteId, ...payload } = data
+  await buyAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
 }
 
 export type CancelSwapRequest = {
@@ -118,10 +108,9 @@ export type CancelSwapRequest = {
 
 export type CancelSellRequest = {
   provider: string;
-  sellId: string;
+  quoteId: string;
   statusCode?: string;
   errorMessage?: string;
-  type: string;
 };
 
 export async function cancelSwap(payload: CancelSwapRequest) {
@@ -129,9 +118,8 @@ export async function cancelSwap(payload: CancelSwapRequest) {
 }
 
 export async function cancelSell(data: CancelSellRequest) {
-  const { type, ...payload } = data
-  const axiosClient = type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
-  await axiosClient.post("cancelled", payload);
+  const {quoteId, ...payload} = data
+  await buyAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
 }
 
 type SwapBackendResponse = {
@@ -220,8 +208,8 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const axiosClient = data.type === ExchangeType.SELL ? sellAxiosClient : cardAxiosClient;
-  const res = await axiosClient.post("/remit", request);
+  const pathname = data.type === ExchangeType.SELL ? "sell/v1/remit" : "card/v1/remit";
+  const res = await buyAxiosClient.post(pathname, request);
   return parseSellBackendInfo(res.data);
 }
 
@@ -249,7 +237,7 @@ export async function decodeSellPayloadAndPost(
       referralFee: null,
     };
 
-    sellAxiosClient.post("/forgeTransaction/offRamp", payload);
+    buyAxiosClient.post("/forgeTransaction/offRamp", payload);
   } catch (e) {
     console.log("Error decoding payload", e);
   }

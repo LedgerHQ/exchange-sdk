@@ -377,8 +377,7 @@ export class ExchangeSDK {
     .catch(async (error) => {
       await this.cancelSellOnError({
         error,
-        sellId: quoteId,
-        type
+        quoteId,
       });
 
       this.handleError(error);
@@ -397,8 +396,7 @@ export class ExchangeSDK {
       .catch(async(error: Error) => {
         await this.cancelSellOnError({
           error,
-          sellId: quoteId,
-          type
+          quoteId,
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -414,12 +412,11 @@ export class ExchangeSDK {
     this.logger.log("*** End Sell ***");
     await confirmSell({
       provider: this.providerId,
-      sellId: quoteId ?? "",
+      quoteId: quoteId ?? "",
       transactionId: tx,
-      type
     }).catch((error: Error) => {
       this.logger.error(error);
-    });
+    }); 
     return tx;
   }
 
@@ -487,19 +484,16 @@ export class ExchangeSDK {
 
   private async cancelSellOnError({
     error,
-    sellId,
-    type
+    quoteId,
   }: {
     error: Error,
-    sellId?: string,
-    type: string
+    quoteId?: string,
   }) {
     await cancelSell({
       provider: this.providerId,
-      sellId: sellId ?? "",
+      quoteId: quoteId ?? "",
       statusCode: error.name,
       errorMessage: error.message,
-      type
     }).catch((cancelError: Error) => {
       this.logger.error(cancelError);
     });
