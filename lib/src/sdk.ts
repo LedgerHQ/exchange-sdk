@@ -313,7 +313,7 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
-      type = ExchangeType.CARD
+      type = ExchangeType.SELL
     } = info;
 
     const { account, currency } =
