@@ -5,15 +5,15 @@ import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const BUY_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
 
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
 });
 
-let buyAxiosClient = axios.create({
-  baseURL: BUY_BACKEND_URL,
+let sellAxiosClient = axios.create({
+  baseURL: SELL_BACKEND_URL,
 });
 
 /**
@@ -24,7 +24,7 @@ export function setBackendUrl(url: string) {
   swapAxiosClient = axios.create({
     baseURL: url,
   });
-  buyAxiosClient = axios.create({
+  sellAxiosClient = axios.create({
     baseURL: url,
   });
 }
@@ -91,7 +91,7 @@ export async function confirmSwap(payload: ConfirmSwapRequest) {
 
 export async function confirmSell(data: ConfirmSellRequest) {
   const { quoteId, ...payload } = data
-  await buyAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
+  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
 }
 
 export type CancelSwapRequest = {
@@ -119,7 +119,7 @@ export async function cancelSwap(payload: CancelSwapRequest) {
 
 export async function cancelSell(data: CancelSellRequest) {
   const {quoteId, ...payload} = data
-  await buyAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
+  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
 }
 
 type SwapBackendResponse = {
@@ -209,7 +209,7 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     nonce: data.nonce,
   };
   const pathname = data.type === ExchangeType.SELL ? "sell/v1/remit" : "card/v1/remit";
-  const res = await buyAxiosClient.post(pathname, request);
+  const res = await sellAxiosClient.post(pathname, request);
   return parseSellBackendInfo(res.data);
 }
 
@@ -237,7 +237,7 @@ export async function decodeSellPayloadAndPost(
       referralFee: null,
     };
 
-    buyAxiosClient.post("/forgeTransaction/offRamp", payload);
+    sellAxiosClient.post("/forgeTransaction/offRamp", payload);
   } catch (e) {
     console.log("Error decoding payload", e);
   }
