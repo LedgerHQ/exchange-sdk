@@ -188,7 +188,7 @@ export interface SellResponsePayload {
 
 const parseSellBackendInfo = (response: SellResponsePayload) => {
   return {
-    sellId: response.sellId,
+    quoteId: response.sellId,
     payinAddress: response.payinAddress,
     providerSig: {
       payload: response.providerSig.payload,

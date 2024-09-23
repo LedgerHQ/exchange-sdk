@@ -13,6 +13,8 @@ import {
   confirmSwap,
   cancelSwap,
   retrieveSellPayload,
+  confirmSell,
+  cancelSell,
 } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
@@ -217,6 +219,16 @@ describe("swap", () => {
 });
 
 describe("sell", () => {
+  beforeAll(() => {
+    (retrieveSellPayload as jest.Mock).mockResolvedValue({
+      binaryPayload: "",
+      signature: "",
+      payinAddress: "",
+      quoteId: "sell-id",
+    });
+    (confirmSell as jest.Mock).mockResolvedValue({});
+    (cancelSell as jest.Mock).mockResolvedValue({});
+  });
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
     const currencies: Array<Partial<Currency>> = [
