@@ -155,7 +155,7 @@ async function createTransaction({
       recipient,
       customFeeConfig,
       payinExtraId,
-      smartContractData: extraTransactionParameters,
+      extraTransactionParameters,
     });
   }
 
@@ -235,8 +235,18 @@ export function withoutGasLimitTransaction({
   amount,
   recipient,
   customFeeConfig,
+  extraTransactionParameters,
 }: TransactionWithCustomFee): Transaction {
   delete customFeeConfig.gasLimit;
+  if (extraTransactionParameters) {
+    return {
+      family,
+      amount,
+      recipient,
+      ...customFeeConfig,
+      data: Buffer.from(extraTransactionParameters, "hex"),
+    } as Transaction;
+  }
   return defaultTransaction({ family, amount, recipient, customFeeConfig });
 }
 
