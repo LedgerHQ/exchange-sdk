@@ -6,6 +6,7 @@ import {
   RippleTransaction,
   SolanaTransaction,
   StellarTransaction,
+  TonTransaction,
   Transaction,
   TransactionCommon,
   WalletAPIClient,
@@ -58,6 +59,7 @@ const transactionStrategy: {
   stacks: defaultTransaction,
   stellar: stellarTransaction,
   tezos: modeSendTransaction,
+  ton: tonTransaction,
   tron: modeSendTransaction,
   vechain: defaultTransaction,
   casper: defaultTransaction,
@@ -297,4 +299,16 @@ export function elrondTransaction({
     ...modeSendTransaction({ family, amount, recipient, customFeeConfig }),
     gasLimit: 0, // FIXME: Placeholder, adjust as needed
   } as ElrondTransaction;
+}
+
+function tonTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): TonTransaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    comment: { isEncrypted: false, text: "" },
+  } as TonTransaction;
 }
