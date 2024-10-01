@@ -1,0 +1,53 @@
+### Please use this template as a first draft, but check our Getting-started guide for more detailed info. 
+### The first step is to declare your component name, description and tags (usefull for research). Don't change the apiVersion and kind. 
+
+apiVersion: backstage.io/v1alpha1
+kind: Component 
+metadata: 
+  name: exchange-sdk
+  description: Library dedicated on exchange workflow (swap, sell and fund), built on top of WalletAPI
+  tags:
+    - sdk
+    - exchange
+    - ptx
+    - typescript
+
+### Below "Links", add whatever you think is relevant (like a confluence page for instance). 
+### They will appear on the overview page of your component. 
+
+  links: 
+    - url: https://ledger.enterprise.slack.com/archives/C07BBC9J3A9
+      title: Team Slack
+      icon: Slack
+
+### Below "annotations", add informations for the plugins you want to use. 
+### In that case, we add: techdocs, ADR, Linguist (to automatically add language tags), Github, Jira and Datadog.
+### Note that the two ledger.com/ annotations are important metadata needed by security team. 
+
+  annotations:
+    ledger.com/code_repository: https://github.com/LedgerHQ/exchange-sdk
+    ledger.com/documentation: https://developers.ledger.com/docs/exchange
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/adr-location: <path>
+    github.com/project-slug: LedgerHQ/exchange-sdk
+
+
+### Use the following labels if possible. 
+### Note that the two ledger.com/ labels are important metadata needed by security team.
+
+  labels:
+    typescript/version: "5"
+    ledger.com/contains_pii: 'no' 
+    ledger.com/donjon_review: 'exempted'
+
+
+### Below "spec", we specify the type, owner, component's system (please pick one from the architecture list in the getting started) 
+### Then we specify the dependencies with other components and the APIs related to your component. 
+
+spec:
+  type: library 
+  lifecycle: production 
+  owner: group:ptx # team github 
+  system: swap # pick one from the list in the getting started
+  dependsOn:
+    - component:wallet-api
