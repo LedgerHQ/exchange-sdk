@@ -18,7 +18,7 @@ import {
 } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { CompleteExchangeError, PayinExtraIdError } from "./error";
+import { CompleteExchangeError, PayinExtraIdError, SignatureStepError } from "./error";
 
 jest.mock("./api");
 
@@ -197,23 +197,23 @@ describe("swap", () => {
     };
 
     mockCompleteSwap.mockRejectedValueOnce(
-      new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message")
+      new SignatureStepError(new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"))
     );
 
     // WHEN
-    await expect(sdk.swap(swapData)).rejects.toThrowError();
+    await expect(sdk.swap(swapData)).rejects.toThrow(SignatureStepError);
 
     // THEN
     expect(cancelSwap as jest.Mock).toHaveBeenCalledWith({
       provider: "provider-id",
       swapId: "swap-id",
-      statusCode: "CompleteExchangeError",
+      statusCode: "SignatureStepError",
       errorMessage: "error message",
       sourceCurrencyId: "currency-id-1",
       targetCurrencyId: "currency-id-2",
       hardwareWalletType: "nanoX",
       swapType: "fixed",
-      swapStep: "SIGN_COIN_TRANSACTION",
+      swapStep: "UNKNOWN_STEP",
     });
   });
 });
