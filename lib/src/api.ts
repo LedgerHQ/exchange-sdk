@@ -49,6 +49,7 @@ export type SwapPayloadResponse = {
   payinAddress: string;
   swapId: string;
   payinExtraId?: string;
+  extraTransactionParameters?: string,
 };
 
 export async function retrieveSwapPayload(
@@ -139,6 +140,7 @@ type SwapBackendResponse = {
   binaryPayload: string;
   signature: string;
   payinExtraId?: string;
+  extraTransactionParameters?: string;
 };
 
 function parseSwapBackendInfo(response: SwapBackendResponse): {
@@ -147,6 +149,7 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
   payinAddress: string;
   swapId: string;
   payinExtraId?: string;
+  extraTransactionParameters?: string;
 } {
   return {
     binaryPayload: response.binaryPayload,
@@ -154,6 +157,7 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
     payinAddress: response.payinAddress,
     swapId: response.swapId,
     payinExtraId: response.payinExtraId,
+    extraTransactionParameters: response.extraTransactionParameters,
   };
 }
 

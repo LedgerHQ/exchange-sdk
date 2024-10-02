@@ -207,7 +207,7 @@ export class ExchangeSDK {
 
     // Step 2: Ask for payload creation
     const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const { binaryPayload, signature, payinAddress, swapId, payinExtraId } =
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } =
       await payloadRequest({
         provider: this.providerId,
         deviceTransactionId,
@@ -231,6 +231,7 @@ export class ExchangeSDK {
         currency: fromCurrency,
         customFeeConfig,
         payinExtraId,
+        extraTransactionParameters,
       })
       .catch(async (error) => {
         await this.cancelSwapOnError(
@@ -246,7 +247,6 @@ export class ExchangeSDK {
         this.handleError(error);
         throw error;
       });
-
     const tx = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
