@@ -434,7 +434,7 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId: accountId,
         transaction,
-        binaryPayload: Buffer.from(binaryPayload),
+        binaryPayload,
         signature,
         feeStrategy,
       })
@@ -534,7 +534,7 @@ async function sellPayloadRequest({
 
     recipientAddress = data.recipientAddress;
     amount = data.amount;
-    binaryPayload = data.binaryPayload;
+    binaryPayload = Buffer.from(data.binaryPayload);
     signature = data.signature;
     beData = data.beData;
   } else {
@@ -558,7 +558,7 @@ async function sellPayloadRequest({
 
     recipientAddress = data.payinAddress;
     binaryPayload = data.providerSig.payload;
-    signature = Buffer.from(data.providerSig.signature);
+    signature = data.providerSig.signature;
   }
 
   return {
