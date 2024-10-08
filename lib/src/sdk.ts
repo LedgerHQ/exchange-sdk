@@ -1,6 +1,7 @@
 import {
   Account,
   Currency,
+  Transaction,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
@@ -30,7 +31,7 @@ import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { ExchangeCompleteParams, ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type GetSwapPayload = typeof retriveSwapPayload;
 /**
@@ -105,6 +106,19 @@ const ExchangeType = {
  * Under the hood it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
  */
 // Note: maybe to use to disconnect the Transport: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry
+
+// extented type to include paramas as string for binaryPayload and signature
+export type ExtendedExchangeModule = ExchangeModule & {
+  completeSell: (params: {
+    provider: string;
+    fromAccountId: string;
+    transaction: Transaction;
+    binaryPayload: Buffer | string;
+    signature: Buffer | string;  // Custom update to accept Buffer or string
+    feeStrategy: ExchangeCompleteParams["feeStrategy"];
+  }) => Promise<string>;
+};
+
 export class ExchangeSDK {
   readonly providerId: string;
 
@@ -116,8 +130,8 @@ export class ExchangeSDK {
     return this.walletAPIDecorator.walletClient;
   }
 
-  private get exchangeModule(): ExchangeModule {
-    return (this.walletAPI.custom as any).exchange as ExchangeModule;
+  private get exchangeModule(): ExtendedExchangeModule {
+    return (this.walletAPI.custom as any).exchange as ExtendedExchangeModule;
   }
 
   /**
