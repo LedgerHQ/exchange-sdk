@@ -2,12 +2,13 @@ import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
+  Transaction,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { ExchangeCompleteParams, ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 import {
   cancelSwap,
@@ -99,6 +100,18 @@ export type SellInfo = {
   type?: string;
 };
 
+// extented type to include paramas as string for binaryPayload and signature
+export type ExtendedExchangeModule = ExchangeModule & {
+  completeSell: (params: {
+    provider: string;
+    fromAccountId: string;
+    transaction: Transaction;
+    binaryPayload: Buffer | string;
+    signature: Buffer | string;  // Custom update to accept Buffer or string
+    feeStrategy: ExchangeCompleteParams["feeStrategy"];
+  }) => Promise<string>;
+};
+
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -114,8 +127,8 @@ export class ExchangeSDK {
     return this.walletAPIDecorator.walletClient;
   }
 
-  private get exchangeModule(): ExchangeModule {
-    return (this.walletAPI.custom as any).exchange as ExchangeModule;
+  private get exchangeModule(): ExtendedExchangeModule {
+    return (this.walletAPI.custom as any).exchange as ExtendedExchangeModule;
   }
 
   /**
@@ -389,7 +402,7 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         transaction,
-        binaryPayload: Buffer.from(binaryPayload),
+        binaryPayload,
         signature,
         feeStrategy,
       })
@@ -521,8 +534,8 @@ export class ExchangeSDK {
     type: string;
   }) {
     let recipientAddress: string;
-    let binaryPayload: string;
-    let signature: Buffer;
+    let binaryPayload: Buffer | string;
+    let signature: Buffer | string;
     let beData: BEData | undefined;
     let newAmount = amount;
 
@@ -540,7 +553,7 @@ export class ExchangeSDK {
       recipientAddress = data.recipientAddress;
       newAmount = data.amount;
       binaryPayload = data.binaryPayload;
-      signature = data.signature;
+      signature = Buffer.from(data.signature);
       beData = data.beData;
     } else {
       const data = await retrieveSellPayload({
@@ -561,7 +574,7 @@ export class ExchangeSDK {
 
       recipientAddress = data.payinAddress;
       binaryPayload = data.providerSig.payload;
-      signature = Buffer.from(data.providerSig.signature);
+      signature = data.providerSig.signature;
     }
 
     return {
