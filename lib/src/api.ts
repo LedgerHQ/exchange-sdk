@@ -5,7 +5,7 @@ import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
 import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL = "https://buy.api.aws.stg.ldg-tech.com/"; //"https://buy.api.aws.prd.ldg-tech.com/";
 
 
 let swapAxiosClient = axios.create({
@@ -119,7 +119,7 @@ export async function cancelSwap(payload: CancelSwapRequest) {
 }
 
 export async function cancelSell(data: CancelSellRequest) {
-  const {quoteId, ...payload} = data
+  const { quoteId, ...payload } = data
   await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
 }
 
@@ -213,7 +213,9 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     nonce: data.nonce,
   };
   const pathname = data.type === ExchangeType.SELL ? "sell/v1/remit" : "card/v1/remit";
+  console.log('sergiutest: before making the post to our backedn', { request })
   const res = await sellAxiosClient.post(pathname, request);
+  console.log('sergiutest: maksym', { res })
   return parseSellBackendInfo(res.data);
 }
 

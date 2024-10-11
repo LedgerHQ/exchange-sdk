@@ -130,7 +130,7 @@ export class ExchangeSDK {
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string
   ) {
-    this.providerId = providerId;
+    this.providerId = 'mercuryo' //providerId;
 
     if (!walletAPI) {
       if (!transport) {
@@ -313,12 +313,27 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
-      type = ExchangeType.SELL
+      type = ExchangeType.SELL,
+      //
+      // accountId, amount
     } = info;
+    console.log('sergiutest 1', { fromAccountId, fromAmount, })
+    let account = null;
+    let currency = null;
+    try {
+      const data =
+        await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
+      account = data.account;
+      currency = data.currency;
+      console.log('sergiutest 2')
+    } catch (error) {
+      console.log('sergiutest error', { error })
+    }
 
-    const { account, currency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
-
+    if (!account || !currency) {
+      console.log('sergiutest return')
+      return;
+    }
     // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
     this.canSpendAmount(account, initialAtomicAmount);
@@ -369,31 +384,48 @@ export class ExchangeSDK {
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: recipientAddress,
-      amount: fromAmountAtomic,
+      recipient: "2NA5Rgu8zXTBvUNFpnmjsDCi7vxUmvdP88P",
+      // recipient: recipientAddress,
+      amount: 535382 as any,
+      // amount: fromAmountAtomic,
       currency,
       customFeeConfig,
     })
-    .catch(async (error) => {
-      await this.cancelSellOnError({
-        error,
-        quoteId,
+      .catch(async (error) => {
+        await this.cancelSellOnError({
+          error,
+          quoteId,
+        });
+
+        this.handleError(error);
+        throw error;
       });
 
-      this.handleError(error);
-      throw error;
-    });
+    const merPayload = "ChxzYXJhLm5laWxhLWppbWVuZXpAbGVkZ2VyLmZyEgNCVEMaCAAAAAAACCtWIiMyTkE1Umd1OHpYVEJ2VU5GcG5tanNEQ2k3dnhVbXZkUDg4UCoDRVVSMgwKCAAAAAAAAHUwEAI6IDUK6gyX90fx0PdggUYUpHUjgBsa630Ly7qipPRr-BhL"
+    const mercuryoData = {
+      provider: "mercuryo",
+      fromAccountId,
+      transaction,
+      // binaryPayload: Buffer.from(merPayload, "ascii"),
+      // signature: Buffer.from("ebge0ZagvpTiFNf59rpzDcNQI-WLydcBfCAJlwRoe0VQm5tbPncvGfat0UFe0qHF22bpqEQnvTJ-YIfx-yOOzQ", "base64"),
+      binaryPayload: merPayload as any,
+      signature: "ebge0ZagvpTiFNf59rpzDcNQI-WLydcBfCAJlwRoe0VQm5tbPncvGfat0UFe0qHF22bpqEQnvTJ-YIfx-yOOzQ" as any,
+      feeStrategy,
+    }
 
     const tx = await this.exchangeModule
-      .completeSell({
-        provider: this.providerId,
-        fromAccountId,
-        transaction,
-        binaryPayload: Buffer.from(binaryPayload),
-        signature,
-        feeStrategy,
-      })
-      .catch(async(error: Error) => {
+      .completeSell(
+        mercuryoData
+        //   {
+        //   provider: this.providerId,
+        //   fromAccountId,
+        //   transaction,
+        //   binaryPayload: Buffer.from(binaryPayload),
+        //   signature,
+        //   feeStrategy,
+        // }
+      )
+      .catch(async (error: Error) => {
         await this.cancelSellOnError({
           error,
           quoteId,
@@ -416,7 +448,7 @@ export class ExchangeSDK {
       transactionId: tx,
     }).catch((error: Error) => {
       this.logger.error(error);
-    }); 
+    });
     return tx;
   }
 
@@ -543,6 +575,7 @@ export class ExchangeSDK {
       signature = data.signature;
       beData = data.beData;
     } else {
+      console.log('sergiutest: before getting data from api', { rate, amount }, amount.toNumber())
       const data = await retrieveSellPayload({
         quoteId: quoteId!,
         provider: this.providerId,
