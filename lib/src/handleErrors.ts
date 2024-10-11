@@ -26,7 +26,7 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
 
   const ignoredMessages = new Set(["User refused"]);
 
-  if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name)) {
+  if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name) || cause.swapCode === "swap003") {
     throw { ...error, handled: true }; // retry ready
   }
 
