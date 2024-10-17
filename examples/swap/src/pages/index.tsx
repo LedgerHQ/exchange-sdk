@@ -148,12 +148,6 @@ const IndexPage = () => {
         customFeeConfig,
         rate,
         toNewTokenId,
-        getSwapPayload: () => Promise.resolve({
-          binaryPayload: "CjBVUUFidnMydENuc1RXeENaWDdKVy1kcWxrMHZNOHhfbThhSnFGNHd3UldHdFRFWkQaMFVRQWJ2czJ0Q25zVFd4Q1pYN0pXLWRxbGswdk04eF9tOGFKcUY0d3dSV0d0VEVaRCoqMHg2NmM0MzcxYUU4RkZlRDJlYzFjMkVCYmJjQ2ZiN0U0OTQxODFFMUUzOgNUT05CA0VUSEoCBH5SBgV0-95gAGIgNQrqDJf3R_HQ92CBRhSkdSOAGxrrfQvLuqKk9Gv4GEs=",
-          signature: "cF85mRKNOECR5iVFSRTi-YQYGSdv34d3aVZabUqVNbJ_qo4SKaAWkyWgMCdU5MkZOtPczRmXIIMJeVvwe3yTUw==",
-          payinAddress: "EQAiav9ux5v3RPZknWP6iEKTaHVmGpDEktt0GNdW3YsIMXLW",
-          swapId: "swapId",
-        }),
       })
       .catch((err) => {
         console.error(

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ledgerhq/exchange-sdk": "workspace:*",
-    "@ledgerhq/wallet-api-client": "^1.5.5",
+    "@ledgerhq/wallet-api-client": "^1.6.0",
     "@ledgerhq/wallet-api-exchange-module": "^0.5.0-next",
     "axios": "^1.7.2",
     "bignumber.js": "^9.1.2",
