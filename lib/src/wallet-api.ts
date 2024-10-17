@@ -122,7 +122,7 @@ export default function walletApiDecorator(
     };
   }
 
-async function createTransaction({
+  async function createTransaction({
     recipient,
     amount,
     currency,
@@ -310,5 +310,6 @@ function tonTransaction({
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
     comment: { isEncrypted: false, text: "" },
+    fees: new BigNumber(0), // Set default value as completeExchange call prepareTransaction, which set again fees.
   } as TonTransaction;
 }

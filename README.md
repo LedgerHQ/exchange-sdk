@@ -25,6 +25,7 @@ Your LiveApp will need to have the following permissions in your `manifest.json`
     "account.list",
     "account.request",
     "currency.list",
+    "custom.exchange.error",
     "custom.exchange.start",
     "custom.exchange.complete"
   ]
