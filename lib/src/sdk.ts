@@ -174,10 +174,10 @@ export class ExchangeSDK {
   /**
    * Ask user to validate a swap transaction.
    * @param {SwapInfo} info - Information necessary to create a swap transaction.
-   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
+   * @return {Promise<{transactionId: string, swapId: string}>} Promise of the hash of the sent transaction.
    * @throws {ExchangeError}
    */
-  async swap(info: SwapInfo): Promise<string | void> {
+  async swap(info: SwapInfo): Promise<{transactionId: string, swapId: string}> {
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -260,7 +260,7 @@ export class ExchangeSDK {
         this.handleError(error);
         throw error;
       });
-    const tx = await this.exchangeModule
+    const transactionId = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
         fromAccountId,
@@ -292,12 +292,12 @@ export class ExchangeSDK {
         throw err;
       });
 
-    this.logger.log("Transaction sent:", tx);
+    this.logger.log("Transaction sent:", transactionId);
     this.logger.log("*** End Swap ***");
     await confirmSwap({
       provider: this.providerId,
       swapId: swapId ?? "",
-      transactionId: tx,
+      transactionId,
       sourceCurrencyId: fromAccount.currency,
       targetCurrencyId: toAccount.currency,
       hardwareWalletType: device?.modelId ?? "",
@@ -305,7 +305,7 @@ export class ExchangeSDK {
       this.logger.error(error);
       // Do not throw error; let the integrating app know that everything is OK for the swap
     });
-    return tx;
+    return {transactionId, swapId};
   }
 
   /**
