@@ -18,7 +18,7 @@ import {
 } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { CompleteExchangeError, PayinExtraIdError, SignatureStepError } from "./error";
+import { CompleteExchangeError, IgnoredSignatureStepError, PayinExtraIdError, SignatureStepError } from "./error";
 
 jest.mock("./api");
 
@@ -197,11 +197,11 @@ describe("swap", () => {
     };
 
     mockCompleteSwap.mockRejectedValueOnce(
-      new SignatureStepError(new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"))
+      new IgnoredSignatureStepError(new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"))
     );
 
     // WHEN
-    await expect(sdk.swap(swapData)).rejects.toThrow(SignatureStepError);
+    await expect(sdk.swap(swapData)).rejects.toThrow(IgnoredSignatureStepError);
 
     // THEN
     expect(cancelSwap as jest.Mock).toHaveBeenCalledWith({
