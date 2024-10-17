@@ -26,12 +26,12 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
 
   const ignoredMessages = new Set(["User refused"]);
 
-  if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name) || cause.swapCode === "swap003") {
+  if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name)) {
     throw { ...error, handled: true }; // retry ready
   }
 
   // Log and throw to Ledger Live if not ignored
-  if (error instanceof ExchangeError && cause) {
+  if (error instanceof ExchangeError && cause && cause.swapCode !== "swap003") {
     walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }
 
