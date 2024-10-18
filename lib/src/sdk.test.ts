@@ -122,7 +122,7 @@ describe("swap", () => {
     };
 
     // WHEN
-    const transactionId = await sdk.swap(swapData);
+    const {transactionId, swapId} = await sdk.swap(swapData);
 
     // THEN
     expect(mockStartSwapExchange).toBeCalled();
@@ -130,6 +130,7 @@ describe("swap", () => {
     expect(mockCompleteSwap).toBeCalled();
     expect(mockCompleteSell).not.toBeCalled();
     expect(transactionId).toEqual("TransactionId");
+    expect(swapId).toEqual("swap-id");
   });
 
   it("throws PayinExtraIdError error when no payinExtraId provided for stellar", async () => {
