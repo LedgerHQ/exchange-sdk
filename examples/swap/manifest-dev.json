@@ -35,6 +35,7 @@
     "wallet.capabilities",
     "wallet.userId",
     "wallet.info",
+    "custom.exchange.error",
     "custom.exchange.start",
     "custom.exchange.complete"
   ],

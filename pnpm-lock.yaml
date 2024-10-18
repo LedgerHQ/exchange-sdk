@@ -42,11 +42,11 @@ importers:
         specifier: workspace:*
         version: link:../../lib
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.5.5
-        version: 1.5.5
+        specifier: ^1.6.0
+        version: 1.6.0
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: ^0.5.0-next
-        version: 0.5.0-nightly.3
+        specifier: ^0.7.1
+        version: 0.7.1
       axios:
         specifier: ^1.7.2
         version: 1.7.4
@@ -94,8 +94,11 @@ importers:
         specifier: workspace:*
         version: link:../../lib
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.5.5
-        version: 1.5.5
+        specifier: ^1.6.0
+        version: 1.6.0
+      '@ledgerhq/wallet-api-exchange-module':
+        specifier: ^0.7.1
+        version: 0.7.1
       bignumber.js:
         specifier: ^9.1.2
         version: 9.1.2
@@ -144,11 +147,11 @@ importers:
         version: 1.3.4
     devDependencies:
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.5.9
-        version: 1.5.9
+        specifier: ^1.6.0
+        version: 1.6.0
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: 0.6.0-nightly.2
-        version: 0.6.0-nightly.2
+        specifier: ^0.7.1
+        version: 0.7.1
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
         version: 25.0.4(rollup@3.29.2)
@@ -625,17 +628,8 @@ packages:
     resolution: {integrity: sha512-5e+SFVavj1ORKlKaKr2BmTOekmXbelU7dC0cDkQLqag7xfuTPuGMUFx7KWJuv4bYZrTsoL2Z18VVCOKYxzoHcg==}
     engines: {node: '>=v12.0.0'}
 
-  '@ledgerhq/devices@8.2.2':
-    resolution: {integrity: sha512-SKahGA4p0mZ3ovypOJ2wa5mUvUkArE3HBrwWKYf+cRs+t/Licp3OJfhj+DHIxP3AfyH2xR6CFFWECYHeKwGsDQ==}
-
-  '@ledgerhq/devices@8.4.2':
-    resolution: {integrity: sha512-oWNTp3jCMaEvRHsXNYE/yo+PFMgXAJGFHLOU1UdE4/fYkniHbD9wdxwyZrZvrxr9hNw4/9wHiThyITwPtMzG7g==}
-
   '@ledgerhq/devices@8.4.3':
     resolution: {integrity: sha512-+ih+M27E6cm6DHrmw3GbS3mEaznCyFc0e62VdQux40XK2psgYhL2yBPftM4KCrBYm1UbHqXzqLN+Jb7rNIzsHg==}
-
-  '@ledgerhq/errors@6.18.0':
-    resolution: {integrity: sha512-L3jQWAGyooxRDk/MRlW2v4Ji9+kloBtdmz9wBkHaj2j0n+05rweJSV3GHw9oye1BYMbVFqFffmT4H3hlXlCasw==}
 
   '@ledgerhq/errors@6.19.0':
     resolution: {integrity: sha512-c3Jid7euMSnpHFp8H7iPtsmKDjwbTjlG46YKdw+RpCclsqtBx1uQDlYmcbP1Yv9201kVlUFUhhP4H623k8xzlQ==}
@@ -643,44 +637,20 @@ packages:
   '@ledgerhq/hw-app-exchange@0.6.0':
     resolution: {integrity: sha512-cFIgv4cg8O56Ud624HPYn1hHvisBIxnwkV8EQiJvXCoDCG5bG2hSCjE7JPII3SUXQoAUK23FPk0azSik375C4w==}
 
-  '@ledgerhq/hw-transport@6.30.4':
-    resolution: {integrity: sha512-VBcVd7UG8HDrjWMoZI5rqBDz+PBxLHTIPZOGY/fdMoEUwaBbss0Z3MxuJanMyerlfaLqnBSVuL0blz7rOyagkw==}
-
-  '@ledgerhq/hw-transport@6.30.5':
-    resolution: {integrity: sha512-JMl//7BgPBvWxrWyMu82jj6JEYtsQyOyhYtonWNgtxn6KUZWht3gU4gxmLpeIRr+DiS7e50mW7m3GA+EudZmmA==}
-
-  '@ledgerhq/hw-transport@6.31.2':
-    resolution: {integrity: sha512-B27UIzMzm2IXPGYnEB95R7eHxpXBkTBHh6MUJJQZVknt8LilEz1tfpTYUdzAKDGQ+Z5MZyYb01Eh3Zqm3kn3uw==}
-
   '@ledgerhq/hw-transport@6.31.3':
     resolution: {integrity: sha512-rFplkHWF5NXtlYwAusqLlMu298NHtRD+2q/jrTYc//uu/xJO9LkDIgKid6IVF2+e1Wj7yX6YQVrU6L0Yu1ntEw==}
 
   '@ledgerhq/logs@6.12.0':
     resolution: {integrity: sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==}
 
-  '@ledgerhq/wallet-api-client@1.5.5':
-    resolution: {integrity: sha512-xZTVotu6lM7LpRiC+Toc4dcsgQe81A6wVd78WlzVrCCWcwhj95Xyz97w3j18ETn2d9Gqacsd+hAsHajJjmH/2w==}
+  '@ledgerhq/wallet-api-client@1.6.0':
+    resolution: {integrity: sha512-xf5g9baUB1Fn94GKYGNXtlRCKTWnqMBv1w9bE/H3+IXubwY7Cdy5zhn4rI8+iA4Llmwujp+sZciesWAa9f63gg==}
 
-  '@ledgerhq/wallet-api-client@1.5.7':
-    resolution: {integrity: sha512-REY0NO/T+PxY0v8DXWuT0TFsPq01vuvgBmapzlgRN0PM/ZOS4grawZN1q/j/p1jnwqn5RGwB0po/EoDoY42RdA==}
+  '@ledgerhq/wallet-api-core@1.13.0':
+    resolution: {integrity: sha512-HGnkPcbkeoNr+XAH+5NSrgyRYD/sVD3tgCyoYPAKEs7j3W/eJyT/EvBWwV4yPKhghfSjuqMo1L+0wLCXnbt4Dw==}
 
-  '@ledgerhq/wallet-api-client@1.5.9':
-    resolution: {integrity: sha512-q95okG1R2mDIJc1n7lw06GDWpJmQIDdTrBUxxeeRzzcdEp1ZaVitS8O6tuHfE/Rva88iKhaT7ZMpkaZ3VELKBQ==}
-
-  '@ledgerhq/wallet-api-core@1.10.1':
-    resolution: {integrity: sha512-T4B092Q5Z7DS4Vl68xqqKDde8cCRsPZOx6ODSkAfMbNIt3ipcS+WiFA3PccCzm7u0H/W0QM+3MgXF38+vBDOnQ==}
-
-  '@ledgerhq/wallet-api-core@1.7.2':
-    resolution: {integrity: sha512-McleNF0FlL7xIuAIWozfpjDabhjbkNL3pvxRVGc84rVrv0G03RcKVuXqQKY7L+5zxbSQ7m4qxQnPXlaLaekk1w==}
-
-  '@ledgerhq/wallet-api-core@1.9.0':
-    resolution: {integrity: sha512-fhE+9mbf+AyNIgZVToUwfBUZvh5IYFrWvyMxGoLr9J6p0KmFjLBkYC+j+mHlfqWB57wCwAP5jBfXJxhsTYiPfg==}
-
-  '@ledgerhq/wallet-api-exchange-module@0.5.0-nightly.3':
-    resolution: {integrity: sha512-Gpd+jU/og0Bx+WNou/eWbw0vw3Ra3wwvw5gYMT4zkuKhlW1Y4Xcb18VbRuHjw4boRsK6J14P2H9hOFOIrnE0iQ==}
-
-  '@ledgerhq/wallet-api-exchange-module@0.6.0-nightly.2':
-    resolution: {integrity: sha512-tk4A0w0zU9vLH1AgcIORVjj9T0Jy4K9YQ0kd9mWNt99FGc4JiNBQi/FQVILQW1+3pyawHvUxgOEb1gDMuLK9oA==}
+  '@ledgerhq/wallet-api-exchange-module@0.7.1':
+    resolution: {integrity: sha512-PCLi8wfp06uoAyQLYSIBN708yWn8kKjlcjQ7U9yMxUbHv5wpTEtCdETkJiysvXg/7tgzFglErXab8l410oo35Q==}
 
   '@next/env@13.4.1':
     resolution: {integrity: sha512-eD6WCBMFjLFooLM19SIhSkWBHtaFrZFfg2Cxnyl3vS3DAdFRfnx5TY2RxlkuKXdIRCC0ySbtK9JXXt8qLCqzZg==}
@@ -3678,28 +3648,12 @@ snapshots:
     dependencies:
       lodash: 4.17.21
 
-  '@ledgerhq/devices@8.2.2':
-    dependencies:
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/logs': 6.12.0
-      rxjs: 7.8.1
-      semver: 7.6.0
-
-  '@ledgerhq/devices@8.4.2':
-    dependencies:
-      '@ledgerhq/errors': 6.19.0
-      '@ledgerhq/logs': 6.12.0
-      rxjs: 7.8.1
-      semver: 7.6.0
-
   '@ledgerhq/devices@8.4.3':
     dependencies:
       '@ledgerhq/errors': 6.19.0
       '@ledgerhq/logs': 6.12.0
       rxjs: 7.8.1
       semver: 7.6.0
-
-  '@ledgerhq/errors@6.18.0': {}
 
   '@ledgerhq/errors@6.19.0': {}
 
@@ -3712,27 +3666,6 @@ snapshots:
       protobufjs: 7.2.5
       protobufjs-cli: 1.1.2(protobufjs@7.2.5)
 
-  '@ledgerhq/hw-transport@6.30.4':
-    dependencies:
-      '@ledgerhq/devices': 8.2.2
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/logs': 6.12.0
-      events: 3.3.0
-
-  '@ledgerhq/hw-transport@6.30.5':
-    dependencies:
-      '@ledgerhq/devices': 8.2.2
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/logs': 6.12.0
-      events: 3.3.0
-
-  '@ledgerhq/hw-transport@6.31.2':
-    dependencies:
-      '@ledgerhq/devices': 8.4.2
-      '@ledgerhq/errors': 6.18.0
-      '@ledgerhq/logs': 6.12.0
-      events: 3.3.0
-
   '@ledgerhq/hw-transport@6.31.3':
     dependencies:
       '@ledgerhq/devices': 8.4.3
@@ -3742,54 +3675,23 @@ snapshots:
 
   '@ledgerhq/logs@6.12.0': {}
 
-  '@ledgerhq/wallet-api-client@1.5.5':
+  '@ledgerhq/wallet-api-client@1.6.0':
     dependencies:
-      '@ledgerhq/hw-transport': 6.30.4
-      '@ledgerhq/wallet-api-core': 1.7.2
+      '@ledgerhq/hw-transport': 6.31.3
+      '@ledgerhq/wallet-api-core': 1.13.0
       bignumber.js: 9.1.2
 
-  '@ledgerhq/wallet-api-client@1.5.7':
+  '@ledgerhq/wallet-api-core@1.13.0':
     dependencies:
-      '@ledgerhq/hw-transport': 6.31.2
-      '@ledgerhq/wallet-api-core': 1.9.0
-      bignumber.js: 9.1.2
-
-  '@ledgerhq/wallet-api-client@1.5.9':
-    dependencies:
-      '@ledgerhq/hw-transport': 6.30.5
-      '@ledgerhq/wallet-api-core': 1.10.1
-      bignumber.js: 9.1.2
-
-  '@ledgerhq/wallet-api-core@1.10.1':
-    dependencies:
-      '@ledgerhq/errors': 6.18.0
+      '@ledgerhq/errors': 6.19.0
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4
 
-  '@ledgerhq/wallet-api-core@1.7.2':
+  '@ledgerhq/wallet-api-exchange-module@0.7.1':
     dependencies:
-      '@ledgerhq/errors': 6.18.0
-      bignumber.js: 9.1.2
-      uuid: 9.0.1
-      zod: 3.22.4
-
-  '@ledgerhq/wallet-api-core@1.9.0':
-    dependencies:
-      '@ledgerhq/errors': 6.18.0
-      bignumber.js: 9.1.2
-      uuid: 9.0.1
-      zod: 3.22.4
-
-  '@ledgerhq/wallet-api-exchange-module@0.5.0-nightly.3':
-    dependencies:
-      '@ledgerhq/wallet-api-client': 1.5.7
-      '@ledgerhq/wallet-api-core': 1.9.0
-
-  '@ledgerhq/wallet-api-exchange-module@0.6.0-nightly.2':
-    dependencies:
-      '@ledgerhq/wallet-api-client': 1.5.9
-      '@ledgerhq/wallet-api-core': 1.10.1
+      '@ledgerhq/wallet-api-client': 1.6.0
+      '@ledgerhq/wallet-api-core': 1.13.0
 
   '@next/env@13.4.1': {}
 

@@ -39,6 +39,7 @@
     "wallet.info",
     "exchange.start",
     "exchange.complete",
+    "custom.exchange.error",
     "custom.exchange.start",
     "custom.exchange.complete"
   ],
