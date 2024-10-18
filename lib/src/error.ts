@@ -42,6 +42,12 @@ export class SignatureStepError extends ExchangeError {
     this.name = "SignatureStepError";
   }
 }
+export class IgnoredSignatureStepError extends ExchangeError {
+  constructor(nestedError?: Error) {
+    super("swap003Ignored", nestedError);
+    this.name = "SignatureStepError";
+  }
+}
 
 export class NotEnoughFunds extends ExchangeError {
   constructor() {

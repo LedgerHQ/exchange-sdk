@@ -22,6 +22,7 @@ import {
 } from "./api";
 import {
   CompleteExchangeError,
+  IgnoredSignatureStepError,
   NonceStepError,
   NotEnoughFunds,
   PayloadStepError,
@@ -287,7 +288,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new SignatureStepError(error);
+        const err = new IgnoredSignatureStepError(error);
         this.handleError(err);
         throw err;
       });
