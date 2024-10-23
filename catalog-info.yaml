@@ -48,7 +48,7 @@ metadata:
 spec:
   type: library 
   lifecycle: production 
-  owner: group:ptx # team github 
-  system: swap # pick one from the list in the getting started
+  owner: group:ptx
+  system: ptx
   dependsOn:
     - component:wallet-api
