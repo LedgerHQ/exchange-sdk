@@ -30,7 +30,8 @@ metadata:
     backstage.io/techdocs-ref: dir:.
     backstage.io/adr-location: <path>
     github.com/project-slug: LedgerHQ/exchange-sdk
-    jira/component: Exchange SDK
+    jira/project-key: LIVE
+    jira/component: Exchange-SDK
 
 
 ### Use the following labels if possible. 
@@ -49,6 +50,6 @@ spec:
   type: library 
   lifecycle: production 
   owner: group:ptx
-  system: ptx
+  system: ptx-services
   dependsOn:
     - component:wallet-api
