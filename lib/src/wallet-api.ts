@@ -19,6 +19,7 @@ import {
 } from "./error";
 import BigNumber from "bignumber.js";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { handleErrors } from "./handleErrors";
 
 export type UserAccount = {
   account: Account;
@@ -35,7 +36,7 @@ type TransactionWithCustomFee = TransactionCommon & {
 
 // Define a specific type for the strategy functions, assuming they might need parameters
 type TransactionStrategyFunction = (
-  params: TransactionWithCustomFee,
+  params: TransactionWithCustomFee
 ) => Transaction;
 
 const transactionStrategy: {
@@ -85,7 +86,7 @@ export type WalletApiDecorator = {
 };
 
 export default function walletApiDecorator(
-  walletAPIClient: WalletAPIClient,
+  walletAPIClient: WalletAPIClient
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
@@ -100,6 +101,7 @@ export default function walletApiDecorator(
     const account = allAccounts.find((value) => value.id === accountId);
     if (!account) {
       const err = new UnknownAccountError(new Error("Unknown accountId"));
+      handleErrors(walletAPI, err);
       throw err;
     }
 
@@ -109,10 +111,12 @@ export default function walletApiDecorator(
       })
       .catch(async (error: Error) => {
         const err = new ListCurrencyError(error);
+        handleErrors(walletAPI, err);
         throw err;
       });
     if (!currency) {
       const err = new UnknownAccountError(new Error("Unknown fromCurrency"));
+      handleErrors(walletAPI, err);
       throw err;
     }
 
@@ -257,10 +261,9 @@ export function bitcoinTransaction({
   amount,
   recipient,
   customFeeConfig,
-  extraTransactionParameters
+  extraTransactionParameters,
 }: TransactionWithCustomFee): Transaction {
-  if (extraTransactionParameters)
-    {
+  if (extraTransactionParameters) {
     return {
       family,
       amount,
