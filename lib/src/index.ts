@@ -3,6 +3,7 @@ export {
   ListAccountError,
   ListCurrencyError,
   NonceStepError,
+  DrawerClosedError,
   NotEnoughFunds,
   PayloadStepError,
   SignatureStepError,
