@@ -8,7 +8,10 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { ExchangeCompleteParams, ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import {
+  ExchangeCompleteParams,
+  ExchangeModule,
+} from "@ledgerhq/wallet-api-exchange-module";
 
 import {
   cancelSwap,
@@ -48,7 +51,7 @@ export const ExchangeType = {
   FUND: "FUND",
   SELL: "SELL",
   SWAP: "SWAP",
-  CARD: "CARD"
+  CARD: "CARD",
 } as const;
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
@@ -108,7 +111,7 @@ export type ExtendedExchangeModule = ExchangeModule & {
     fromAccountId: string;
     transaction: Transaction;
     binaryPayload: Buffer | string;
-    signature: Buffer | string;  // Custom update to accept Buffer or string
+    signature: Buffer | string; // Custom update to accept Buffer or string
     feeStrategy: ExchangeCompleteParams["feeStrategy"];
   }) => Promise<string>;
 };
@@ -178,7 +181,9 @@ export class ExchangeSDK {
    * @return {Promise<{transactionId: string, swapId: string}>} Promise of the hash of the sent transaction.
    * @throws {ExchangeError}
    */
-  async swap(info: SwapInfo): Promise<{transactionId: string, swapId: string}> {
+  async swap(
+    info: SwapInfo
+  ): Promise<{ transactionId: string; swapId: string }> {
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -221,21 +226,27 @@ export class ExchangeSDK {
 
     // Step 2: Ask for payload creation
     const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } =
-      await payloadRequest({
-        provider: this.providerId,
-        deviceTransactionId,
-        fromAccount,
-        toAccount,
-        toNewTokenId,
-        amount: fromAmount,
-        amountInAtomicUnit: fromAmountAtomic,
-        quoteId,
-      }).catch((error: Error) => {
-        const err = new PayloadStepError(error);
-        this.handleError(err);
-        throw err;
-      });
+    const {
+      binaryPayload,
+      signature,
+      payinAddress,
+      swapId,
+      payinExtraId,
+      extraTransactionParameters,
+    } = await payloadRequest({
+      provider: this.providerId,
+      deviceTransactionId,
+      fromAccount,
+      toAccount,
+      toNewTokenId,
+      amount: fromAmount,
+      amountInAtomicUnit: fromAmountAtomic,
+      quoteId,
+    }).catch((error: Error) => {
+      const err = new PayloadStepError(error);
+      this.handleError(err);
+      throw err;
+    });
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
@@ -306,7 +317,7 @@ export class ExchangeSDK {
       this.logger.error(error);
       // Do not throw error; let the integrating app know that everything is OK for the swap
     });
-    return {transactionId, swapId};
+    return { transactionId, swapId };
   }
 
   /**
@@ -327,7 +338,7 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
-      type = ExchangeType.SELL
+      type = ExchangeType.SELL,
     } = info;
 
     const { account, currency } =
@@ -335,6 +346,7 @@ export class ExchangeSDK {
 
     // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
+
     this.canSpendAmount(account, initialAtomicAmount);
 
     // Step 1: Ask for deviceTransactionId
@@ -360,7 +372,7 @@ export class ExchangeSDK {
         account,
         deviceTransactionId,
         initialAtomicAmount,
-        type
+        type,
       });
 
     if (getSellPayload) {
@@ -382,21 +394,22 @@ export class ExchangeSDK {
     });
 
     // Step 3: Send payload
-    const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: recipientAddress,
-      amount: fromAmountAtomic,
-      currency,
-      customFeeConfig,
-    })
-    .catch(async (error) => {
-      await this.cancelSellOnError({
-        error,
-        quoteId,
-      });
+    const transaction = await this.walletAPIDecorator
+      .createTransaction({
+        recipient: recipientAddress,
+        amount: fromAmountAtomic,
+        currency,
+        customFeeConfig,
+      })
+      .catch(async (error) => {
+        await this.cancelSellOnError({
+          error,
+          quoteId,
+        });
 
-      this.handleError(error);
-      throw error;
-    });
+        this.handleError(error);
+        throw error;
+      });
 
     const tx = await this.exchangeModule
       .completeSell({
@@ -407,7 +420,7 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
       })
-      .catch(async(error: Error) => {
+      .catch(async (error: Error) => {
         await this.cancelSellOnError({
           error,
           quoteId,
@@ -430,7 +443,7 @@ export class ExchangeSDK {
       transactionId: tx,
     }).catch((error: Error) => {
       this.logger.error(error);
-    }); 
+    });
     return tx;
   }
 
@@ -446,7 +459,9 @@ export class ExchangeSDK {
   private canSpendAmount(account: Account, amount: BigNumber): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
       const err = new NotEnoughFunds();
+      this.handleError(err);
       this.logger.error(err);
+
       throw err;
     }
   }
@@ -500,8 +515,8 @@ export class ExchangeSDK {
     error,
     quoteId,
   }: {
-    error: Error,
-    quoteId?: string,
+    error: Error;
+    quoteId?: string;
   }) {
     await cancelSell({
       provider: this.providerId,
