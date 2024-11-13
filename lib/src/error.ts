@@ -29,6 +29,15 @@ export class NonceStepError extends ExchangeError {
   }
 }
 
+export class DrawerClosedError extends ExchangeError {
+  handled: boolean;
+  constructor(nestedError?: Error) {
+    super("ll001", nestedError);
+    this.name = "DrawerClosedError";
+    this.handled = true;
+  }
+}
+
 export class PayloadStepError extends ExchangeError {
   constructor(nestedError?: Error) {
     super("swap002", nestedError);

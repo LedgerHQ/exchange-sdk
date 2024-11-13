@@ -25,6 +25,7 @@ import {
 } from "./api";
 import {
   CompleteExchangeError,
+  DrawerClosedError,
   IgnoredSignatureStepError,
   NonceStepError,
   NotEnoughFunds,
@@ -218,8 +219,13 @@ export class ExchangeSDK {
           tokenCurrency: toNewTokenId || "",
         })
         .catch((error: Error) => {
-          const err = new NonceStepError(error);
-          this.logger.error(err);
+          let err;
+          if (error instanceof Error && error.name === "DrawerClosedError") {
+            err = new DrawerClosedError(error);
+          } else {
+            err = new NonceStepError(error);
+          }
+          this.logger.error(err as Error);
           throw err;
         });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
@@ -355,10 +361,16 @@ export class ExchangeSDK {
         provider: this.providerId,
       })
       .catch((error: Error) => {
-        const err = new NonceStepError(error);
-        this.logger.error(err);
+        let err;
+        if (error instanceof Error && error.name === "DrawerClosedError") {
+          err = new DrawerClosedError(error);
+        } else {
+          err = new NonceStepError(error);
+        }
+        this.logger.error(err as Error);
         throw err;
-      });
+      })
+
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
