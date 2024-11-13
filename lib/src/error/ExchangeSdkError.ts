@@ -51,28 +51,28 @@ export class NotEnoughFunds extends ExchangeBaseError {
 
 export class ListAccountError extends ExchangeBaseError {
   constructor(nestedError?: Error) {
-    super("swap005", nestedError);
+    super("exchange005", nestedError);
     this.name = "ListAccountError";
   }
 }
 
 export class ListCurrencyError extends ExchangeBaseError {
   constructor(nestedError?: Error) {
-    super("swap006", nestedError);
+    super("exchange006", nestedError);
     this.name = "ListCurrencyError";
   }
 }
 
 export class UnknownAccountError extends ExchangeBaseError {
   constructor(nestedError?: Error) {
-    super("swap007", nestedError);
+    super("exchange007", nestedError);
     this.name = "UnknownAccountError";
   }
 }
 
 export class PayinExtraIdError extends ExchangeBaseError {
   constructor(nestedError?: Error) {
-    super("swap010", nestedError);
+    super("exchange010", nestedError);
     this.name = "PayinExtraIdError";
   }
 }
