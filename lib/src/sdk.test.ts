@@ -18,7 +18,7 @@ import {
 } from "./api";
 import { ExchangeSDK, FeeStrategy } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { CompleteExchangeError, IgnoredSignatureStepError, PayinExtraIdError, SignatureStepError } from "./error";
+import { CompleteExchangeError, IgnoredSignatureStepError, PayinExtraIdError, SignatureStepError } from "./error/SwapError";
 
 jest.mock("./api");
 

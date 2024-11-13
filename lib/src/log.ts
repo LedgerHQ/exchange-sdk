@@ -1,4 +1,5 @@
-import { ExchangeError } from "./error";
+import { SwapError } from './error/SwapError';
+import { ExchangeBaseError } from './error/ExchangeSdkError';
 
 const style = "background: #7f0000; color: #fff";
 const prefix = "[ExchangeSDK]";
@@ -16,7 +17,7 @@ export class Logger {
     }
   }
 
-  error(error: ExchangeError | Error) {
+  error(error: SwapError | ExchangeBaseError | Error) {
     if (this.isActive) {
       const errorParams = [
         `%c${prefix} ERROR`,

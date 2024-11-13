@@ -23,21 +23,14 @@ import {
   retrieveSwapPayload,
   setBackendUrl,
 } from "./api";
-import {
-  CompleteExchangeError,
-  DrawerClosedError,
-  IgnoredSignatureStepError,
-  NonceStepError,
-  NotEnoughFunds,
-  PayloadStepError,
-  SignatureStepError,
-} from "./error";
-import { handleErrors } from "./handleErrors";
+import { CompleteExchangeError } from "./error/SwapError";
+import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
 import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
+import { parseError, StepError } from "./error/parser";
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 
@@ -117,6 +110,8 @@ export type ExtendedExchangeModule = ExchangeModule & {
   }) => Promise<string>;
 };
 
+export type FlowType = 'generic' | 'sell' | 'card' | 'swap'
+
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -127,6 +122,7 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
+  private flowType: FlowType = 'generic';
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -172,8 +168,9 @@ export class ExchangeSDK {
     }
   }
 
-  private handleError(error: any) {
-    handleErrors(this.walletAPI, error);
+  private handleError(error: any, step?: StepError) {
+    const err = parseError(this.flowType, error, step);
+    handleErrors(this.walletAPI, err);
   }
 
   /**
@@ -182,9 +179,8 @@ export class ExchangeSDK {
    * @return {Promise<{transactionId: string, swapId: string}>} Promise of the hash of the sent transaction.
    * @throws {ExchangeError}
    */
-  async swap(
-    info: SwapInfo
-  ): Promise<{ transactionId: string; swapId: string }> {
+  async swap(info: SwapInfo): Promise<{ transactionId: string, swapId: string }> {
+    this.flowType = 'swap';
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -199,10 +195,10 @@ export class ExchangeSDK {
     } = info;
 
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.flowType);
 
     const { account: toAccount } =
-      await this.walletAPIDecorator.retrieveUserAccount(toAccountId);
+      await this.walletAPIDecorator.retrieveUserAccount(toAccountId, this.flowType);
 
     // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
@@ -219,12 +215,7 @@ export class ExchangeSDK {
           tokenCurrency: toNewTokenId || "",
         })
         .catch((error: Error) => {
-          let err;
-          if (error instanceof Error && error.name === "DrawerClosedError") {
-            err = new DrawerClosedError(error);
-          } else {
-            err = new NonceStepError(error);
-          }
+          const err = parseError(this.flowType, error, StepError.NONCE);
           this.logger.error(err as Error);
           throw err;
         });
@@ -232,27 +223,20 @@ export class ExchangeSDK {
 
     // Step 2: Ask for payload creation
     const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const {
-      binaryPayload,
-      signature,
-      payinAddress,
-      swapId,
-      payinExtraId,
-      extraTransactionParameters,
-    } = await payloadRequest({
-      provider: this.providerId,
-      deviceTransactionId,
-      fromAccount,
-      toAccount,
-      toNewTokenId,
-      amount: fromAmount,
-      amountInAtomicUnit: fromAmountAtomic,
-      quoteId,
-    }).catch((error: Error) => {
-      const err = new PayloadStepError(error);
-      this.handleError(err);
-      throw err;
-    });
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } =
+      await payloadRequest({
+        provider: this.providerId,
+        deviceTransactionId,
+        fromAccount,
+        toAccount,
+        toNewTokenId,
+        amount: fromAmount,
+        amountInAtomicUnit: fromAmountAtomic,
+        quoteId,
+      }).catch((error: Error) => {
+        this.handleError(error, StepError.PAYLOAD);
+        throw error;
+      });
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
@@ -263,7 +247,7 @@ export class ExchangeSDK {
         customFeeConfig,
         payinExtraId,
         extraTransactionParameters,
-      })
+      }, this.flowType)
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -305,9 +289,8 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new IgnoredSignatureStepError(error);
-        this.handleError(err);
-        throw err;
+        this.handleError(error, StepError.IGNORED_SIGNATURE);
+        throw error;
       });
 
     this.logger.log("Transaction sent:", transactionId);
@@ -333,6 +316,7 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async sell(info: SellInfo): Promise<string | void> {
+    this.flowType = 'generic';
     this.logger.log("*** Start Sell ***");
 
     const {
@@ -348,7 +332,7 @@ export class ExchangeSDK {
     } = info;
 
     const { account, currency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.flowType);
 
     // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
@@ -361,12 +345,7 @@ export class ExchangeSDK {
         provider: this.providerId,
       })
       .catch((error: Error) => {
-        let err;
-        if (error instanceof Error && error.name === "DrawerClosedError") {
-          err = new DrawerClosedError(error);
-        } else {
-          err = new NonceStepError(error);
-        }
+        const err = parseError(this.flowType, error, StepError.NONCE);
         this.logger.error(err as Error);
         throw err;
       })
@@ -406,13 +385,12 @@ export class ExchangeSDK {
     });
 
     // Step 3: Send payload
-    const transaction = await this.walletAPIDecorator
-      .createTransaction({
-        recipient: recipientAddress,
-        amount: fromAmountAtomic,
-        currency,
-        customFeeConfig,
-      })
+    const transaction = await this.walletAPIDecorator.createTransaction({
+      recipient: recipientAddress,
+      amount: fromAmountAtomic,
+      currency,
+      customFeeConfig,
+    }, this.flowType)
       .catch(async (error) => {
         await this.cancelSellOnError({
           error,
@@ -442,9 +420,8 @@ export class ExchangeSDK {
           throw error;
         }
 
-        const err = new SignatureStepError(error);
-        this.handleError(err);
-        throw err;
+        this.handleError(error, StepError.SIGNATURE);
+        throw error;
       });
 
     this.logger.log("Transaction sent:", tx);
@@ -470,10 +447,8 @@ export class ExchangeSDK {
 
   private canSpendAmount(account: Account, amount: BigNumber): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
-      const err = new NotEnoughFunds();
-      this.handleError(err);
-      this.logger.error(err);
-
+      const err = parseError(this.flowType, new Error('Not enough funds'), StepError.CHECK_FUNDS);
+      this.logger.error(err as Error);
       throw err;
     }
   }
@@ -573,8 +548,7 @@ export class ExchangeSDK {
         account.address,
         initialAtomicAmount
       ).catch((error: Error) => {
-        const err = new PayloadStepError(error);
-        this.handleError(err);
+        this.handleError(error, StepError.PAYLOAD);
         throw error;
       });
 
@@ -595,8 +569,7 @@ export class ExchangeSDK {
         nonce: deviceTransactionId,
         type,
       }).catch((error: Error) => {
-        const err = new PayloadStepError(error);
-        this.handleError(err);
+        this.handleError(error, StepError.PAYLOAD);
         throw error;
       });
 

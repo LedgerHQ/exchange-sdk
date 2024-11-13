@@ -1,4 +1,4 @@
-export class ExchangeError extends Error {
+export class SwapError extends Error {
   cause: {
     swapCode: string;
     [key: string]: string | Error | unknown | undefined;
@@ -22,71 +22,62 @@ export class ExchangeError extends Error {
   }
 }
 
-export class NonceStepError extends ExchangeError {
+export class NonceStepError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap001", nestedError);
     this.name = "NonceStepError";
   }
 }
 
-export class DrawerClosedError extends ExchangeError {
-  handled: boolean;
-  constructor(nestedError?: Error) {
-    super("ll001", nestedError);
-    this.name = "DrawerClosedError";
-    this.handled = true;
-  }
-}
-
-export class PayloadStepError extends ExchangeError {
+export class PayloadStepError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap002", nestedError);
     this.name = "PayloadStepError";
   }
 }
 
-export class SignatureStepError extends ExchangeError {
+export class SignatureStepError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap003", nestedError);
     this.name = "SignatureStepError";
   }
 }
-export class IgnoredSignatureStepError extends ExchangeError {
+export class IgnoredSignatureStepError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap003Ignored", nestedError);
     this.name = "SignatureStepError";
   }
 }
 
-export class NotEnoughFunds extends ExchangeError {
+export class NotEnoughFunds extends SwapError {
   constructor() {
     super("swap004");
     this.name = "NotEnoughFunds";
   }
 }
 
-export class ListAccountError extends ExchangeError {
+export class ListAccountError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap005", nestedError);
     this.name = "ListAccountError";
   }
 }
 
-export class ListCurrencyError extends ExchangeError {
+export class ListCurrencyError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap006", nestedError);
     this.name = "ListCurrencyError";
   }
 }
 
-export class UnknownAccountError extends ExchangeError {
+export class UnknownAccountError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap007", nestedError);
     this.name = "UnknownAccountError";
   }
 }
 
-export class PayinExtraIdError extends ExchangeError {
+export class PayinExtraIdError extends SwapError {
   constructor(nestedError?: Error) {
     super("swap010", nestedError);
     this.name = "PayinExtraIdError";

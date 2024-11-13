@@ -8,7 +8,7 @@ import {
   stellarTransaction,
   withoutGasLimitTransaction,
 } from "./wallet-api";
-import { PayinExtraIdError } from "./error";
+import { PayinExtraIdError } from "./error/SwapError";
 
 describe("defaultTransaction function", () => {
   it("creates a Transaction with correct properties", () => {
