@@ -91,7 +91,6 @@ export default function walletApiDecorator(
     const allAccounts = await walletAPI.account
       .list()
       .catch(async (error: Error) => {
-        // const err = new ListAccountError(error);
         const err = parseError(flowType, error, StepError.LIST_ACCOUNT);
         throw err;
       });
