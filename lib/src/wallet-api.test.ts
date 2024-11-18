@@ -8,7 +8,7 @@ import {
   stellarTransaction,
   withoutGasLimitTransaction,
 } from "./wallet-api";
-import { PayinExtraIdError } from "./error";
+import { PayinExtraIdError } from "./error/SwapError";
 
 describe("defaultTransaction function", () => {
   it("creates a Transaction with correct properties", () => {
@@ -71,6 +71,7 @@ describe("stellarTransaction function", () => {
         amount: new BigNumber("1.908"),
         recipient: "ADDRESS",
         customFeeConfig: {},
+        flowType: 'swap'
       })
     ).toThrowError(PayinExtraIdError);
   });
@@ -102,6 +103,7 @@ describe("rippleTransaction function", () => {
         amount: new BigNumber("10"),
         recipient: "ADDRESS",
         customFeeConfig: {},
+        flowType: 'swap'
       })
     ).toThrowError(PayinExtraIdError);
   });

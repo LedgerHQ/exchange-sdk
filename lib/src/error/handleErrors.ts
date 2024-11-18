@@ -1,5 +1,5 @@
 import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
-import { ExchangeError } from "./error";
+import { SwapError } from "./SwapError";
 
 /**
  * Display error on LL if LL did not do it. Then throw error back to the live app in case they need to react to it
@@ -29,13 +29,8 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
   if (ignoredMessages.has(message) || ignoredErrorNames.has(cause.name)) {
     throw { ...error, handled: true }; // retry ready
   }
-
   // Log and throw to Ledger Live if not ignored
-  if (
-    error instanceof ExchangeError &&
-    cause &&
-    cause.swapCode !== "swap003Ignored"
-  ) {
+  if (error instanceof SwapError && cause && cause.swapCode !== "swap003Ignored") {
     walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }
 
