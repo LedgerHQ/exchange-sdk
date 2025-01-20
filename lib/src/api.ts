@@ -6,7 +6,7 @@ import { BEData, ExchangeType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
-
+const FUND_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -14,6 +14,10 @@ let swapAxiosClient = axios.create({
 
 let sellAxiosClient = axios.create({
   baseURL: SELL_BACKEND_URL,
+});
+
+let fundAxiosClient = axios.create({
+  baseURL: FUND_BACKEND_URL,
 });
 
 /**
@@ -25,6 +29,9 @@ export function setBackendUrl(url: string) {
     baseURL: url,
   });
   sellAxiosClient = axios.create({
+    baseURL: url,
+  });
+  fundAxiosClient = axios.create({
     baseURL: url,
   });
 }
@@ -80,19 +87,8 @@ export type ConfirmSwapRequest = {
   hardwareWalletType?: string;
 };
 
-export type ConfirmSellRequest = {
-  provider: string;
-  quoteId: string;
-  transactionId: string;
-};
-
 export async function confirmSwap(payload: ConfirmSwapRequest) {
   await swapAxiosClient.post("accepted", payload);
-}
-
-export async function confirmSell(data: ConfirmSellRequest) {
-  const { quoteId, ...payload } = data
-  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
 }
 
 export type CancelSwapRequest = {
@@ -107,20 +103,8 @@ export type CancelSwapRequest = {
   swapStep?: string;
 };
 
-export type CancelSellRequest = {
-  provider: string;
-  quoteId: string;
-  statusCode?: string;
-  errorMessage?: string;
-};
-
 export async function cancelSwap(payload: CancelSwapRequest) {
   await swapAxiosClient.post("cancelled", payload);
-}
-
-export async function cancelSell(data: CancelSellRequest) {
-  const {quoteId, ...payload} = data
-  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
 }
 
 type SwapBackendResponse = {
@@ -164,6 +148,29 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
 /**
  * SELL *
  **/
+
+export type ConfirmSellRequest = {
+  provider: string;
+  quoteId: string;
+  transactionId: string;
+};
+
+export async function confirmSell(data: ConfirmSellRequest) {
+  const { quoteId, ...payload } = data;
+  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
+}
+
+export type CancelSellRequest = {
+  provider: string;
+  quoteId: string;
+  statusCode?: string;
+  errorMessage?: string;
+};
+
+export async function cancelSell(data: CancelSellRequest) {
+  const { quoteId, ...payload } = data;
+  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
+}
 
 export interface SellRequestPayload {
   quoteId: string;
@@ -246,3 +253,79 @@ export async function decodeSellPayloadAndPost(
     console.log("Error decoding payload", e);
   }
 }
+
+/**
+ * FUND *
+ **/
+
+export type ConfirmFundRequest = {
+  provider: string;
+  orderId: string;
+  transactionId: string;
+};
+
+export async function confirmFund(data: ConfirmFundRequest) {
+  const { orderId, ...payload } = data;
+  await sellAxiosClient.post(`/webhook/v1/transaction/${orderId}/accepted`,payload);
+}
+
+export type CancelFundRequest = {
+  provider: string;
+  orderId: string;
+  statusCode?: string;
+  errorMessage?: string;
+};
+
+export async function cancelFund(data: CancelFundRequest) {
+  const { orderId, ...payload } = data;
+  await sellAxiosClient.post(`/webhook/v1/transaction/${orderId}/cancelled`, payload);
+}
+
+export interface FundRequestPayload {
+  orderId: string;
+  provider: string;
+  fromCurrency: string;
+  refundAddress: string;
+  amountFrom: number;
+  nonce: string;
+  type: string;
+}
+
+export async function retrieveFundPayload(data: FundRequestPayload) {
+  const request = {
+    orderId: data.orderId,
+    provider: data.provider,
+    fromCurrency: data.fromCurrency,
+    refundAddress: data.refundAddress,
+    amountFrom: data.amountFrom,
+    nonce: data.nonce,
+  };
+  const pathname = data.type === ExchangeType.CARD ? "fund/card/v1/remit" : ""; //TODO use this pathname if exchange type is CARD -> otherwise throw error
+  const res = await fundAxiosClient.post(pathname, request);
+  return parseFundBackendInfo(res.data);
+}
+
+export interface FundResponsePayload {
+  sellId: string;
+  payinAddress: string;
+  createdAt: string;
+  providerFees: number;
+  referralFees: number;
+  payoutNetworkFees: number;
+  providerSig: {
+    payload: string;
+    signature: string;
+  };
+}
+
+const parseFundBackendInfo = (response: FundResponsePayload) => {
+  //TODO: Type this return?
+  return {
+    orderId: response.sellId, //TODO: Update this identifier once defined in BE
+    payinAddress: response.payinAddress,
+    providerSig: {
+      payload: response.providerSig.payload,
+      signature: response.providerSig.signature,
+    },
+  };
+};

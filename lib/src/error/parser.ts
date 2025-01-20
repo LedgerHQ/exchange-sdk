@@ -13,6 +13,7 @@ export enum StepError {
   LIST_CURRENCY = 'ListCurrencyStepError',
   UNKNOWN_ACCOUNT = 'UnknownAccountStepError',
   PAYIN_EXTRA_ID = 'PayinExtraIdStepError',
+  AMOUNT_MISMATCH = 'AmountMismatch'
 }
 
 export const parseError = (flowType: FlowType, err: Error, step?: StepError) => {
@@ -22,8 +23,6 @@ export const parseError = (flowType: FlowType, err: Error, step?: StepError) => 
 
   switch (flowType) {
     case 'generic':
-    case 'sell':
-    case 'card':
       const genericError = step && GenericErrors[step]
       return genericError ? new genericError(err) : err
     case 'swap':
@@ -41,7 +40,8 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.LIST_ACCOUNT]: ExchangeSdkError.ListAccountError,
   [StepError.LIST_CURRENCY]: ExchangeSdkError.ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
+  [StepError.AMOUNT_MISMATCH]: ExchangeSdkError.AmountMismatchError
 }
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -53,5 +53,6 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.LIST_ACCOUNT]: ListAccountError,
   [StepError.LIST_CURRENCY]: ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
+  [StepError.AMOUNT_MISMATCH]: ExchangeSdkError.AmountMismatchError
 }

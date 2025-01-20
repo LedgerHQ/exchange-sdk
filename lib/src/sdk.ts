@@ -22,6 +22,9 @@ import {
   retrieveSellPayload,
   retrieveSwapPayload,
   setBackendUrl,
+  retrieveFundPayload,
+  cancelFund,
+  confirmFund,
 } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
@@ -98,6 +101,18 @@ export type SellInfo = {
   type?: string;
 };
 
+/**
+ * Fund information required to request a user's fund transaction.
+ */
+export type FundInfo = {
+  orderId?: string;
+  fromAccountId: string;
+  fromAmount: BigNumber;
+  feeStrategy?: FeeStrategy;
+  customFeeConfig?: { [key: string]: BigNumber };
+  type?: string;
+};
+
 // extented type to include paramas as string for binaryPayload and signature
 export type ExtendedExchangeModule = ExchangeModule & {
   completeSell: (params: {
@@ -110,7 +125,7 @@ export type ExtendedExchangeModule = ExchangeModule & {
   }) => Promise<string>;
 };
 
-export type FlowType = 'generic' | 'sell' | 'card' | 'swap'
+export type FlowType = 'generic' | 'swap';
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -223,31 +238,31 @@ export class ExchangeSDK {
 
     // Step 2: Ask for payload creation
     const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } =
-      await payloadRequest({
-        provider: this.providerId,
-        deviceTransactionId,
-        fromAccount,
-        toAccount,
-        toNewTokenId,
-        amount: fromAmount,
-        amountInAtomicUnit: fromAmountAtomic,
-        quoteId,
-      }).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
-        throw error;
-      });
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } = 
+    await payloadRequest({
+      provider: this.providerId,
+      deviceTransactionId,
+      fromAccount,
+      toAccount,
+      toNewTokenId,
+      amount: fromAmount,
+      amountInAtomicUnit: fromAmountAtomic,
+      quoteId,
+    }).catch((error: Error) => {
+      this.handleError(error, StepError.PAYLOAD);
+      throw error;
+    });
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
       .createTransaction({
-        recipient: payinAddress,
-        amount: fromAmountAtomic,
-        currency: fromCurrency,
-        customFeeConfig,
-        payinExtraId,
-        extraTransactionParameters,
-      }, this.flowType)
+          recipient: payinAddress,
+          amount: fromAmountAtomic,
+          currency: fromCurrency,
+          customFeeConfig,
+          payinExtraId,
+          extraTransactionParameters,
+        }, this.flowType)
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -386,11 +401,11 @@ export class ExchangeSDK {
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
-      recipient: recipientAddress,
-      amount: fromAmountAtomic,
-      currency,
-      customFeeConfig,
-    }, this.flowType)
+          recipient: recipientAddress,
+          amount: fromAmountAtomic,
+          currency,
+          customFeeConfig,
+        }, this.flowType)
       .catch(async (error) => {
         await this.cancelSellOnError({
           error,
@@ -437,6 +452,127 @@ export class ExchangeSDK {
   }
 
   /**
+   * Ask user to validate a fund transaction.
+   * @param {FundInfo} info - Information necessary to create a fund transaction.
+   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
+   * @throws {ExchangeError}
+   */
+  async fund(info: FundInfo): Promise<string | void> {
+    this.flowType = "generic";
+    this.logger.log("*** Start Fund ***");
+
+    const {
+      fromAccountId,
+      fromAmount,
+      feeStrategy = FeeStrategyEnum.MEDIUM,
+      customFeeConfig = {},
+      orderId,
+      type = ExchangeType.CARD,
+    } = info;
+
+    const { account, currency } =
+      await this.walletAPIDecorator.retrieveUserAccount(
+        fromAccountId,
+        this.flowType
+      );
+
+    // Check enough funds
+    const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
+    this.canSpendAmount(account, initialAtomicAmount);
+
+    // Step 1: Ask for deviceTransactionId
+    const deviceTransactionId = await this.exchangeModule
+      //TODO: pass in provider after updating startFund in LL
+      .startFund
+      // {provider: this.providerId}
+      ()
+      .catch((error: Error) => {
+        const err = parseError(this.flowType, error, StepError.NONCE);
+        this.logger.error(err as Error);
+        throw err;
+      });
+
+    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
+
+    // Step 2: Ask for payload creation
+    const { recipientAddress, binaryPayload, signature, amount } =
+      await this.fundPayloadRequest({
+        orderId,
+        amount: fromAmount,
+        account,
+        deviceTransactionId,
+        type,
+      });
+
+    // Compare initial amount with payload amount
+    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
+    this.verifyAmount(initialAtomicAmount, fromAmountAtomic);
+
+    this.logger.log("Payload received:", {
+      recipientAddress,
+      amount: fromAmountAtomic,
+      binaryPayload,
+      signature,
+    });
+
+    // Step 3: Send payload
+    const transaction = await this.walletAPIDecorator
+      .createTransaction(
+        {
+          recipient: recipientAddress,
+          amount: fromAmountAtomic,
+          currency,
+          customFeeConfig,
+        },
+        this.flowType
+      )
+      .catch(async (error) => {
+        await this.cancelFundOnError({
+          error,
+          orderId,
+        });
+
+        this.handleError(error);
+        throw error;
+      });
+
+    const tx = await this.exchangeModule
+      .completeFund({
+        provider: this.providerId,
+        fromAccountId,
+        transaction,
+        //TODO: Remove any type cast after updating types for completeFund in LL
+        binaryPayload: binaryPayload as any,
+        signature: binaryPayload as any,
+        feeStrategy,
+      })
+      .catch(async (error: Error) => {
+        await this.cancelFundOnError({
+          error,
+          orderId,
+        });
+
+        if (error.name === "DisabledTransactionBroadcastError") {
+          throw error;
+        }
+
+        this.handleError(error, StepError.SIGNATURE);
+        throw error;
+      });
+
+    this.logger.log("Transaction sent:", tx);
+    this.logger.log("*** End Fund ***");
+    await confirmFund({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      transactionId: tx,
+    }).catch((error: Error) => {
+      this.logger.error(error);
+    });
+    return tx;
+  }
+
+  /**
    * Disconnects this instance from the WalletAPI server.
    */
   disconnect() {
@@ -462,6 +598,22 @@ export class ExchangeSDK {
       throw new Error("Unable to convert amount to atomic unit");
     }
     return convertedNumber;
+  }
+
+  private verifyAmount(
+    //TODO: test this check
+    initialAmount: BigNumber,
+    payloadAmount: BigNumber
+  ): void {
+    if (!initialAmount.isEqualTo(payloadAmount)) {
+      const err = parseError(
+        this.flowType,
+        new Error("Amount mismatch"),
+        StepError.AMOUNT_MISMATCH
+      );
+      this.logger.error(err as Error);
+      throw err;
+    }
   }
 
   private getSwapStep(error: Error): string {
@@ -585,5 +737,64 @@ export class ExchangeSDK {
       amount: newAmount,
       beData,
     };
+  }
+
+  private async fundPayloadRequest({
+    account,
+    orderId,
+    amount,
+    deviceTransactionId,
+    type,
+  }: {
+    amount: BigNumber;
+    account: Account;
+    deviceTransactionId: string;
+    orderId?: string;
+    type: string;
+  }) {
+    let recipientAddress: string;
+    let binaryPayload: Buffer | string;
+    let signature: Buffer | string;
+
+    const data = await retrieveFundPayload({
+      orderId: orderId!,
+      provider: this.providerId,
+      fromCurrency: account.currency,
+      refundAddress: account.address,
+      amountFrom: amount.toNumber(),
+      nonce: deviceTransactionId,
+      type,
+    }).catch((error: Error) => {
+      this.handleError(error, StepError.PAYLOAD);
+      throw error;
+    });
+
+    recipientAddress = data.payinAddress;
+    binaryPayload = data.providerSig.payload;
+    signature = data.providerSig.signature;
+
+    return {
+      recipientAddress,
+      binaryPayload,
+      signature,
+      amount,
+    };
+  }
+
+  private async cancelFundOnError({
+    error,
+    orderId,
+  }: {
+    error: Error;
+    orderId?: string;
+  }) {
+    await cancelFund({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      statusCode: error.name,
+      errorMessage: error.message,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
+    });
   }
 }
