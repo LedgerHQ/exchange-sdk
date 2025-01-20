@@ -238,31 +238,31 @@ export class ExchangeSDK {
 
     // Step 2: Ask for payload creation
     const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } = 
-    await payloadRequest({
-      provider: this.providerId,
-      deviceTransactionId,
-      fromAccount,
-      toAccount,
-      toNewTokenId,
-      amount: fromAmount,
-      amountInAtomicUnit: fromAmountAtomic,
-      quoteId,
-    }).catch((error: Error) => {
-      this.handleError(error, StepError.PAYLOAD);
-      throw error;
-    });
+    const { binaryPayload, signature, payinAddress, swapId, payinExtraId, extraTransactionParameters } =
+      await payloadRequest({
+        provider: this.providerId,
+        deviceTransactionId,
+        fromAccount,
+        toAccount,
+        toNewTokenId,
+        amount: fromAmount,
+        amountInAtomicUnit: fromAmountAtomic,
+        quoteId,
+      }).catch((error: Error) => {
+        this.handleError(error, StepError.PAYLOAD);
+        throw error;
+      });
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
       .createTransaction({
-          recipient: payinAddress,
-          amount: fromAmountAtomic,
-          currency: fromCurrency,
-          customFeeConfig,
-          payinExtraId,
-          extraTransactionParameters,
-        }, this.flowType)
+        recipient: payinAddress,
+        amount: fromAmountAtomic,
+        currency: fromCurrency,
+        customFeeConfig,
+        payinExtraId,
+        extraTransactionParameters,
+      }, this.flowType)
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -401,11 +401,11 @@ export class ExchangeSDK {
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator.createTransaction({
-          recipient: recipientAddress,
-          amount: fromAmountAtomic,
-          currency,
-          customFeeConfig,
-        }, this.flowType)
+      recipient: recipientAddress,
+      amount: fromAmountAtomic,
+      currency,
+      customFeeConfig,
+    }, this.flowType)
       .catch(async (error) => {
         await this.cancelSellOnError({
           error,
