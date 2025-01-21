@@ -1,7 +1,7 @@
 import { IgnoredSignatureStepError, ListAccountError, ListCurrencyError, NonceStepError, NotEnoughFunds, PayinExtraIdError, PayloadStepError, SignatureStepError, UnknownAccountError } from './SwapError';
 import ExchangeSdkError, { ExchangeSdkErrorType } from "./ExchangeSdkError"
 import { DrawerClosedError } from "./LedgerLiveError"
-import { FlowType } from '../sdk';
+import { ErrorType } from '../sdk';
 
 export enum StepError {
   NONCE = 'NonceStepError',
@@ -15,12 +15,12 @@ export enum StepError {
   PAYIN_EXTRA_ID = 'PayinExtraIdStepError',
 }
 
-export const parseError = (flowType: FlowType, err: Error, step?: StepError) => {
+export const parseError = (errorType: ErrorType, err: Error, step?: StepError) => {
   if (err instanceof Error && err.name === "DrawerClosedError") {
     return new DrawerClosedError(err)
   }
 
-  switch (flowType) {
+  switch (errorType) {
     case 'generic':
       const genericError = step && GenericErrors[step]
       return genericError ? new genericError(err) : err

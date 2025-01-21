@@ -24,7 +24,7 @@ import {
   retrieveSwapPayload,
   SellRequestPayload,
 } from "./api";
-import { ExchangeType } from "./sdk";
+import { ProductType } from "./sdk";
 
 describe("Swap", () => {
   describe("retrieveSwapPayload", () => {
@@ -229,7 +229,7 @@ describe("Sell", () => {
         amountFrom: 0,
         amountTo: 0,
         nonce: "",
-        type: ExchangeType.SELL,
+        type: ProductType.SELL,
       };
 
       const { type, ...expectedRequestPayload } = mockRetrieveSellPayloadParams;
@@ -266,7 +266,7 @@ describe("Sell", () => {
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
 
-    it("uses correct request url when exchange type is not SELL", async () => {
+    it("uses correct request url when product type is CARD", async () => {
       mockPost.mockResolvedValueOnce({
         data: {
           sellId: "",
@@ -291,10 +291,28 @@ describe("Sell", () => {
         amountFrom: 0,
         amountTo: 0,
         nonce: "",
-        type: ExchangeType.CARD,
+        type: ProductType.CARD,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual("card/v1/remit");
+    });
+
+    it("throws error if passed in product type is not supported", async () => {
+      await expect(
+        retrieveSellPayload({
+          quoteId: "",
+          provider: "",
+          fromCurrency: "",
+          toCurrency: "",
+          refundAddress: "",
+          amountFrom: 0,
+          amountTo: 0,
+          nonce: "",
+          type: ProductType.SWAP,
+        })
+      ).rejects.toThrowError("ProductTypeNotSupported");
+
+      expect(mockPost).not.toBeCalled();
     });
   });
 });
@@ -346,7 +364,7 @@ describe("Fund", () => {
         refundAddress: mockAccount,
         amountFrom: 0,
         nonce: "",
-        type: ExchangeType.CARD,
+        type: ProductType.CARD,
       };
 
       const { type, ...expectedRequestPayload } = mockRetrieveFundPayloadParams;
@@ -381,6 +399,22 @@ describe("Fund", () => {
 
       expect(mockPost.mock.calls[0][0]).toEqual("fund/card/v1/remit");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
+    });
+
+    it("throws error if passed in product type is not supported", async () => {
+      await expect(
+        retrieveFundPayload({
+          orderId: "",
+          provider: "",
+          fromCurrency: "",
+          refundAddress: "",
+          amountFrom: 0,
+          nonce: "",
+          type: ProductType.SWAP,
+        })
+      ).rejects.toThrowError("ProductTypeNotSupported");
+
+      expect(mockPost).not.toBeCalled();
     });
   });
 });

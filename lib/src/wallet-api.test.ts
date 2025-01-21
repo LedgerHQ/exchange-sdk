@@ -71,7 +71,7 @@ describe("stellarTransaction function", () => {
         amount: new BigNumber("1.908"),
         recipient: "ADDRESS",
         customFeeConfig: {},
-        flowType: 'swap'
+        errorType: 'swap'
       })
     ).toThrowError(PayinExtraIdError);
   });
@@ -103,7 +103,7 @@ describe("rippleTransaction function", () => {
         amount: new BigNumber("10"),
         recipient: "ADDRESS",
         customFeeConfig: {},
-        flowType: 'swap'
+        errorType: 'swap'
       })
     ).toThrowError(PayinExtraIdError);
   });

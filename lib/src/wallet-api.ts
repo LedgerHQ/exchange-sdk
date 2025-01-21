@@ -14,7 +14,7 @@ import {
 import BigNumber from "bignumber.js";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { handleErrors } from "./error/handleErrors";
-import { FlowType } from "./sdk";
+import { ErrorType } from "./sdk";
 import { parseError, StepError } from "./error/parser";
 
 export type UserAccount = {
@@ -27,7 +27,7 @@ type TransactionWithCustomFee = TransactionCommon & {
     [key: string]: BigNumber;
   };
   payinExtraId?: string;
-  flowType?: FlowType;
+  errorType?: ErrorType;
   extraTransactionParameters?: string;
 };
 
@@ -78,8 +78,8 @@ export type CreateTransactionArg = {
 
 export type WalletApiDecorator = {
   walletClient: WalletAPIClient;
-  retrieveUserAccount: (accountId: string, flowType: FlowType) => Promise<UserAccount>;
-  createTransaction: (arg: CreateTransactionArg, flowType?: FlowType) => Promise<Transaction>;
+  retrieveUserAccount: (accountId: string, errorType: ErrorType) => Promise<UserAccount>;
+  createTransaction: (arg: CreateTransactionArg, errorType?: ErrorType) => Promise<Transaction>;
 };
 
 export default function walletApiDecorator(
@@ -87,16 +87,16 @@ export default function walletApiDecorator(
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
-  async function retrieveUserAccount(accountId: string, flowType: FlowType): Promise<UserAccount> {
+  async function retrieveUserAccount(accountId: string, errorType: ErrorType): Promise<UserAccount> {
     const allAccounts = await walletAPI.account
       .list()
       .catch(async (error: Error) => {
-        const err = parseError(flowType, error, StepError.LIST_ACCOUNT);
+        const err = parseError(errorType, error, StepError.LIST_ACCOUNT);
         throw err;
       });
     const account = allAccounts.find((value) => value.id === accountId);
     if (!account) {
-      const err = parseError(flowType, new Error("Unknown accountId"), StepError.UNKNOWN_ACCOUNT);
+      const err = parseError(errorType, new Error("Unknown accountId"), StepError.UNKNOWN_ACCOUNT);
       handleErrors(walletAPI, err);
       throw err;
     }
@@ -106,12 +106,12 @@ export default function walletApiDecorator(
         currencyIds: [account.currency],
       })
       .catch(async (error: Error) => {
-        const err = parseError(flowType, error, StepError.LIST_CURRENCY);
+        const err = parseError(errorType, error, StepError.LIST_CURRENCY);
         handleErrors(walletAPI, err);
         throw err;
       });
     if (!currency) {
-      const err = parseError(flowType, new Error("Unknown fromCurrency"), StepError.LIST_CURRENCY);
+      const err = parseError(errorType, new Error("Unknown fromCurrency"), StepError.LIST_CURRENCY);
       handleErrors(walletAPI, err);
       throw err;
     }
@@ -129,7 +129,7 @@ export default function walletApiDecorator(
     customFeeConfig,
     payinExtraId,
     extraTransactionParameters,
-  }: CreateTransactionArg, flowType: FlowType = 'generic'): Promise<Transaction> {
+  }: CreateTransactionArg, errorType: ErrorType = 'generic'): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
       const currencies = await walletAPI.currency.list({
@@ -158,7 +158,7 @@ export default function walletApiDecorator(
       customFeeConfig,
       payinExtraId,
       extraTransactionParameters,
-      flowType
+      errorType
     });
   }
 
@@ -207,9 +207,9 @@ export function stellarTransaction({
   recipient,
   customFeeConfig,
   payinExtraId,
-  flowType = "generic",
+  errorType = "generic",
 }: TransactionWithCustomFee): StellarTransaction {
-  if (!payinExtraId) throw parseError(flowType, new Error("Missing payinExtraId"), StepError.PAYIN_EXTRA_ID);
+  if (!payinExtraId) throw parseError(errorType, new Error("Missing payinExtraId"), StepError.PAYIN_EXTRA_ID);
 
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
@@ -224,9 +224,9 @@ export function rippleTransaction({
   recipient,
   customFeeConfig,
   payinExtraId,
-  flowType = "generic",
+  errorType = "generic",
 }: TransactionWithCustomFee): RippleTransaction {
-  if (!payinExtraId) throw parseError(flowType, new Error("Missing payinExtraId"), StepError.PAYIN_EXTRA_ID);
+  if (!payinExtraId) throw parseError(errorType, new Error("Missing payinExtraId"), StepError.PAYIN_EXTRA_ID);
 
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
