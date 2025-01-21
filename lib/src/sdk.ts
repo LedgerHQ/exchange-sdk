@@ -358,6 +358,7 @@ export class ExchangeSDK {
     const deviceTransactionId = await this.exchangeModule
       .startSell({
         provider: this.providerId,
+        //TODO: Pass in fromAccountId (newer version of the exchange module supports this)
       })
       .catch((error: Error) => {
         const err = parseError(this.flowType, error, StepError.NONCE);
@@ -390,6 +391,7 @@ export class ExchangeSDK {
     }
 
     const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
+    //TODO: verify that the new amount is the same as initial amount
     this.canSpendAmount(account, fromAmountAtomic);
 
     this.logger.log("Payload received:", {
@@ -477,15 +479,14 @@ export class ExchangeSDK {
       );
 
     // Check enough funds
-    const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
-    this.canSpendAmount(account, initialAtomicAmount);
+    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, currency);
+    this.canSpendAmount(account, fromAmountAtomic);
 
     // Step 1: Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
-      //TODO: pass in provider after updating startFund in LL
-      .startFund
-      // {provider: this.providerId}
-      ()
+      //TODO: pass in provider and fromAccountId after updating startFund in LL
+      // {provider: this.providerId, fromAccountId}
+      .startFund()
       .catch((error: Error) => {
         const err = parseError(this.flowType, error, StepError.NONCE);
         this.logger.error(err as Error);
@@ -495,7 +496,7 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
-    const { recipientAddress, binaryPayload, signature, amount } =
+    const { recipientAddress, binaryPayload, signature } =
       await this.fundPayloadRequest({
         orderId,
         amount: fromAmount,
@@ -503,10 +504,6 @@ export class ExchangeSDK {
         deviceTransactionId,
         type,
       });
-
-    // Compare initial amount with payload amount
-    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
-    this.verifyAmount(initialAtomicAmount, fromAmountAtomic);
 
     this.logger.log("Payload received:", {
       recipientAddress,
@@ -598,22 +595,6 @@ export class ExchangeSDK {
       throw new Error("Unable to convert amount to atomic unit");
     }
     return convertedNumber;
-  }
-
-  private verifyAmount(
-    //TODO: test this check
-    initialAmount: BigNumber,
-    payloadAmount: BigNumber
-  ): void {
-    if (!initialAmount.isEqualTo(payloadAmount)) {
-      const err = parseError(
-        this.flowType,
-        new Error("Amount mismatch"),
-        StepError.AMOUNT_MISMATCH
-      );
-      this.logger.error(err as Error);
-      throw err;
-    }
   }
 
   private getSwapStep(error: Error): string {
@@ -777,7 +758,6 @@ export class ExchangeSDK {
       recipientAddress,
       binaryPayload,
       signature,
-      amount,
     };
   }
 

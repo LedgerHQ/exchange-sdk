@@ -77,14 +77,7 @@ export class PayinExtraIdError extends ExchangeBaseError {
   }
 }
 
-export class AmountMismatchError extends ExchangeBaseError {
-  constructor(nestedError?: Error) {
-    super("exchange011", nestedError);
-    this.name = "AmountMismatchError";
-  }
-}
-
-export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError | AmountMismatchError
+export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError
 
 export default {
   ExchangeBaseError,
@@ -95,6 +88,5 @@ export default {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
-  PayinExtraIdError,
-  AmountMismatchError
+  PayinExtraIdError
 }
