@@ -15,10 +15,18 @@ import {
   retrieveSellPayload,
   confirmSell,
   cancelSell,
+  retrieveFundPayload,
+  confirmFund,
+  cancelFund,
 } from "./api";
-import { ExchangeSDK, FeeStrategy } from "./sdk";
+import { ExchangeSDK, FeeStrategy, FundInfo, SellInfo } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { CompleteExchangeError, IgnoredSignatureStepError, PayinExtraIdError, SignatureStepError } from "./error/SwapError";
+import {
+  CompleteExchangeError,
+  IgnoredSignatureStepError,
+  PayinExtraIdError,
+  SignatureStepError,
+} from "./error/SwapError";
 
 jest.mock("./api");
 
@@ -60,11 +68,17 @@ const mockStartSwapExchange = jest
     device,
     transactionId: "DeviceTransactionId",
   });
+const mockStartFund = jest
+  .spyOn(ExchangeModule.prototype, "startFund")
+  .mockResolvedValue("DeviceTransactionId");
 const mockCompleteSwap = jest
   .spyOn(ExchangeModule.prototype, "completeSwap")
   .mockResolvedValue("TransactionId");
 const mockCompleteSell = jest
   .spyOn(ExchangeModule.prototype, "completeSell")
+  .mockResolvedValue("TransactionId");
+const mockCompleteFund = jest
+  .spyOn(ExchangeModule.prototype, "completeFund")
   .mockResolvedValue("TransactionId");
 
 const mockedTransport = {
@@ -85,8 +99,10 @@ beforeEach(() => {
   mockCurrenciesList.mockClear();
   mockStartExchange.mockClear();
   mockStartSwapExchange.mockClear();
+  mockStartFund.mockClear();
   mockCompleteSwap.mockClear();
   mockCompleteSell.mockClear();
+  mockCompleteFund.mockClear();
 });
 
 describe("swap", () => {
@@ -248,7 +264,7 @@ describe("sell", () => {
       binaryPayload: Buffer.from(""),
       signature: Buffer.from(""),
     });
-    const sellData = {
+    const sellData: SellInfo = {
       quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
@@ -263,6 +279,7 @@ describe("sell", () => {
     expect(mockStartExchange).toBeCalled();
     expect(mockAccountList).toBeCalled();
     expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteFund).not.toBeCalled();
     expect(mockCompleteSell).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
@@ -287,7 +304,7 @@ describe("sell", () => {
       },
     });
 
-    const sellData = {
+    const sellData: SellInfo = {
       quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
@@ -302,7 +319,54 @@ describe("sell", () => {
     // THEN
     expect(mockStartExchange).toBeCalled();
     expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteFund).not.toBeCalled();
     expect(mockCompleteSell).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
+  });
+});
+
+describe("fund", () => {
+  beforeAll(() => {
+    (retrieveFundPayload as jest.Mock).mockResolvedValue({
+      payinAddress: "",
+      orderId: "fund-id",
+      providerSig: {
+        payload: "",
+        signature: "",
+      },
+    });
+    (confirmFund as jest.Mock).mockResolvedValue({});
+    (cancelFund as jest.Mock).mockResolvedValue({});
+  });
+
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+    // GIVEN
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "currency-id-1",
+        decimals: 4,
+        family: "ethereum",
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    const fundData: FundInfo = {
+      orderId: "orderId",
+      fromAccountId: "id-1",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+    };
+
+    // WHEN
+    const transactionId = await sdk.fund(fundData);
+
+    // THEN
+    expect(mockStartFund).toBeCalled();
+    expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteSell).not.toBeCalled();
+    expect(mockCompleteFund).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
 });

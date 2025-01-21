@@ -22,8 +22,6 @@ export const parseError = (flowType: FlowType, err: Error, step?: StepError) => 
 
   switch (flowType) {
     case 'generic':
-    case 'sell':
-    case 'card':
       const genericError = step && GenericErrors[step]
       return genericError ? new genericError(err) : err
     case 'swap':

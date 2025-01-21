@@ -76,6 +76,7 @@ export class PayinExtraIdError extends ExchangeBaseError {
     this.name = "PayinExtraIdError";
   }
 }
+
 export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError
 
 export default {
