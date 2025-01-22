@@ -238,9 +238,7 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-
   const pathname = supportedProductsByExchangeType[ExchangeType.SELL][data.type]
-
   const res = await sellAxiosClient.post(pathname!, request);
   return parseSellBackendInfo(res.data);
 }
@@ -321,9 +319,7 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     amountFrom: data.amountFrom,
     nonce: data.nonce,
   };
-
   const pathname = supportedProductsByExchangeType[ExchangeType.FUND][data.type]
-  
   const res = await fundAxiosClient.post(pathname!, request);
   return parseFundBackendInfo(res.data);
 }
