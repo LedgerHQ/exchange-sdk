@@ -2,7 +2,7 @@ import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
-import { BEData, ProductType } from "./sdk";
+import { BEData, ExchangeType, ProductType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
@@ -19,6 +19,25 @@ let sellAxiosClient = axios.create({
 let fundAxiosClient = axios.create({
   baseURL: FUND_BACKEND_URL,
 });
+
+type SupportedProductsByExchangeType = {
+  [key in ExchangeType]: Partial<{
+    [key in ProductType]: string
+  }>
+}
+/**
+ * Available product endpoints based on exchange type
+ */
+export const supportedProductsByExchangeType: SupportedProductsByExchangeType = {
+  [ExchangeType.SWAP]: {},
+  [ExchangeType.SELL]: {
+    [ProductType.CARD]: 'card/v1/remit',
+    [ProductType.SELL]: 'sell/v1/remit',
+  },
+  [ExchangeType.FUND]: {
+    [ProductType.CARD]: 'fund/card/v1/remit'
+  },
+}
 
 /**
  * Override the default axios client base url environment (default is production)
@@ -220,16 +239,9 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     nonce: data.nonce,
   };
 
-  const pathnameByProductType: Partial<{[key in ProductType]: string}> = {
-    [ProductType.CARD]: 'card/v1/remit',
-    [ProductType.SELL]: 'sell/v1/remit',
-  }
+  const pathname = supportedProductsByExchangeType[ExchangeType.SELL][data.type]
 
-  if (!pathnameByProductType[data.type]) {
-    throw new Error('ProductTypeNotSupported');
-  }
-
-  const res = await sellAxiosClient.post(pathnameByProductType[data.type]!, request);
+  const res = await sellAxiosClient.post(pathname!, request);
   return parseSellBackendInfo(res.data);
 }
 
@@ -310,15 +322,9 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     nonce: data.nonce,
   };
 
-  const pathnameByProductType: Partial<{[key in ProductType]: string}>   = {
-    [ProductType.CARD]: 'fund/card/v1/remit'
-  }
-
-  if (!pathnameByProductType[data.type]) {
-    throw new Error('ProductTypeNotSupported');
-  }
-
-  const res = await fundAxiosClient.post(pathnameByProductType[data.type]!, request);
+  const pathname = supportedProductsByExchangeType[ExchangeType.FUND][data.type]
+  
+  const res = await fundAxiosClient.post(pathname!, request);
   return parseFundBackendInfo(res.data);
 }
 

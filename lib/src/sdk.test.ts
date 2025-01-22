@@ -19,7 +19,7 @@ import {
   confirmFund,
   cancelFund,
 } from "./api";
-import { ExchangeSDK, FeeStrategy, FundInfo, SellInfo } from "./sdk";
+import { ExchangeSDK, FeeStrategy, FundInfo, ProductType, SellInfo } from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import {
   CompleteExchangeError,
@@ -236,6 +236,14 @@ describe("swap", () => {
 });
 
 describe("sell", () => {
+  const currencies: Array<Partial<Currency>> = [
+    {
+      id: "currency-id-1",
+      decimals: 4,
+      family: "ethereum",
+    },
+  ];
+
   beforeAll(() => {
     (retrieveSellPayload as jest.Mock).mockResolvedValue({
       binaryPayload: "",
@@ -245,18 +253,10 @@ describe("sell", () => {
     });
     (confirmSell as jest.Mock).mockResolvedValue({});
     (cancelSell as jest.Mock).mockResolvedValue({});
+    mockCurrenciesList.mockResolvedValue(currencies as any);
   });
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
-    const currencies: Array<Partial<Currency>> = [
-      {
-        id: "currency-id-1",
-        decimals: 4,
-        family: "ethereum",
-      },
-    ];
-    mockCurrenciesList.mockResolvedValue(currencies as any);
-
     const mockSellPayload = jest.fn();
     mockSellPayload.mockResolvedValue({
       recipientAddress: "0xfff",
@@ -286,15 +286,6 @@ describe("sell", () => {
 
   it("handles the scenario when no getSellPayload is provided", async () => {
     // GIVEN
-    const currencies: Array<Partial<Currency>> = [
-      {
-        id: "currency-id-1",
-        decimals: 4,
-        family: "ethereum",
-      },
-    ];
-    mockCurrenciesList.mockResolvedValue(currencies as any);
-
     // Mock `retrieveSellPayload` since `getSellPayload` is not provided
     (retrieveSellPayload as jest.Mock).mockResolvedValue({
       payinAddress: "0xfff",
@@ -324,9 +315,33 @@ describe("sell", () => {
     expect(mockCompleteSell).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
+
+  it("throws error if passed in product type is not supported", async () => {
+    console.error = jest.fn();
+  
+    const sellData: SellInfo = {
+      quoteId: "quoteId",
+      fromAccountId: "id-1",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+      toFiat: "EUR",
+      rate: 1000,
+      type: ProductType.SWAP
+    };
+  
+    await expect(sdk.sell(sellData)).rejects.toThrowError('Product not supported');
+  });
 });
 
 describe("fund", () => {
+  const currencies: Array<Partial<Currency>> = [
+    {
+      id: "currency-id-1",
+      decimals: 4,
+      family: "ethereum",
+    },
+  ];
+
   beforeAll(() => {
     (retrieveFundPayload as jest.Mock).mockResolvedValue({
       payinAddress: "",
@@ -338,19 +353,11 @@ describe("fund", () => {
     });
     (confirmFund as jest.Mock).mockResolvedValue({});
     (cancelFund as jest.Mock).mockResolvedValue({});
+    mockCurrenciesList.mockResolvedValue(currencies as any);
   });
 
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
-    const currencies: Array<Partial<Currency>> = [
-      {
-        id: "currency-id-1",
-        decimals: 4,
-        family: "ethereum",
-      },
-    ];
-    mockCurrenciesList.mockResolvedValue(currencies as any);
-
     const fundData: FundInfo = {
       orderId: "orderId",
       fromAccountId: "id-1",
@@ -368,5 +375,19 @@ describe("fund", () => {
     expect(mockCompleteSell).not.toBeCalled();
     expect(mockCompleteFund).toBeCalled();
     expect(transactionId).toEqual("TransactionId");
+  });
+
+  it("throws error if passed in product type is not supported", async () => {
+    console.error = jest.fn();
+  
+    const fundData: FundInfo = {
+      orderId: "orderId",
+      fromAccountId: "id-1",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+      type: ProductType.SWAP
+    };
+  
+    await expect(sdk.fund(fundData)).rejects.toThrowError('Product not supported');
   });
 });

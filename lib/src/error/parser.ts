@@ -13,6 +13,7 @@ export enum StepError {
   LIST_CURRENCY = 'ListCurrencyStepError',
   UNKNOWN_ACCOUNT = 'UnknownAccountStepError',
   PAYIN_EXTRA_ID = 'PayinExtraIdStepError',
+  PRODUCT_SUPPORT = 'ProductTypeNotSupportedError',
 }
 
 export const parseError = (errorType: ErrorType, err: Error, step?: StepError) => {
@@ -39,7 +40,8 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.LIST_ACCOUNT]: ExchangeSdkError.ListAccountError,
   [StepError.LIST_CURRENCY]: ExchangeSdkError.ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
+  [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError
 }
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -51,5 +53,6 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.LIST_ACCOUNT]: ListAccountError,
   [StepError.LIST_CURRENCY]: ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
+  [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError
 }

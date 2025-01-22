@@ -77,7 +77,14 @@ export class PayinExtraIdError extends ExchangeBaseError {
   }
 }
 
-export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError
+export class ProductTypeNotSupportedError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange011", nestedError);
+    this.name = "ProductTypeNotSupportedError";
+  }
+}
+
+export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError | ProductTypeNotSupportedError
 
 export default {
   ExchangeBaseError,
@@ -88,5 +95,6 @@ export default {
   ListAccountError,
   ListCurrencyError,
   UnknownAccountError,
-  PayinExtraIdError
+  PayinExtraIdError,
+  ProductTypeNotSupportedError
 }

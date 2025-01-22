@@ -25,6 +25,7 @@ import {
   retrieveFundPayload,
   cancelFund,
   confirmFund,
+  supportedProductsByExchangeType,
 } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
@@ -375,6 +376,8 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
+    this.isProductTypeSupported(ExchangeType.SELL, type);
+
     const { recipientAddress, binaryPayload, signature, amount, beData } =
       await this.sellPayloadRequest({
         quoteId,
@@ -502,6 +505,8 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
+    this.isProductTypeSupported(ExchangeType.FUND, type);
+    
     const { recipientAddress, binaryPayload, signature } =
       await this.fundPayloadRequest({
         orderId,
@@ -587,6 +592,17 @@ export class ExchangeSDK {
   private canSpendAmount(account: Account, amount: BigNumber): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
       const err = parseError(this.errorType, new Error('Not enough funds'), StepError.CHECK_FUNDS);
+      this.logger.error(err as Error);
+      throw err;
+    }
+  }
+
+  /**
+   * Check if product type is supported by the exchange type based on available BE endpoints
+   */
+  private isProductTypeSupported(exchangeType: ExchangeType, productType: ProductType): void {
+    if(!supportedProductsByExchangeType[exchangeType][productType]) {
+      const err = parseError(this.errorType, new Error('Product not supported'), StepError.PRODUCT_SUPPORT);
       this.logger.error(err as Error);
       throw err;
     }
