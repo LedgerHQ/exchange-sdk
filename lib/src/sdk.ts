@@ -338,6 +338,7 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async sell(info: SellInfo): Promise<string | void> {
+    this.errorType = 'generic';
     this.logger.log("*** Start Sell ***");
 
     const {
@@ -468,6 +469,7 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async fund(info: FundInfo): Promise<string | void> {
+    this.errorType = 'generic';
     this.logger.log("*** Start Fund ***");
 
     const {
