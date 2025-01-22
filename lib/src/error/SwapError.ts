@@ -84,6 +84,13 @@ export class PayinExtraIdError extends SwapError {
   }
 }
 
+export class ProductTypeNotSupportedError extends SwapError {
+  constructor(nestedError?: Error) {
+    super("swap011", nestedError);
+    this.name = "ProductTypeNotSupportedError";
+  }
+}
+
 export type CompleteExchangeStep =
   | "INIT"
   | "SET_PARTNER_KEY"

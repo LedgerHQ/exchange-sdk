@@ -34,7 +34,7 @@ import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
-import { parseError, StepError } from "./error/parser";
+import { CustomErrorType, ParseError, parseError, StepError } from "./error/parser";
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 
@@ -132,8 +132,6 @@ export type ExtendedExchangeModule = ExchangeModule & {
   }) => Promise<string>;
 };
 
-export type ErrorType = 'generic' | 'swap';
-
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -144,7 +142,6 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
-  private errorType?: ErrorType;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -190,8 +187,8 @@ export class ExchangeSDK {
     }
   }
 
-  private handleError(error: any, step?: StepError) {
-    const err = parseError(this.getErrorType(), error, step);
+  private handleError({error, step, customErrorType}: ParseError) {
+    const err = parseError({error, step, customErrorType});
     handleErrors(this.walletAPI, err);
   }
 
@@ -202,7 +199,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async swap(info: SwapInfo): Promise<{ transactionId: string, swapId: string }> {
-    this.errorType = 'swap';
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -217,14 +213,14 @@ export class ExchangeSDK {
     } = info;
 
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.getErrorType());
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, CustomErrorType.SWAP);
 
     const { account: toAccount } =
-      await this.walletAPIDecorator.retrieveUserAccount(toAccountId, this.getErrorType());
+      await this.walletAPIDecorator.retrieveUserAccount(toAccountId, CustomErrorType.SWAP);
 
     // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
-    this.canSpendAmount(fromAccount, fromAmountAtomic);
+    this.canSpendAmount(fromAccount, fromAmountAtomic, CustomErrorType.SWAP);
 
     // Step 1: Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
@@ -237,7 +233,7 @@ export class ExchangeSDK {
           tokenCurrency: toNewTokenId || "",
         })
         .catch((error: Error) => {
-          const err = parseError(this.getErrorType(), error, StepError.NONCE);
+          const err = parseError({error, step: StepError.NONCE, customErrorType: CustomErrorType.SWAP});
           this.logger.error(err as Error);
           throw err;
         });
@@ -256,7 +252,7 @@ export class ExchangeSDK {
         amountInAtomicUnit: fromAmountAtomic,
         quoteId,
       }).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD, customErrorType: CustomErrorType.SWAP});
         throw error;
       });
 
@@ -269,7 +265,7 @@ export class ExchangeSDK {
         customFeeConfig,
         payinExtraId,
         extraTransactionParameters,
-      }, this.getErrorType())
+      }, CustomErrorType.SWAP)
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -281,7 +277,7 @@ export class ExchangeSDK {
           quoteId ? "fixed" : "float"
         );
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
     const transactionId = await this.exchangeModule
@@ -311,7 +307,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.IGNORED_SIGNATURE);
+        this.handleError({error, step: StepError.IGNORED_SIGNATURE, customErrorType: CustomErrorType.SWAP});
         throw error;
       });
 
@@ -338,7 +334,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async sell(info: SellInfo): Promise<string | void> {
-    this.errorType = 'generic';
     this.logger.log("*** Start Sell ***");
 
     const {
@@ -354,7 +349,7 @@ export class ExchangeSDK {
     } = info;
 
     const { account, currency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.getErrorType());
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
     // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
@@ -368,7 +363,7 @@ export class ExchangeSDK {
         //TODO: Pass in fromAccountId (newer version of the exchange module supports this)
       })
       .catch((error: Error) => {
-        const err = parseError(this.getErrorType(), error, StepError.NONCE);
+        const err = parseError({error, step: StepError.NONCE});
         this.logger.error(err as Error);
         throw err;
       })
@@ -416,14 +411,14 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency,
       customFeeConfig,
-    }, this.getErrorType())
+    })
       .catch(async (error) => {
         await this.cancelSellOnError({
           error,
           quoteId,
         });
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
 
@@ -446,7 +441,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.SIGNATURE);
+        this.handleError({error, step: StepError.SIGNATURE});
         throw error;
       });
 
@@ -469,7 +464,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async fund(info: FundInfo): Promise<string | void> {
-    this.errorType = 'generic';
     this.logger.log("*** Start Fund ***");
 
     const {
@@ -483,8 +477,7 @@ export class ExchangeSDK {
 
     const { account, currency } =
       await this.walletAPIDecorator.retrieveUserAccount(
-        fromAccountId,
-        this.getErrorType()
+        fromAccountId
       );
 
     // Check enough funds
@@ -497,7 +490,7 @@ export class ExchangeSDK {
       // {provider: this.providerId, fromAccountId}
       .startFund()
       .catch((error: Error) => {
-        const err = parseError(this.getErrorType(), error, StepError.NONCE);
+        const err = parseError({error, step: StepError.NONCE});
         this.logger.error(err as Error);
         throw err;
       });
@@ -531,8 +524,7 @@ export class ExchangeSDK {
           amount: fromAmountAtomic,
           currency,
           customFeeConfig,
-        },
-        this.getErrorType()
+        }
       )
       .catch(async (error) => {
         await this.cancelFundOnError({
@@ -540,7 +532,7 @@ export class ExchangeSDK {
           orderId,
         });
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
 
@@ -564,7 +556,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.SIGNATURE);
+        this.handleError({error, step: StepError.SIGNATURE});
         throw error;
       });
 
@@ -581,13 +573,6 @@ export class ExchangeSDK {
   }
 
   /**
-   * Defaults to 'generic' if errorType is not set
-   */
-  private getErrorType(): ErrorType {
-    return this.errorType ?? 'generic'
-  }
-
-  /**
    * Disconnects this instance from the WalletAPI server.
    */
   disconnect() {
@@ -596,9 +581,9 @@ export class ExchangeSDK {
     }
   }
 
-  private canSpendAmount(account: Account, amount: BigNumber): void {
+  private canSpendAmount(account: Account, amount: BigNumber, customErrorType?: CustomErrorType): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
-      const err = parseError(this.getErrorType(), new Error('Not enough funds'), StepError.CHECK_FUNDS);
+      const err = parseError({error: new Error('Not enough funds'), step: StepError.CHECK_FUNDS, customErrorType});
       this.logger.error(err as Error);
       throw err;
     }
@@ -607,9 +592,9 @@ export class ExchangeSDK {
   /**
    * Check if product type is supported by the exchange type based on available BE endpoints
    */
-  private isProductTypeSupported(exchangeType: ExchangeType, productType: ProductType): void {
+  private isProductTypeSupported(exchangeType: ExchangeType, productType: ProductType, customErrorType?: CustomErrorType): void {
     if(!supportedProductsByExchangeType[exchangeType][productType]) {
-      const err = parseError(this.getErrorType(), new Error('Product not supported'), StepError.PRODUCT_SUPPORT);
+      const err = parseError({error: new Error('Product not supported'), step: StepError.PRODUCT_SUPPORT, customErrorType});
       this.logger.error(err as Error);
       throw err;
     }
@@ -710,7 +695,7 @@ export class ExchangeSDK {
         account.address,
         initialAtomicAmount
       ).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD});
         throw error;
       });
 
@@ -731,7 +716,7 @@ export class ExchangeSDK {
         nonce: deviceTransactionId,
         type,
       }).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD});
         throw error;
       });
 
@@ -775,7 +760,7 @@ export class ExchangeSDK {
       nonce: deviceTransactionId,
       type,
     }).catch((error: Error) => {
-      this.handleError(error, StepError.PAYLOAD);
+      this.handleError({error, step: StepError.PAYLOAD});
       throw error;
     });
 
