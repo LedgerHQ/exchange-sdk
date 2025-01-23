@@ -9,7 +9,7 @@ type ResponseData = {
 
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseData>,
 ) {
   console.log("Call receive:", req.query);
 

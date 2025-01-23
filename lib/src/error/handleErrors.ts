@@ -30,7 +30,11 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
     throw { ...error, handled: true }; // retry ready
   }
   // Log and throw to Ledger Live if not ignored
-  if (error instanceof SwapError && cause && cause.swapCode !== "swap003Ignored") {
+  if (
+    error instanceof SwapError &&
+    cause &&
+    cause.swapCode !== "swap003Ignored"
+  ) {
     walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }
 

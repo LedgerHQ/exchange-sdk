@@ -22,22 +22,23 @@ let fundAxiosClient = axios.create({
 
 type SupportedProductsByExchangeType = {
   [key in ExchangeType]: Partial<{
-    [key in ProductType]: string
-  }>
-}
+    [key in ProductType]: string;
+  }>;
+};
 /**
  * Available product endpoints based on exchange type
  */
-export const supportedProductsByExchangeType: SupportedProductsByExchangeType = {
-  [ExchangeType.SWAP]: {},
-  [ExchangeType.SELL]: {
-    [ProductType.CARD]: 'card/v1/remit',
-    [ProductType.SELL]: 'sell/v1/remit',
-  },
-  [ExchangeType.FUND]: {
-    [ProductType.CARD]: 'fund/card/v1/remit'
-  },
-}
+export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
+  {
+    [ExchangeType.SWAP]: {},
+    [ExchangeType.SELL]: {
+      [ProductType.CARD]: "card/v1/remit",
+      [ProductType.SELL]: "sell/v1/remit",
+    },
+    [ExchangeType.FUND]: {
+      [ProductType.CARD]: "fund/card/v1/remit",
+    },
+  };
 
 /**
  * Override the default axios client base url environment (default is production)
@@ -75,11 +76,11 @@ export type SwapPayloadResponse = {
   payinAddress: string;
   swapId: string;
   payinExtraId?: string;
-  extraTransactionParameters?: string,
+  extraTransactionParameters?: string;
 };
 
 export async function retrieveSwapPayload(
-  data: SwapPayloadRequestData
+  data: SwapPayloadRequestData,
 ): Promise<SwapPayloadResponse> {
   const request = {
     provider: data.provider,
@@ -176,7 +177,10 @@ export type ConfirmSellRequest = {
 
 export async function confirmSell(data: ConfirmSellRequest) {
   const { quoteId, ...payload } = data;
-  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/accepted`, payload);
+  await sellAxiosClient.post(
+    `/webhook/v1/transaction/${quoteId}/accepted`,
+    payload,
+  );
 }
 
 export type CancelSellRequest = {
@@ -188,7 +192,10 @@ export type CancelSellRequest = {
 
 export async function cancelSell(data: CancelSellRequest) {
   const { quoteId, ...payload } = data;
-  await sellAxiosClient.post(`/webhook/v1/transaction/${quoteId}/cancelled`, payload);
+  await sellAxiosClient.post(
+    `/webhook/v1/transaction/${quoteId}/cancelled`,
+    payload,
+  );
 }
 
 export interface SellRequestPayload {
@@ -238,7 +245,8 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const pathname = supportedProductsByExchangeType[ExchangeType.SELL][data.type]
+  const pathname =
+    supportedProductsByExchangeType[ExchangeType.SELL][data.type];
   const res = await sellAxiosClient.post(pathname!, request);
   return parseSellBackendInfo(res.data);
 }
@@ -246,7 +254,7 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
 export async function decodeSellPayloadAndPost(
   binaryPayload: string,
   beData: BEData,
-  providerId: string
+  providerId: string,
 ) {
   try {
     const { inCurrency, outCurrency, inAddress } =
@@ -285,7 +293,10 @@ export type ConfirmFundRequest = {
 
 export async function confirmFund(data: ConfirmFundRequest) {
   const { orderId, ...payload } = data;
-  await sellAxiosClient.post(`/webhook/v1/transaction/${orderId}/accepted`,payload);
+  await sellAxiosClient.post(
+    `/webhook/v1/transaction/${orderId}/accepted`,
+    payload,
+  );
 }
 
 export type CancelFundRequest = {
@@ -297,7 +308,10 @@ export type CancelFundRequest = {
 
 export async function cancelFund(data: CancelFundRequest) {
   const { orderId, ...payload } = data;
-  await sellAxiosClient.post(`/webhook/v1/transaction/${orderId}/cancelled`, payload);
+  await sellAxiosClient.post(
+    `/webhook/v1/transaction/${orderId}/cancelled`,
+    payload,
+  );
 }
 
 export interface FundRequestPayload {
@@ -319,7 +333,8 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     amountFrom: data.amountFrom,
     nonce: data.nonce,
   };
-  const pathname = supportedProductsByExchangeType[ExchangeType.FUND][data.type]
+  const pathname =
+    supportedProductsByExchangeType[ExchangeType.FUND][data.type];
   const res = await fundAxiosClient.post(pathname!, request);
   return parseFundBackendInfo(res.data);
 }

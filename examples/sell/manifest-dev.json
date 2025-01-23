@@ -8,9 +8,7 @@
   "apiVersion": "^2.0.0",
   "manifestVersion": "1",
   "branch": "experimental",
-  "categories": [
-    "sell"
-  ],
+  "categories": ["sell"],
   "currencies": "*",
   "content": {
     "shortDescription": {
@@ -43,7 +41,5 @@
     "custom.exchange.start",
     "custom.exchange.complete"
   ],
-  "domains": [
-    "https://*"
-  ]
+  "domains": ["https://*"]
 }

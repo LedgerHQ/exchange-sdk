@@ -1,4 +1,4 @@
-import ExchangeSdkError from "./ExchangeSdkError"
+import ExchangeSdkError from "./ExchangeSdkError";
 
 export class DrawerClosedError extends ExchangeSdkError.ExchangeBaseError {
   handled: boolean;

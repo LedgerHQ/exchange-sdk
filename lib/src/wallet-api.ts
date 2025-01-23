@@ -32,7 +32,7 @@ type TransactionWithCustomFee = TransactionCommon & {
 
 // Define a specific type for the strategy functions, assuming they might need parameters
 type TransactionStrategyFunction = (
-  params: TransactionWithCustomFee
+  params: TransactionWithCustomFee,
 ) => Transaction;
 
 const transactionStrategy: {
@@ -77,25 +77,42 @@ export type CreateTransactionArg = {
 
 export type WalletApiDecorator = {
   walletClient: WalletAPIClient;
-  retrieveUserAccount: (accountId: string, customErrorType?: CustomErrorType) => Promise<UserAccount>;
-  createTransaction: (arg: CreateTransactionArg, customErrorType?: CustomErrorType) => Promise<Transaction>;
+  retrieveUserAccount: (
+    accountId: string,
+    customErrorType?: CustomErrorType,
+  ) => Promise<UserAccount>;
+  createTransaction: (
+    arg: CreateTransactionArg,
+    customErrorType?: CustomErrorType,
+  ) => Promise<Transaction>;
 };
 
 export default function walletApiDecorator(
-  walletAPIClient: WalletAPIClient
+  walletAPIClient: WalletAPIClient,
 ): WalletApiDecorator {
   const walletAPI = walletAPIClient;
 
-  async function retrieveUserAccount(accountId: string, customErrorType?: CustomErrorType): Promise<UserAccount> {
+  async function retrieveUserAccount(
+    accountId: string,
+    customErrorType?: CustomErrorType,
+  ): Promise<UserAccount> {
     const allAccounts = await walletAPI.account
       .list()
       .catch(async (error: Error) => {
-        const err = parseError({error, step: StepError.LIST_ACCOUNT, customErrorType});
+        const err = parseError({
+          error,
+          step: StepError.LIST_ACCOUNT,
+          customErrorType,
+        });
         throw err;
       });
     const account = allAccounts.find((value) => value.id === accountId);
     if (!account) {
-      const err = parseError({error: new Error("Unknown accountId"), step:StepError.UNKNOWN_ACCOUNT, customErrorType});
+      const err = parseError({
+        error: new Error("Unknown accountId"),
+        step: StepError.UNKNOWN_ACCOUNT,
+        customErrorType,
+      });
       handleErrors(walletAPI, err);
       throw err;
     }
@@ -105,12 +122,20 @@ export default function walletApiDecorator(
         currencyIds: [account.currency],
       })
       .catch(async (error: Error) => {
-        const err = parseError({error, step: StepError.LIST_CURRENCY, customErrorType});
+        const err = parseError({
+          error,
+          step: StepError.LIST_CURRENCY,
+          customErrorType,
+        });
         handleErrors(walletAPI, err);
         throw err;
       });
     if (!currency) {
-      const err = parseError({error: new Error("Unknown fromCurrency"), step: StepError.LIST_CURRENCY, customErrorType});
+      const err = parseError({
+        error: new Error("Unknown fromCurrency"),
+        step: StepError.LIST_CURRENCY,
+        customErrorType,
+      });
       handleErrors(walletAPI, err);
       throw err;
     }
@@ -121,14 +146,17 @@ export default function walletApiDecorator(
     };
   }
 
-  async function createTransaction({
-    recipient,
-    amount,
-    currency,
-    customFeeConfig,
-    payinExtraId,
-    extraTransactionParameters,
-  }: CreateTransactionArg, customErrorType?: CustomErrorType): Promise<Transaction> {
+  async function createTransaction(
+    {
+      recipient,
+      amount,
+      currency,
+      customFeeConfig,
+      payinExtraId,
+      extraTransactionParameters,
+    }: CreateTransactionArg,
+    customErrorType?: CustomErrorType,
+  ): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
       const currencies = await walletAPI.currency.list({
@@ -157,7 +185,7 @@ export default function walletApiDecorator(
       customFeeConfig,
       payinExtraId,
       extraTransactionParameters,
-      customErrorType
+      customErrorType,
     });
   }
 
@@ -208,7 +236,12 @@ export function stellarTransaction({
   payinExtraId,
   customErrorType,
 }: TransactionWithCustomFee): StellarTransaction {
-  if (!payinExtraId) throw parseError({error: new Error("Missing payinExtraId"), step: StepError.PAYIN_EXTRA_ID, customErrorType});
+  if (!payinExtraId)
+    throw parseError({
+      error: new Error("Missing payinExtraId"),
+      step: StepError.PAYIN_EXTRA_ID,
+      customErrorType,
+    });
 
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
@@ -225,7 +258,12 @@ export function rippleTransaction({
   payinExtraId,
   customErrorType,
 }: TransactionWithCustomFee): RippleTransaction {
-  if (!payinExtraId) throw parseError({error: new Error("Missing payinExtraId"), step: StepError.PAYIN_EXTRA_ID, customErrorType});
+  if (!payinExtraId)
+    throw parseError({
+      error: new Error("Missing payinExtraId"),
+      step: StepError.PAYIN_EXTRA_ID,
+      customErrorType,
+    });
 
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),

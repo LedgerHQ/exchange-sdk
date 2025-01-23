@@ -72,8 +72,8 @@ describe("stellarTransaction function", () => {
         amount: new BigNumber("1.908"),
         recipient: "ADDRESS",
         customFeeConfig: {},
-        customErrorType: CustomErrorType.SWAP
-      })
+        customErrorType: CustomErrorType.SWAP,
+      }),
     ).toThrowError(PayinExtraIdError);
   });
 
@@ -104,8 +104,8 @@ describe("rippleTransaction function", () => {
         amount: new BigNumber("10"),
         recipient: "ADDRESS",
         customFeeConfig: {},
-        customErrorType: CustomErrorType.SWAP
-      })
+        customErrorType: CustomErrorType.SWAP,
+      }),
     ).toThrowError(PayinExtraIdError);
   });
 
