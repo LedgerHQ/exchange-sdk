@@ -25,6 +25,7 @@ import {
   retrieveFundPayload,
   cancelFund,
   confirmFund,
+  supportedProductsByExchangeType,
 } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
@@ -33,7 +34,7 @@ import walletApiDecorator, {
   type WalletApiDecorator,
   getCustomModule,
 } from "./wallet-api";
-import { parseError, StepError } from "./error/parser";
+import { CustomErrorType, ParseError, parseError, StepError } from "./error/parser";
 
 export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
 
@@ -44,12 +45,18 @@ enum FeeStrategyEnum {
   CUSTOM = "CUSTOM",
 }
 
-export const ExchangeType = {
-  FUND: "FUND",
-  SELL: "SELL",
-  SWAP: "SWAP",
-  CARD: "CARD",
-} as const;
+
+export enum ExchangeType {
+  SWAP = "SWAP",
+  SELL = "SELL",
+  FUND = "FUND"
+}
+
+export enum ProductType {
+  SWAP = "SWAP",
+  SELL = "SELL",
+  CARD = "CARD"
+}
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
@@ -98,7 +105,7 @@ export type SellInfo = {
   rate?: number;
   customFeeConfig?: { [key: string]: BigNumber };
   getSellPayload?: GetSellPayload;
-  type?: string;
+  type?: ProductType;
 };
 
 /**
@@ -110,7 +117,7 @@ export type FundInfo = {
   fromAmount: BigNumber;
   feeStrategy?: FeeStrategy;
   customFeeConfig?: { [key: string]: BigNumber };
-  type?: string;
+  type?: ProductType;
 };
 
 // extented type to include paramas as string for binaryPayload and signature
@@ -125,8 +132,6 @@ export type ExtendedExchangeModule = ExchangeModule & {
   }) => Promise<string>;
 };
 
-export type FlowType = 'generic' | 'swap';
-
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
@@ -137,7 +142,6 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
-  private flowType: FlowType = 'generic';
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -183,8 +187,8 @@ export class ExchangeSDK {
     }
   }
 
-  private handleError(error: any, step?: StepError) {
-    const err = parseError(this.flowType, error, step);
+  private handleError({error, step, customErrorType}: ParseError) {
+    const err = parseError({error, step, customErrorType});
     handleErrors(this.walletAPI, err);
   }
 
@@ -195,7 +199,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async swap(info: SwapInfo): Promise<{ transactionId: string, swapId: string }> {
-    this.flowType = 'swap';
     this.logger.log("*** Start Swap ***");
 
     const {
@@ -210,14 +213,14 @@ export class ExchangeSDK {
     } = info;
 
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.flowType);
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, CustomErrorType.SWAP);
 
     const { account: toAccount } =
-      await this.walletAPIDecorator.retrieveUserAccount(toAccountId, this.flowType);
+      await this.walletAPIDecorator.retrieveUserAccount(toAccountId, CustomErrorType.SWAP);
 
     // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
-    this.canSpendAmount(fromAccount, fromAmountAtomic);
+    this.canSpendAmount(fromAccount, fromAmountAtomic, CustomErrorType.SWAP);
 
     // Step 1: Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
@@ -230,7 +233,7 @@ export class ExchangeSDK {
           tokenCurrency: toNewTokenId || "",
         })
         .catch((error: Error) => {
-          const err = parseError(this.flowType, error, StepError.NONCE);
+          const err = parseError({error, step: StepError.NONCE, customErrorType: CustomErrorType.SWAP});
           this.logger.error(err as Error);
           throw err;
         });
@@ -249,7 +252,7 @@ export class ExchangeSDK {
         amountInAtomicUnit: fromAmountAtomic,
         quoteId,
       }).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD, customErrorType: CustomErrorType.SWAP});
         throw error;
       });
 
@@ -262,7 +265,7 @@ export class ExchangeSDK {
         customFeeConfig,
         payinExtraId,
         extraTransactionParameters,
-      }, this.flowType)
+      }, CustomErrorType.SWAP)
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -274,7 +277,7 @@ export class ExchangeSDK {
           quoteId ? "fixed" : "float"
         );
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
     const transactionId = await this.exchangeModule
@@ -304,7 +307,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.IGNORED_SIGNATURE);
+        this.handleError({error, step: StepError.IGNORED_SIGNATURE, customErrorType: CustomErrorType.SWAP});
         throw error;
       });
 
@@ -331,7 +334,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async sell(info: SellInfo): Promise<string | void> {
-    this.flowType = 'generic';
     this.logger.log("*** Start Sell ***");
 
     const {
@@ -343,11 +345,11 @@ export class ExchangeSDK {
       rate,
       toFiat,
       getSellPayload,
-      type = ExchangeType.SELL,
+      type = ProductType.SELL,
     } = info;
 
     const { account, currency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId, this.flowType);
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
     // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
@@ -361,7 +363,7 @@ export class ExchangeSDK {
         //TODO: Pass in fromAccountId (newer version of the exchange module supports this)
       })
       .catch((error: Error) => {
-        const err = parseError(this.flowType, error, StepError.NONCE);
+        const err = parseError({error, step: StepError.NONCE});
         this.logger.error(err as Error);
         throw err;
       })
@@ -369,6 +371,8 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
+    this.isProductTypeSupported(ExchangeType.SELL, type);
+
     const { recipientAddress, binaryPayload, signature, amount, beData } =
       await this.sellPayloadRequest({
         quoteId,
@@ -407,14 +411,14 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       currency,
       customFeeConfig,
-    }, this.flowType)
+    })
       .catch(async (error) => {
         await this.cancelSellOnError({
           error,
           quoteId,
         });
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
 
@@ -437,7 +441,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.SIGNATURE);
+        this.handleError({error, step: StepError.SIGNATURE});
         throw error;
       });
 
@@ -460,7 +464,6 @@ export class ExchangeSDK {
    * @throws {ExchangeError}
    */
   async fund(info: FundInfo): Promise<string | void> {
-    this.flowType = "generic";
     this.logger.log("*** Start Fund ***");
 
     const {
@@ -469,13 +472,12 @@ export class ExchangeSDK {
       feeStrategy = FeeStrategyEnum.MEDIUM,
       customFeeConfig = {},
       orderId,
-      type = ExchangeType.CARD,
+      type = ProductType.CARD,
     } = info;
 
     const { account, currency } =
       await this.walletAPIDecorator.retrieveUserAccount(
-        fromAccountId,
-        this.flowType
+        fromAccountId
       );
 
     // Check enough funds
@@ -488,7 +490,7 @@ export class ExchangeSDK {
       // {provider: this.providerId, fromAccountId}
       .startFund()
       .catch((error: Error) => {
-        const err = parseError(this.flowType, error, StepError.NONCE);
+        const err = parseError({error, step: StepError.NONCE});
         this.logger.error(err as Error);
         throw err;
       });
@@ -496,6 +498,8 @@ export class ExchangeSDK {
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
     // Step 2: Ask for payload creation
+    this.isProductTypeSupported(ExchangeType.FUND, type);
+    
     const { recipientAddress, binaryPayload, signature } =
       await this.fundPayloadRequest({
         orderId,
@@ -520,8 +524,7 @@ export class ExchangeSDK {
           amount: fromAmountAtomic,
           currency,
           customFeeConfig,
-        },
-        this.flowType
+        }
       )
       .catch(async (error) => {
         await this.cancelFundOnError({
@@ -529,7 +532,7 @@ export class ExchangeSDK {
           orderId,
         });
 
-        this.handleError(error);
+        this.handleError({error});
         throw error;
       });
 
@@ -553,7 +556,7 @@ export class ExchangeSDK {
           throw error;
         }
 
-        this.handleError(error, StepError.SIGNATURE);
+        this.handleError({error, step: StepError.SIGNATURE});
         throw error;
       });
 
@@ -578,9 +581,20 @@ export class ExchangeSDK {
     }
   }
 
-  private canSpendAmount(account: Account, amount: BigNumber): void {
+  private canSpendAmount(account: Account, amount: BigNumber, customErrorType?: CustomErrorType): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
-      const err = parseError(this.flowType, new Error('Not enough funds'), StepError.CHECK_FUNDS);
+      const err = parseError({error: new Error('Not enough funds'), step: StepError.CHECK_FUNDS, customErrorType});
+      this.logger.error(err as Error);
+      throw err;
+    }
+  }
+
+  /**
+   * Check if product type is supported by the exchange type based on available BE endpoints
+   */
+  private isProductTypeSupported(exchangeType: ExchangeType, productType: ProductType, customErrorType?: CustomErrorType): void {
+    if(!supportedProductsByExchangeType[exchangeType][productType]) {
+      const err = parseError({error: new Error('Product not supported'), step: StepError.PRODUCT_SUPPORT, customErrorType});
       this.logger.error(err as Error);
       throw err;
     }
@@ -667,7 +681,7 @@ export class ExchangeSDK {
     quoteId?: string;
     rate?: number;
     toFiat?: string;
-    type: string;
+    type: ProductType;
   }) {
     let recipientAddress: string;
     let binaryPayload: Buffer | string;
@@ -681,7 +695,7 @@ export class ExchangeSDK {
         account.address,
         initialAtomicAmount
       ).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD});
         throw error;
       });
 
@@ -702,7 +716,7 @@ export class ExchangeSDK {
         nonce: deviceTransactionId,
         type,
       }).catch((error: Error) => {
-        this.handleError(error, StepError.PAYLOAD);
+        this.handleError({error, step: StepError.PAYLOAD});
         throw error;
       });
 
@@ -731,7 +745,7 @@ export class ExchangeSDK {
     account: Account;
     deviceTransactionId: string;
     orderId?: string;
-    type: string;
+    type: ProductType;
   }) {
     let recipientAddress: string;
     let binaryPayload: Buffer | string;
@@ -746,7 +760,7 @@ export class ExchangeSDK {
       nonce: deviceTransactionId,
       type,
     }).catch((error: Error) => {
-      this.handleError(error, StepError.PAYLOAD);
+      this.handleError({error, step: StepError.PAYLOAD});
       throw error;
     });
 

@@ -24,7 +24,7 @@ import {
   retrieveSwapPayload,
   SellRequestPayload,
 } from "./api";
-import { ExchangeType } from "./sdk";
+import { ProductType } from "./sdk";
 
 describe("Swap", () => {
   describe("retrieveSwapPayload", () => {
@@ -229,7 +229,7 @@ describe("Sell", () => {
         amountFrom: 0,
         amountTo: 0,
         nonce: "",
-        type: ExchangeType.SELL,
+        type: ProductType.SELL,
       };
 
       const { type, ...expectedRequestPayload } = mockRetrieveSellPayloadParams;
@@ -266,7 +266,7 @@ describe("Sell", () => {
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
 
-    it("uses correct request url when exchange type is not SELL", async () => {
+    it("uses correct request url when product type is CARD", async () => {
       mockPost.mockResolvedValueOnce({
         data: {
           sellId: "",
@@ -291,7 +291,7 @@ describe("Sell", () => {
         amountFrom: 0,
         amountTo: 0,
         nonce: "",
-        type: ExchangeType.CARD,
+        type: ProductType.CARD,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual("card/v1/remit");
@@ -346,7 +346,7 @@ describe("Fund", () => {
         refundAddress: mockAccount,
         amountFrom: 0,
         nonce: "",
-        type: ExchangeType.CARD,
+        type: ProductType.CARD,
       };
 
       const { type, ...expectedRequestPayload } = mockRetrieveFundPayloadParams;

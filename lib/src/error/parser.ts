@@ -1,7 +1,6 @@
-import { IgnoredSignatureStepError, ListAccountError, ListCurrencyError, NonceStepError, NotEnoughFunds, PayinExtraIdError, PayloadStepError, SignatureStepError, UnknownAccountError } from './SwapError';
-import ExchangeSdkError, { ExchangeSdkErrorType } from "./ExchangeSdkError"
-import { DrawerClosedError } from "./LedgerLiveError"
-import { FlowType } from '../sdk';
+import { IgnoredSignatureStepError, ListAccountError, ListCurrencyError, NonceStepError, NotEnoughFunds, PayinExtraIdError, PayloadStepError, ProductTypeNotSupportedError, SignatureStepError, UnknownAccountError } from './SwapError';
+import ExchangeSdkError, { ExchangeSdkErrorType } from "./ExchangeSdkError";
+import { DrawerClosedError } from "./LedgerLiveError";
 
 export enum StepError {
   NONCE = 'NonceStepError',
@@ -13,19 +12,30 @@ export enum StepError {
   LIST_CURRENCY = 'ListCurrencyStepError',
   UNKNOWN_ACCOUNT = 'UnknownAccountStepError',
   PAYIN_EXTRA_ID = 'PayinExtraIdStepError',
+  PRODUCT_SUPPORT = 'ProductTypeNotSupportedStepError',
 }
 
-export const parseError = (flowType: FlowType, err: Error, step?: StepError) => {
-  if (err instanceof Error && err.name === "DrawerClosedError") {
-    return new DrawerClosedError(err)
+export enum CustomErrorType {
+  SWAP = "swap",
+}
+
+export type ParseError = {
+  error: Error;
+  step?: StepError;
+  customErrorType?: CustomErrorType;
+};
+
+export const parseError = ({ error, step, customErrorType }: ParseError) => {
+  if (error instanceof Error && error.name === "DrawerClosedError") {
+    return new DrawerClosedError(error)
   }
 
-  switch (flowType) {
-    case 'generic':
-      const genericError = step && GenericErrors[step]
-      return genericError ? new genericError(err) : err
+  switch (customErrorType) {
     case 'swap':
-      return step ? new SwapErrors[step](err) : err;
+      return step ? new SwapErrors[step](error) : error;
+    default:
+      const genericError = step && GenericErrors[step];
+      return genericError ? new genericError(error) : error;
   }
 }
 type ErrorConstructor = (new (err?: Error) => ExchangeSdkErrorType) | undefined;
@@ -39,7 +49,8 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.LIST_ACCOUNT]: ExchangeSdkError.ListAccountError,
   [StepError.LIST_CURRENCY]: ExchangeSdkError.ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
+  [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError
 }
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -51,5 +62,6 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.LIST_ACCOUNT]: ListAccountError,
   [StepError.LIST_CURRENCY]: ListCurrencyError,
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError
+  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
+  [StepError.PRODUCT_SUPPORT]: ProductTypeNotSupportedError
 }

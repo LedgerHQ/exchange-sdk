@@ -2,7 +2,7 @@ import axios from "axios";
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
-import { BEData, ExchangeType } from "./sdk";
+import { BEData, ExchangeType, ProductType } from "./sdk";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
@@ -19,6 +19,25 @@ let sellAxiosClient = axios.create({
 let fundAxiosClient = axios.create({
   baseURL: FUND_BACKEND_URL,
 });
+
+type SupportedProductsByExchangeType = {
+  [key in ExchangeType]: Partial<{
+    [key in ProductType]: string
+  }>
+}
+/**
+ * Available product endpoints based on exchange type
+ */
+export const supportedProductsByExchangeType: SupportedProductsByExchangeType = {
+  [ExchangeType.SWAP]: {},
+  [ExchangeType.SELL]: {
+    [ProductType.CARD]: 'card/v1/remit',
+    [ProductType.SELL]: 'sell/v1/remit',
+  },
+  [ExchangeType.FUND]: {
+    [ProductType.CARD]: 'fund/card/v1/remit'
+  },
+}
 
 /**
  * Override the default axios client base url environment (default is production)
@@ -181,7 +200,7 @@ export interface SellRequestPayload {
   amountFrom: number;
   amountTo: number;
   nonce: string;
-  type: string;
+  type: ProductType;
 }
 
 export interface SellResponsePayload {
@@ -219,8 +238,8 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  const pathname = data.type === ExchangeType.SELL ? "sell/v1/remit" : "card/v1/remit";
-  const res = await sellAxiosClient.post(pathname, request);
+  const pathname = supportedProductsByExchangeType[ExchangeType.SELL][data.type]
+  const res = await sellAxiosClient.post(pathname!, request);
   return parseSellBackendInfo(res.data);
 }
 
@@ -288,7 +307,7 @@ export interface FundRequestPayload {
   refundAddress: string;
   amountFrom: number;
   nonce: string;
-  type: string;
+  type: ProductType;
 }
 
 export async function retrieveFundPayload(data: FundRequestPayload) {
@@ -300,8 +319,8 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     amountFrom: data.amountFrom,
     nonce: data.nonce,
   };
-  const pathname = data.type === ExchangeType.CARD ? "fund/card/v1/remit" : ""; //TODO use this pathname if exchange type is CARD -> otherwise throw error
-  const res = await fundAxiosClient.post(pathname, request);
+  const pathname = supportedProductsByExchangeType[ExchangeType.FUND][data.type]
+  const res = await fundAxiosClient.post(pathname!, request);
   return parseFundBackendInfo(res.data);
 }
 
@@ -319,7 +338,6 @@ export interface FundResponsePayload {
 }
 
 const parseFundBackendInfo = (response: FundResponsePayload) => {
-  //TODO: Type this return?
   return {
     orderId: response.sellId, //TODO: Update this identifier once defined in BE
     payinAddress: response.payinAddress,
