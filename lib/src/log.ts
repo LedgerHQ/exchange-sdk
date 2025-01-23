@@ -1,5 +1,5 @@
-import { SwapError } from './error/SwapError';
-import { ExchangeBaseError } from './error/ExchangeSdkError';
+import { SwapError } from "./error/SwapError";
+import { ExchangeBaseError } from "./error/ExchangeSdkError";
 
 const style = "background: #7f0000; color: #fff";
 const prefix = "[ExchangeSDK]";

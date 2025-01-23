@@ -11,7 +11,7 @@ export class ExchangeBaseError extends Error {
     this.cause = {
       exchangeErrorCode,
       ...(nestedError?.constructor !== Object ||
-        nestedError?.constructor !== Array
+      nestedError?.constructor !== Array
         ? { message: `${nestedError}` }
         : {}),
       ...nestedError,
@@ -84,7 +84,17 @@ export class ProductTypeNotSupportedError extends ExchangeBaseError {
   }
 }
 
-export type ExchangeSdkErrorType = ExchangeBaseError | NonceStepError | PayloadStepError | SignatureStepError | NotEnoughFunds | ListAccountError | ListCurrencyError | UnknownAccountError | PayinExtraIdError | ProductTypeNotSupportedError
+export type ExchangeSdkErrorType =
+  | ExchangeBaseError
+  | NonceStepError
+  | PayloadStepError
+  | SignatureStepError
+  | NotEnoughFunds
+  | ListAccountError
+  | ListCurrencyError
+  | UnknownAccountError
+  | PayinExtraIdError
+  | ProductTypeNotSupportedError;
 
 export default {
   ExchangeBaseError,
@@ -96,5 +106,5 @@ export default {
   ListCurrencyError,
   UnknownAccountError,
   PayinExtraIdError,
-  ProductTypeNotSupportedError
-}
+  ProductTypeNotSupportedError,
+};

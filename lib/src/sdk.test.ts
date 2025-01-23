@@ -19,13 +19,18 @@ import {
   confirmFund,
   cancelFund,
 } from "./api";
-import { ExchangeSDK, FeeStrategy, FundInfo, ProductType, SellInfo } from "./sdk";
+import {
+  ExchangeSDK,
+  FeeStrategy,
+  FundInfo,
+  ProductType,
+  SellInfo,
+} from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import {
   CompleteExchangeError,
   IgnoredSignatureStepError,
   PayinExtraIdError,
-  SignatureStepError,
 } from "./error/SwapError";
 
 jest.mock("./api");
@@ -88,7 +93,7 @@ const mockedTransport = {
 const walletApiClient = new WalletAPIClient(
   mockedTransport,
   defaultLogger,
-  getCustomModule
+  getCustomModule,
 );
 const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
@@ -138,7 +143,7 @@ describe("swap", () => {
     };
 
     // WHEN
-    const {transactionId, swapId} = await sdk.swap(swapData);
+    const { transactionId, swapId } = await sdk.swap(swapData);
 
     // THEN
     expect(mockStartSwapExchange).toBeCalled();
@@ -214,7 +219,9 @@ describe("swap", () => {
     };
 
     mockCompleteSwap.mockRejectedValueOnce(
-      new IgnoredSignatureStepError(new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"))
+      new IgnoredSignatureStepError(
+        new CompleteExchangeError("SIGN_COIN_TRANSACTION", "error message"),
+      ),
     );
 
     // WHEN
@@ -318,7 +325,7 @@ describe("sell", () => {
 
   it("throws error if passed in product type is not supported", async () => {
     console.error = jest.fn();
-  
+
     const sellData: SellInfo = {
       quoteId: "quoteId",
       fromAccountId: "id-1",
@@ -326,10 +333,12 @@ describe("sell", () => {
       feeStrategy: "SLOW" as FeeStrategy,
       toFiat: "EUR",
       rate: 1000,
-      type: ProductType.SWAP
+      type: ProductType.SWAP,
     };
-  
-    await expect(sdk.sell(sellData)).rejects.toThrowError('Product not supported');
+
+    await expect(sdk.sell(sellData)).rejects.toThrowError(
+      "Product not supported",
+    );
   });
 });
 
@@ -379,15 +388,17 @@ describe("fund", () => {
 
   it("throws error if passed in product type is not supported", async () => {
     console.error = jest.fn();
-  
+
     const fundData: FundInfo = {
       orderId: "orderId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
-      type: ProductType.SWAP
+      type: ProductType.SWAP,
     };
-  
-    await expect(sdk.fund(fundData)).rejects.toThrowError('Product not supported');
+
+    await expect(sdk.fund(fundData)).rejects.toThrowError(
+      "Product not supported",
+    );
   });
 });

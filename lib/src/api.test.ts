@@ -196,7 +196,7 @@ describe("Sell", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockQuoteId}/accepted`
+        `/webhook/v1/transaction/${mockQuoteId}/accepted`,
       );
     });
   });
@@ -209,12 +209,12 @@ describe("Sell", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockQuoteId}/cancelled`
+        `/webhook/v1/transaction/${mockQuoteId}/cancelled`,
       );
     });
   });
 
-  describe("retrieveFundPayload", () => {
+  describe("retrieveSellPayload", () => {
     it("retrieves payload based on params and parses response", async () => {
       const mockAccount = "0xfff";
       const mockResponsePayload = "payload";
@@ -232,7 +232,8 @@ describe("Sell", () => {
         type: ProductType.SELL,
       };
 
-      const { type, ...expectedRequestPayload } = mockRetrieveSellPayloadParams;
+      const { type: _type, ...expectedRequestPayload } =
+        mockRetrieveSellPayloadParams;
 
       mockPost.mockResolvedValueOnce({
         data: {
@@ -315,7 +316,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockOrderId}/accepted`
+        `/webhook/v1/transaction/${mockOrderId}/accepted`,
       );
     });
   });
@@ -328,7 +329,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockOrderId}/cancelled`
+        `/webhook/v1/transaction/${mockOrderId}/cancelled`,
       );
     });
   });
@@ -349,7 +350,8 @@ describe("Fund", () => {
         type: ProductType.CARD,
       };
 
-      const { type, ...expectedRequestPayload } = mockRetrieveFundPayloadParams;
+      const { type: _type, ...expectedRequestPayload } =
+        mockRetrieveFundPayloadParams;
 
       mockPost.mockResolvedValueOnce({
         data: {

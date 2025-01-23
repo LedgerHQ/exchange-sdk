@@ -18,7 +18,7 @@ describe("parseError", () => {
       } else {
         expect(error).toBe(mockDownstreamError);
       }
-    }
+    },
   );
   it.each(Object.values(StepError))(
     "%s - returns custom swap error when customErrorType is 'swap'",
@@ -34,6 +34,6 @@ describe("parseError", () => {
       } else {
         expect(error).toBe(mockDownstreamError);
       }
-    }
+    },
   );
 });

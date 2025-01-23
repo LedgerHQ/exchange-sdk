@@ -13,7 +13,8 @@
     "dev:lib": "pnpm turbo run dev --filter=@ledgerhq/exchange-sdk",
     "clean": "git clean -fdX",
     "lint": "turbo lint",
-    "test": "pnpm --filter=exchange-sdk test"
+    "test": "pnpm --filter=exchange-sdk test",
+    "format": "pnpm exec prettier --write lib/src examples"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.1.0",
@@ -22,7 +23,8 @@
     "@types/react-dom": "^17.0.1",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "3.4.2",
     "turbo": "^1.10.3",
     "typescript": "^4.8.3"
   },
