@@ -19,19 +19,14 @@ import {
   confirmFund,
   cancelFund,
 } from "./api";
-import {
-  ExchangeSDK,
-  FeeStrategy,
-  FundInfo,
-  ProductType,
-  SellInfo,
-} from "./sdk";
+import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import {
   CompleteExchangeError,
   IgnoredSignatureStepError,
   PayinExtraIdError,
 } from "./error/SwapError";
+import { FeeStrategy, FundInfo, ProductType, SellInfo } from "./sdk.types";
 
 jest.mock("./api");
 

@@ -1,6 +1,24 @@
 import axios from "axios";
 import BigNumber from "bignumber.js";
 import { Account } from "@ledgerhq/wallet-api-client";
+import {
+  cancelFund,
+  cancelSell,
+  cancelSwap,
+  confirmFund,
+  confirmSell,
+  confirmSwap,
+  retrieveFundPayload,
+  retrieveSellPayload,
+  retrieveSwapPayload,
+} from "./api";
+import { ProductType } from "./sdk.types";
+import {
+  FundRequestPayload,
+  FundResponsePayload,
+  SellRequestPayload,
+  SellResponsePayload,
+} from "./api.types";
 
 jest.mock("axios");
 const mockPost = jest.fn();
@@ -9,22 +27,6 @@ const mockPost = jest.fn();
     post: mockPost,
   };
 });
-
-import {
-  cancelFund,
-  cancelSell,
-  cancelSwap,
-  confirmFund,
-  confirmSell,
-  confirmSwap,
-  FundRequestPayload,
-  FundResponsePayload,
-  retrieveFundPayload,
-  retrieveSellPayload,
-  retrieveSwapPayload,
-  SellRequestPayload,
-} from "./api";
-import { ProductType } from "./sdk";
 
 describe("Swap", () => {
   describe("retrieveSwapPayload", () => {
@@ -247,7 +249,7 @@ describe("Sell", () => {
             payload: mockResponsePayload,
             signature: mockResponseSignature,
           },
-        } as FundResponsePayload,
+        } as SellResponsePayload,
       });
 
       const result = await retrieveSellPayload(mockRetrieveSellPayloadParams);
