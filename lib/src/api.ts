@@ -1,8 +1,22 @@
 import axios from "axios";
-import { Account } from "@ledgerhq/wallet-api-client";
-import BigNumber from "bignumber.js";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
-import { BEData, ExchangeType, ProductType } from "./sdk";
+import { BEData, ExchangeType, ProductType } from "./sdk.types";
+import {
+  CancelFundRequest,
+  CancelSellRequest,
+  CancelSwapRequest,
+  ConfirmFundRequest,
+  ConfirmSellRequest,
+  ConfirmSwapRequest,
+  FundRequestPayload,
+  FundResponsePayload,
+  SellRequestPayload,
+  SellResponsePayload,
+  SupportedProductsByExchangeType,
+  SwapBackendResponse,
+  SwapPayloadRequestData,
+  SwapPayloadResponse,
+} from "./api.types";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
@@ -20,11 +34,6 @@ let fundAxiosClient = axios.create({
   baseURL: FUND_BACKEND_URL,
 });
 
-type SupportedProductsByExchangeType = {
-  [key in ExchangeType]: Partial<{
-    [key in ProductType]: string;
-  }>;
-};
 /**
  * Available product endpoints based on exchange type
  */
@@ -60,25 +69,6 @@ export function setBackendUrl(url: string) {
  * SWAP *
  **/
 
-export type SwapPayloadRequestData = {
-  provider: string;
-  deviceTransactionId: string;
-  fromAccount: Account;
-  toAccount: Account;
-  amount: BigNumber;
-  amountInAtomicUnit: BigNumber;
-  quoteId?: string;
-  toNewTokenId?: string;
-};
-export type SwapPayloadResponse = {
-  binaryPayload: string;
-  signature: string;
-  payinAddress: string;
-  swapId: string;
-  payinExtraId?: string;
-  extraTransactionParameters?: string;
-};
-
 export async function retrieveSwapPayload(
   data: SwapPayloadRequestData,
 ): Promise<SwapPayloadResponse> {
@@ -98,54 +88,13 @@ export async function retrieveSwapPayload(
   return parseSwapBackendInfo(res.data);
 }
 
-export type ConfirmSwapRequest = {
-  provider: string;
-  swapId: string;
-  transactionId: string;
-  sourceCurrencyId?: string;
-  targetCurrencyId?: string;
-  hardwareWalletType?: string;
-};
-
 export async function confirmSwap(payload: ConfirmSwapRequest) {
   await swapAxiosClient.post("accepted", payload);
 }
 
-export type CancelSwapRequest = {
-  provider: string;
-  swapId: string;
-  statusCode?: string;
-  errorMessage?: string;
-  sourceCurrencyId?: string;
-  targetCurrencyId?: string;
-  hardwareWalletType?: string;
-  swapType?: string;
-  swapStep?: string;
-};
-
 export async function cancelSwap(payload: CancelSwapRequest) {
   await swapAxiosClient.post("cancelled", payload);
 }
-
-type SwapBackendResponse = {
-  provider: string;
-  swapId: string;
-  apiExtraFee: number;
-  apiFee: number;
-  refundAddress: string;
-  amountExpectedFrom: number;
-  amountExpectedTo: number;
-  status: string;
-  from: string;
-  to: string;
-  payinAddress: string;
-  payoutAddress: string;
-  createdAt: string; // ISO-8601
-  binaryPayload: string;
-  signature: string;
-  payinExtraId?: string;
-  extraTransactionParameters?: string;
-};
 
 function parseSwapBackendInfo(response: SwapBackendResponse): {
   binaryPayload: string;
@@ -169,12 +118,6 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
  * SELL *
  **/
 
-export type ConfirmSellRequest = {
-  provider: string;
-  quoteId: string;
-  transactionId: string;
-};
-
 export async function confirmSell(data: ConfirmSellRequest) {
   const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
@@ -183,44 +126,12 @@ export async function confirmSell(data: ConfirmSellRequest) {
   );
 }
 
-export type CancelSellRequest = {
-  provider: string;
-  quoteId: string;
-  statusCode?: string;
-  errorMessage?: string;
-};
-
 export async function cancelSell(data: CancelSellRequest) {
   const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
     `/webhook/v1/transaction/${quoteId}/cancelled`,
     payload,
   );
-}
-
-export interface SellRequestPayload {
-  quoteId: string;
-  provider: string;
-  fromCurrency: string;
-  toCurrency: string;
-  refundAddress: string;
-  amountFrom: number;
-  amountTo: number;
-  nonce: string;
-  type: ProductType;
-}
-
-export interface SellResponsePayload {
-  sellId: string;
-  payinAddress: string;
-  createdAt: string;
-  providerFees: number;
-  referralFees: number;
-  payoutNetworkFees: number;
-  providerSig: {
-    payload: string;
-    signature: string;
-  };
 }
 
 const parseSellBackendInfo = (response: SellResponsePayload) => {
@@ -285,12 +196,6 @@ export async function decodeSellPayloadAndPost(
  * FUND *
  **/
 
-export type ConfirmFundRequest = {
-  provider: string;
-  orderId: string;
-  transactionId: string;
-};
-
 export async function confirmFund(data: ConfirmFundRequest) {
   const { orderId, ...payload } = data;
   await sellAxiosClient.post(
@@ -299,29 +204,12 @@ export async function confirmFund(data: ConfirmFundRequest) {
   );
 }
 
-export type CancelFundRequest = {
-  provider: string;
-  orderId: string;
-  statusCode?: string;
-  errorMessage?: string;
-};
-
 export async function cancelFund(data: CancelFundRequest) {
   const { orderId, ...payload } = data;
   await sellAxiosClient.post(
     `/webhook/v1/transaction/${orderId}/cancelled`,
     payload,
   );
-}
-
-export interface FundRequestPayload {
-  orderId: string;
-  provider: string;
-  fromCurrency: string;
-  refundAddress: string;
-  amountFrom: number;
-  nonce: string;
-  type: ProductType;
 }
 
 export async function retrieveFundPayload(data: FundRequestPayload) {
@@ -337,19 +225,6 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     supportedProductsByExchangeType[ExchangeType.FUND][data.type];
   const res = await fundAxiosClient.post(pathname!, request);
   return parseFundBackendInfo(res.data);
-}
-
-export interface FundResponsePayload {
-  sellId: string;
-  payinAddress: string;
-  createdAt: string;
-  providerFees: number;
-  referralFees: number;
-  payoutNetworkFees: number;
-  providerSig: {
-    payload: string;
-    signature: string;
-  };
 }
 
 const parseFundBackendInfo = (response: FundResponsePayload) => {

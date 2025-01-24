@@ -1,5 +1,4 @@
 import {
-  Account,
   CryptoCurrency,
   Currency,
   ElrondTransaction,
@@ -8,32 +7,19 @@ import {
   StellarTransaction,
   TonTransaction,
   Transaction,
-  TransactionCommon,
   WalletAPIClient,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { handleErrors } from "./error/handleErrors";
 import { CustomErrorType, parseError, StepError } from "./error/parser";
-
-export type UserAccount = {
-  account: Account;
-  currency: Currency;
-};
-
-type TransactionWithCustomFee = TransactionCommon & {
-  customFeeConfig: {
-    [key: string]: BigNumber;
-  };
-  payinExtraId?: string;
-  customErrorType?: CustomErrorType;
-  extraTransactionParameters?: string;
-};
-
-// Define a specific type for the strategy functions, assuming they might need parameters
-type TransactionStrategyFunction = (
-  params: TransactionWithCustomFee,
-) => Transaction;
+import {
+  CreateTransactionArg,
+  TransactionStrategyFunction,
+  TransactionWithCustomFee,
+  UserAccount,
+  WalletApiDecorator,
+} from "./wallet-api.types";
 
 const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
@@ -64,28 +50,6 @@ const transactionStrategy: {
 };
 
 export type WalletAPIClientDecorator = ReturnType<typeof walletApiDecorator>;
-export type CreateTransactionArg = {
-  recipient: string;
-  amount: BigNumber;
-  currency: Currency;
-  customFeeConfig: {
-    [key: string]: BigNumber;
-  };
-  payinExtraId?: string;
-  extraTransactionParameters?: string;
-};
-
-export type WalletApiDecorator = {
-  walletClient: WalletAPIClient;
-  retrieveUserAccount: (
-    accountId: string,
-    customErrorType?: CustomErrorType,
-  ) => Promise<UserAccount>;
-  createTransaction: (
-    arg: CreateTransactionArg,
-    customErrorType?: CustomErrorType,
-  ) => Promise<Transaction>;
-};
 
 export default function walletApiDecorator(
   walletAPIClient: WalletAPIClient,

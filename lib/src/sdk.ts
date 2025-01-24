@@ -2,17 +2,11 @@ import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
-  Transaction,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import {
-  ExchangeCompleteParams,
-  ExchangeModule,
-} from "@ledgerhq/wallet-api-exchange-module";
-
 import {
   cancelSwap,
   confirmSwap,
@@ -30,111 +24,27 @@ import {
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
-import walletApiDecorator, {
-  type WalletApiDecorator,
-  getCustomModule,
-} from "./wallet-api";
+import walletApiDecorator, { getCustomModule } from "./wallet-api";
 import {
   CustomErrorType,
   ParseError,
   parseError,
   StepError,
 } from "./error/parser";
-
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
-
-enum FeeStrategyEnum {
-  SLOW = "SLOW",
-  MEDIUM = "MEDIUM",
-  FAST = "FAST",
-  CUSTOM = "CUSTOM",
-}
-
-export enum ExchangeType {
-  SWAP = "SWAP",
-  SELL = "SELL",
-  FUND = "FUND",
-}
-
-export enum ProductType {
-  SWAP = "SWAP",
-  SELL = "SELL",
-  CARD = "CARD",
-}
+import {
+  BEData,
+  ExchangeType,
+  ExtendedExchangeModule,
+  FeeStrategyEnum,
+  FundInfo,
+  GetSellPayload,
+  ProductType,
+  SellInfo,
+  SwapInfo,
+} from "./sdk.types";
+import { WalletApiDecorator } from "./wallet-api.types";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
-
-/**
- * Swap information required to request a user's swap transaction.
- */
-export type SwapInfo = {
-  quoteId?: string;
-  fromAccountId: string;
-  toAccountId: string;
-  fromAmount: BigNumber;
-  feeStrategy: FeeStrategy;
-  customFeeConfig?: { [key: string]: BigNumber };
-  rate: number;
-  toNewTokenId?: string;
-  getSwapPayload?: GetSwapPayload;
-};
-
-export type BEData = {
-  quoteId: string;
-  inAmount: number;
-  outAmount: number;
-};
-
-export type GetSellPayload = (
-  nonce: string,
-  sellAddress: string,
-  amount: BigNumber,
-) => Promise<{
-  recipientAddress: string;
-  amount: BigNumber;
-  binaryPayload: string;
-  signature: Buffer;
-  beData: BEData;
-}>;
-
-/**
- * Sell information required to request a user's sell transaction.
- */
-export type SellInfo = {
-  quoteId?: string;
-  fromAccountId: string;
-  fromAmount: BigNumber;
-  toFiat?: string;
-  feeStrategy?: FeeStrategy;
-  rate?: number;
-  customFeeConfig?: { [key: string]: BigNumber };
-  getSellPayload?: GetSellPayload;
-  type?: ProductType;
-};
-
-/**
- * Fund information required to request a user's fund transaction.
- */
-export type FundInfo = {
-  orderId?: string;
-  fromAccountId: string;
-  fromAmount: BigNumber;
-  feeStrategy?: FeeStrategy;
-  customFeeConfig?: { [key: string]: BigNumber };
-  type?: ProductType;
-};
-
-// extented type to include paramas as string for binaryPayload and signature
-export type ExtendedExchangeModule = ExchangeModule & {
-  completeSell: (params: {
-    provider: string;
-    fromAccountId: string;
-    transaction: Transaction;
-    binaryPayload: Buffer | string;
-    signature: Buffer | string; // Custom update to accept Buffer or string
-    feeStrategy: ExchangeCompleteParams["feeStrategy"];
-  }) => Promise<string>;
-};
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.

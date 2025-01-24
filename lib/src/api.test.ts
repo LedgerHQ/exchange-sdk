@@ -17,14 +17,17 @@ import {
   confirmFund,
   confirmSell,
   confirmSwap,
-  FundRequestPayload,
-  FundResponsePayload,
   retrieveFundPayload,
   retrieveSellPayload,
   retrieveSwapPayload,
-  SellRequestPayload,
 } from "./api";
-import { ProductType } from "./sdk";
+import { ProductType } from "./sdk.types";
+import {
+  FundRequestPayload,
+  FundResponsePayload,
+  SellRequestPayload,
+  SellResponsePayload,
+} from "./api.types";
 
 describe("Swap", () => {
   describe("retrieveSwapPayload", () => {
@@ -247,7 +250,7 @@ describe("Sell", () => {
             payload: mockResponsePayload,
             signature: mockResponseSignature,
           },
-        } as FundResponsePayload,
+        } as SellResponsePayload,
       });
 
       const result = await retrieveSellPayload(mockRetrieveSellPayloadParams);
