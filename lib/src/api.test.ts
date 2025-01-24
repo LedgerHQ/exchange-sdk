@@ -1,6 +1,15 @@
 import axios from "axios";
 import BigNumber from "bignumber.js";
 import { Account } from "@ledgerhq/wallet-api-client";
+
+jest.mock("axios");
+const mockPost = jest.fn();
+(axios.create as jest.Mock).mockImplementation(() => {
+  return {
+    post: mockPost,
+  };
+});
+
 import {
   cancelFund,
   cancelSell,
@@ -19,14 +28,6 @@ import {
   SellRequestPayload,
   SellResponsePayload,
 } from "./api.types";
-
-jest.mock("axios");
-const mockPost = jest.fn();
-(axios.create as jest.Mock).mockImplementation(() => {
-  return {
-    post: mockPost,
-  };
-});
 
 describe("Swap", () => {
   describe("retrieveSwapPayload", () => {
