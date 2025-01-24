@@ -282,7 +282,7 @@ export class ExchangeSDK {
     const {
       fromAccountId,
       fromAmount,
-      feeStrategy = FeeStrategyEnum.MEDIUM,
+      feeStrategy = FeeStrategyEnum.medium,
       customFeeConfig = {},
       quoteId,
       rate,
