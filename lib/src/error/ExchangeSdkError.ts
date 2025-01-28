@@ -84,6 +84,13 @@ export class ProductTypeNotSupportedError extends ExchangeBaseError {
   }
 }
 
+export class UnsupportedTokenTypeStepError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange011", nestedError);
+    this.name = "UnsupportedTokenTypeStepError";
+  }
+}
+
 export type ExchangeSdkErrorType =
   | ExchangeBaseError
   | NonceStepError
@@ -94,7 +101,8 @@ export type ExchangeSdkErrorType =
   | ListCurrencyError
   | UnknownAccountError
   | PayinExtraIdError
-  | ProductTypeNotSupportedError;
+  | ProductTypeNotSupportedError
+  | UnsupportedTokenTypeStepError;
 
 export default {
   ExchangeBaseError,
@@ -107,4 +115,5 @@ export default {
   UnknownAccountError,
   PayinExtraIdError,
   ProductTypeNotSupportedError,
+  UnsupportedTokenTypeStepError,
 };

@@ -24,6 +24,7 @@ export enum StepError {
   UNKNOWN_ACCOUNT = "UnknownAccountStepError",
   PAYIN_EXTRA_ID = "PayinExtraIdStepError",
   PRODUCT_SUPPORT = "ProductTypeNotSupportedStepError",
+  UNSUPPORTED_TOKEN = "UnsupportedTokenTypeStepError",
 }
 
 export enum CustomErrorType {
@@ -62,6 +63,7 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError,
+  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeStepError,
 };
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -75,4 +77,5 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ProductTypeNotSupportedError,
+  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeStepError,
 };

@@ -19,6 +19,7 @@ export enum ExchangeType {
   SWAP = "SWAP",
   SELL = "SELL",
   FUND = "FUND",
+  TOKEN_APPROVAL = "TOKEN_APPROVAL"
 }
 
 export enum ProductType {
@@ -98,4 +99,16 @@ export type FundInfo = {
   feeStrategy?: FeeStrategy;
   customFeeConfig?: { [key: string]: BigNumber };
   type?: ProductType;
+};
+
+/**
+ * TokenApproval information required to request a user's token approval transaction.
+ */
+export type TokenApprovalInfo = {
+  orderId?: string;
+  fromAccountId: string;
+  amount: BigNumber;
+  feeStrategy?: FeeStrategy;
+  customFeeConfig?: { [key: string]: BigNumber };
+  type: ProductType;
 };

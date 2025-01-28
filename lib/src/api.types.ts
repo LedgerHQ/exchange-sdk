@@ -153,3 +153,36 @@ export interface FundResponsePayload {
     signature: string;
   };
 }
+
+/**
+ * TOKEN APROVAL *
+ **/
+
+export type ConfirmTokenApprovalRequest = {
+  provider: string;
+  orderId: string;
+  transactionId: string;
+};
+
+export type CancelTokenApprovalRequest = {
+  provider: string;
+  orderId: string;
+  statusCode?: string;
+  errorMessage?: string;
+};
+
+export interface TokenApprovalRequestPayload {
+  orderId: string;
+  provider: string;
+  currency: string;
+  refundAddress: string;
+  amount: number;
+  type: ProductType;
+}
+
+export interface TokenApprovalResponsePayload {
+  orderId: string;
+  payinAddress: string;
+  createdAt: string;
+  payload: string;
+}

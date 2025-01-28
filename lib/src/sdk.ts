@@ -19,6 +19,9 @@ import {
   retrieveFundPayload,
   cancelFund,
   confirmFund,
+  retrieveTokenApprovalPayload,
+  cancelTokenApproval,
+  confirmTokenApproval,
   supportedProductsByExchangeType,
 } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
@@ -41,6 +44,7 @@ import {
   ProductType,
   SellInfo,
   SwapInfo,
+  TokenApprovalInfo,
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 
@@ -511,6 +515,90 @@ export class ExchangeSDK {
     });
     return tx;
   }
+  /*
+   * Ask user to validate a sell transaction.
+   * @param {TokenApprovalInfo} info - Information necessary to create a token approval transaction.
+   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
+   * @throws {ExchangeError}
+   */
+  async tokenApproval(info: TokenApprovalInfo): Promise<string | void> {
+    this.logger.log("*** Start Token Approval ***");
+
+    const {
+      fromAccountId,
+      amount,
+      // feeStrategy: Reserved for future use with integrated family types.
+      customFeeConfig = {},
+      orderId,
+      type,
+    } = info;
+
+    // Step 1: Validations
+    const { account, currency } =
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
+    this.isProductTypeSupported(ExchangeType.TOKEN_APPROVAL, type);
+    this.isSupportedToken(currency)
+
+    
+
+    // Step 2: Ask for payload creation
+    const { recipientAddress, payload } =
+      await this.tokenApprovalPayloadRequest({
+        orderId,
+        amount,
+        account,
+        type,
+      });
+
+    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
+
+    this.logger.log("Payload received:", {
+      recipientAddress,
+      amount: fromAmountAtomic,
+      payload,
+    });
+
+    // Step 3: Send payload
+
+    // TODO: Implement transaction generation logic based on family type. Currently, family type is set for Ethereum.
+    const tx = await this.walletAPI.transaction.signAndBroadcast(
+      account.parentAccountId!,
+      {
+        amount: BigNumber(0),
+        family: "ethereum",
+        recipient: recipientAddress,
+        nonce: -1,
+        data: Buffer.from(payload.replace("0x", ""), "hex"),
+        ...customFeeConfig,
+      },
+    )      
+      .catch(async (error: Error) => {
+          await this.cancelTokenApprovalOnError({
+            error,
+            orderId,
+          });
+  
+          if (error.name === "DisabledTransactionBroadcastError") {
+            throw error;
+          }
+  
+          this.handleError({ error, step: StepError.SIGNATURE });
+          throw error;
+        });
+      
+
+    this.logger.log("Transaction sent:", tx);
+    this.logger.log("*** End Token Approval ***");
+
+    await confirmTokenApproval({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      transactionId: tx,
+    }).catch((error: Error) => {
+      this.logger.error(error);
+    });
+    return tx;
+  }
 
   /**
    * Disconnects this instance from the WalletAPI server.
@@ -555,6 +643,23 @@ export class ExchangeSDK {
       throw err;
     }
   }
+
+  /**
+   * Check supported token
+   */
+    private isSupportedToken(
+      currency: Currency,
+    ): void {
+      if (currency.type !== "TokenCurrency") {
+        const err = parseError({
+          error: new Error("Currency is not a token"),
+          step: StepError.UNSUPPORTED_TOKEN,
+        });
+        this.logger.error(err as Error);
+        throw err;
+      }
+      // TODO: Implement validation to check if the currency and token are in the supported list.
+    }
 
   private convertToAtomicUnit(
     amount: BigNumber,
@@ -735,6 +840,57 @@ export class ExchangeSDK {
     orderId?: string;
   }) {
     await cancelFund({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      statusCode: error.name,
+      errorMessage: error.message,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
+    });
+  }
+
+  private async tokenApprovalPayloadRequest({
+    account,
+    orderId,
+    amount,
+    type,
+  }: {
+    amount: BigNumber;
+    account: Account;
+    orderId?: string;
+    type: ProductType;
+  }) {
+
+    const data = await retrieveTokenApprovalPayload({
+      orderId: orderId!,
+      provider: this.providerId,
+      currency: account.currency,
+      refundAddress: account.address,
+      amount: amount.toNumber(),
+      type,
+    }).catch((error: Error) => {
+      this.handleError({ error, step: StepError.PAYLOAD });
+      throw error;
+    });
+
+    const recipientAddress: string = data.payinAddress;
+    const payload: Buffer | string = data.payload;
+    
+    return {
+      recipientAddress,
+      payload,
+    };
+  }
+
+
+  private async cancelTokenApprovalOnError({
+    error,
+    orderId,
+  }: {
+    error: Error;
+    orderId?: string;
+  }) {
+    await cancelTokenApproval({
       provider: this.providerId,
       orderId: orderId ?? "",
       statusCode: error.name,
