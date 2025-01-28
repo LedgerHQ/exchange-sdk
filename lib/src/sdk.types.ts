@@ -1,10 +1,5 @@
 import BigNumber from "bignumber.js";
-import {
-  ExchangeCompleteParams,
-  ExchangeModule,
-} from "@ledgerhq/wallet-api-exchange-module";
 import { GetSwapPayload } from "./sdk";
-import { Transaction } from "@ledgerhq/wallet-api-client";
 
 export type FeeStrategy = "slow" | "medium" | "fast" | "custom";
 
@@ -26,19 +21,6 @@ export enum ProductType {
   SELL = "SELL",
   CARD = "CARD",
 }
-
-//TODO: remove after upgrading @ledgerhq/wallet-api-exchange-module
-// extented type to include paramas as string for binaryPayload and signature
-export type ExtendedExchangeModule = ExchangeModule & {
-  completeSell: (params: {
-    provider: string;
-    fromAccountId: string;
-    transaction: Transaction;
-    binaryPayload: Buffer | string;
-    signature: Buffer | string; // Custom update to accept Buffer or string
-    feeStrategy: ExchangeCompleteParams["feeStrategy"];
-  }) => Promise<string>;
-};
 
 /**
  * Swap information required to request a user's swap transaction.
