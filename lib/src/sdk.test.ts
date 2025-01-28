@@ -18,6 +18,9 @@ import {
   retrieveFundPayload,
   confirmFund,
   cancelFund,
+  retrieveTokenApprovalPayload,
+  confirmTokenApproval,
+  cancelTokenApproval,
 } from "./api";
 import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
@@ -26,7 +29,7 @@ import {
   IgnoredSignatureStepError,
   PayinExtraIdError,
 } from "./error/SwapError";
-import { FeeStrategy, FundInfo, ProductType, SellInfo } from "./sdk.types";
+import { FeeStrategy, FundInfo, ProductType, SellInfo, TokenApprovalInfo } from "./sdk.types";
 
 jest.mock("./api");
 
@@ -90,6 +93,11 @@ const walletApiClient = new WalletAPIClient(
   defaultLogger,
   getCustomModule,
 );
+
+const mockSignAndBroadcast = jest
+  .spyOn(walletApiClient.transaction, "signAndBroadcast")
+  .mockResolvedValue("TransactionId");
+
 const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
 beforeEach(() => {
@@ -378,6 +386,7 @@ describe("fund", () => {
     expect(mockCompleteSwap).not.toBeCalled();
     expect(mockCompleteSell).not.toBeCalled();
     expect(mockCompleteFund).toBeCalled();
+    expect(mockSignAndBroadcast).not.toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
 
@@ -396,4 +405,63 @@ describe("fund", () => {
       "Product not supported",
     );
   });
+});
+
+describe("token approval", () => {
+  const currencies: Array<Partial<Currency>> = [
+    {
+      id: "currency-id-1",
+      decimals: 4,
+      type: "TokenCurrency",
+    },
+  ];
+
+  beforeAll(() => {
+    (retrieveTokenApprovalPayload as jest.Mock).mockResolvedValue({
+      payinAddress: "",
+      orderId: "token-approval-id",
+      payload: "",
+    });
+    (confirmTokenApproval as jest.Mock).mockResolvedValue({});
+    (cancelTokenApproval as jest.Mock).mockResolvedValue({});
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+  });
+
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+    // GIVEN
+    const tokenApprovalData: TokenApprovalInfo = {
+      orderId: "orderId",
+      fromAccountId: "id-1",
+      amount: new BigNumber("1.908"),
+      feeStrategy: "SLOW" as FeeStrategy,
+      type: ProductType.CARD
+    };
+
+    // WHEN
+    const transactionId = await sdk.tokenApproval(tokenApprovalData);
+
+    // THEN
+    expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteSell).not.toBeCalled();
+    expect(mockCompleteFund).not.toBeCalled();
+    expect(mockSignAndBroadcast).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
+  });
+
+  // it("throws error if passed in product type is not supported", async () => {
+  //   console.error = jest.fn();
+
+  //   const tokenApprovalData: TokenApprovalInfo = {
+  //     orderId: "orderId",
+  //     fromAccountId: "id-1",
+  //     amount: new BigNumber("1.908"),
+  //     feeStrategy: "SLOW" as FeeStrategy,
+  //     type: ProductType.SWAP,
+  //   };
+
+  //   await expect(sdk.tokenApproval(tokenApprovalData)).rejects.toThrowError(
+  //     "Product not supported",
+  //   );
+  // });
 });
