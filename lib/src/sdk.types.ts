@@ -6,13 +6,13 @@ import {
 import { GetSwapPayload } from "./sdk";
 import { Transaction } from "@ledgerhq/wallet-api-client";
 
-export type FeeStrategy = "SLOW" | "MEDIUM" | "FAST" | "CUSTOM";
+export type FeeStrategy = "slow" | "medium" | "fast" | "custom";
 
 export enum FeeStrategyEnum {
-  SLOW = "SLOW",
-  MEDIUM = "MEDIUM",
-  FAST = "FAST",
-  CUSTOM = "CUSTOM",
+  SLOW = "slow",
+  MEDIUM = "medium",
+  FAST = "fast",
+  CUSTOM = "custom",
 }
 
 export enum ExchangeType {
