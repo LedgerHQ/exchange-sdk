@@ -7,6 +7,7 @@ import {
   PayinExtraIdError,
   PayloadStepError,
   ProductTypeNotSupportedError,
+  UnsupportedTokenTypeNotSupportedError,
   SignatureStepError,
   UnknownAccountError,
 } from "./SwapError";
@@ -63,7 +64,7 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError,
-  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeStepError,
+  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeNotSupportedError,
 };
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -77,5 +78,5 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ProductTypeNotSupportedError,
-  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeStepError,
+  [StepError.UNSUPPORTED_TOKEN]: UnsupportedTokenTypeNotSupportedError,
 };
