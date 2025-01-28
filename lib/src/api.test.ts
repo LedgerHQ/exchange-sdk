@@ -449,17 +449,11 @@ describe("TokenApproval", () => {
 
       mockPost.mockResolvedValueOnce({
         data: {
-          sellId: mockOrderId,
+          orderId: mockOrderId,
           payinAddress: mockAccount,
           createdAt: "2023-07-05T22:12:15.378497Z",
-          providerFees: 0,
-          referralFees: 0,
-          payoutNetworkFees: 0,
-          providerSig: {
-            payload: mockResponsePayload,
-            signature: mockResponseSignature,
-          },
-        } as FundResponsePayload,
+          payload: mockResponsePayload,
+        },
       });
 
       const result = await retrieveTokenApprovalPayload(mockRetrieveTokenApprovalPayloadParams);
@@ -467,10 +461,7 @@ describe("TokenApproval", () => {
       const expectedResult = {
         orderId: mockOrderId,
         payinAddress: mockAccount,
-        providerSig: {
-          payload: mockResponsePayload,
-          signature: mockResponseSignature,
-        },
+        payload: mockResponsePayload,
       };
 
       expect(result).toEqual(expectedResult);
