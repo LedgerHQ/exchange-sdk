@@ -133,7 +133,7 @@ describe("swap", () => {
       fromAccountId: "id-1",
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       rate: 1.2,
     };
 
@@ -164,7 +164,7 @@ describe("swap", () => {
       fromAccountId: "id-stellar",
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       rate: 1.2,
     };
 
@@ -186,7 +186,7 @@ describe("swap", () => {
       fromAccountId: "id-ripple",
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       rate: 1.2,
     };
 
@@ -209,7 +209,7 @@ describe("swap", () => {
       fromAccountId: "id-1",
       toAccountId: "id-2",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       rate: 1.2,
     };
 
@@ -270,7 +270,7 @@ describe("sell", () => {
       quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       getSellPayload: mockSellPayload,
     };
 
@@ -301,7 +301,7 @@ describe("sell", () => {
       quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
+      feeStrategy: "slow" as FeeStrategy,
       toFiat: "EUR",
       rate: 1000,
     };
