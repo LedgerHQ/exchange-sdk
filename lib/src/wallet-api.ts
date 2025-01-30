@@ -26,6 +26,7 @@ const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
 } = {
   algorand: defaultTransaction,
+  aptos: defaultTransaction,
   bitcoin: bitcoinTransaction,
   cardano: modeSendTransaction,
   celo: defaultTransaction,
