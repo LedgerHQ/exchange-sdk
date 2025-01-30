@@ -1,4 +1,5 @@
 import {
+  CosmosTransaction,
   CryptoCurrency,
   Currency,
   ElrondTransaction,
@@ -28,7 +29,7 @@ const transactionStrategy: {
   bitcoin: bitcoinTransaction,
   cardano: modeSendTransaction,
   celo: defaultTransaction,
-  cosmos: defaultTransaction,
+  cosmos: cosmosTransaction,
   crypto_org: defaultTransaction,
   elrond: elrondTransaction,
   ethereum: withoutGasLimitTransaction,
@@ -315,4 +316,17 @@ function tonTransaction({
     comment: { isEncrypted: false, text: "" },
     fees: new BigNumber(0), // Set default value as completeExchange call prepareTransaction, which set again fees.
   } as TonTransaction;
+}
+
+export function cosmosTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+  payinExtraId,
+}: TransactionWithCustomFee): CosmosTransaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    memo: payinExtraId ?? undefined,
+  } as CosmosTransaction;
 }
