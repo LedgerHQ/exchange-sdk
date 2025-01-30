@@ -34,7 +34,6 @@ import {
 import {
   BEData,
   ExchangeType,
-  ExtendedExchangeModule,
   FeeStrategyEnum,
   FundInfo,
   GetSellPayload,
@@ -43,6 +42,7 @@ import {
   SwapInfo,
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
+import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
@@ -61,8 +61,8 @@ export class ExchangeSDK {
     return this.walletAPIDecorator.walletClient;
   }
 
-  private get exchangeModule(): ExtendedExchangeModule {
-    return (this.walletAPI.custom as any).exchange as ExtendedExchangeModule;
+  private get exchangeModule(): ExchangeModule {
+    return (this.walletAPI.custom as any).exchange as ExchangeModule;
   }
 
   /**
@@ -226,8 +226,8 @@ export class ExchangeSDK {
         toAccountId, // This attribute will point to the parent account when the token is new.
         swapId,
         transaction,
-        binaryPayload: binaryPayload as any, // TODO: Fix when customAPI types are fixed
-        signature: signature as any, // TODO: Fix when customAPI types are fixed
+        binaryPayload,
+        signature,
         feeStrategy,
         tokenCurrency: toNewTokenId,
       })
@@ -303,7 +303,7 @@ export class ExchangeSDK {
     const deviceTransactionId = await this.exchangeModule
       .startSell({
         provider: this.providerId,
-        //TODO: Pass in fromAccountId (newer version of the exchange module supports this)
+        fromAccountId,
       })
       .catch((error: Error) => {
         const err = parseError({ error, step: StepError.NONCE });

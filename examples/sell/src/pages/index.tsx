@@ -24,7 +24,7 @@ const IndexPage = () => {
   const [quoteId, setQuoteId] = useState();
   const [amount, setAmount] = useState("");
   const [fromAccount, setFromAccount] = useState("");
-  const [feeSelected, setFeeSelected] = useState("SLOW");
+  const [feeSelected, setFeeSelected] = useState("slow");
   const [customFeeConfig, setCustomFeeConfig] = useState({});
 
   const currencyInputRef = useRef<HTMLInputElement>(null);
@@ -214,24 +214,24 @@ const IndexPage = () => {
           <input
             type="radio"
             name="fee"
-            value="SLOW"
-            defaultChecked={feeSelected === "SLOW"}
+            value="slow"
+            defaultChecked={feeSelected === "slow"}
           />{" "}
-          SLOW
+          slow
           <input
             type="radio"
             name="fee"
-            value="MEDIUM"
-            defaultChecked={feeSelected === "MEDIUM"}
+            value="medium"
+            defaultChecked={feeSelected === "medium"}
           />{" "}
-          MEDIUM
+          medium
           <input
             type="radio"
             name="fee"
-            value="FAST"
-            defaultChecked={feeSelected === "FAST"}
+            value="fast"
+            defaultChecked={feeSelected === "fast"}
           />{" "}
-          FAST
+          fast
         </div>
       </div>
       <div>
