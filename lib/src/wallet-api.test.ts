@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import {
+  cosmosTransaction,
   defaultTransaction,
   elrondTransaction,
   modeSendTransaction,
@@ -177,6 +178,25 @@ describe("elrondTransaction function", () => {
       recipient: "ADDRESS",
       mode: "send",
       gasLimit: 0,
+    });
+  });
+});
+
+describe("cosmosTransaction function", () => {
+  it("creates a CosmosTransaction with memo", () => {
+    const transaction = cosmosTransaction({
+      family: "cosmos",
+      amount: new BigNumber("1.908"),
+      recipient: "ADDRESS",
+      customFeeConfig: {},
+      payinExtraId: "MEMO",
+    });
+
+    expect(transaction).toEqual({
+      family: "cosmos",
+      amount: new BigNumber("1.908"),
+      recipient: "ADDRESS",
+      memo: "MEMO",
     });
   });
 });
