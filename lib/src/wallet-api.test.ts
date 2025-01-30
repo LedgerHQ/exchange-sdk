@@ -185,7 +185,7 @@ describe("elrondTransaction function", () => {
 describe("cosmosTransaction function", () => {
   it("creates a CosmosTransaction with memo", () => {
     const transaction = cosmosTransaction({
-      family: "stellar",
+      family: "cosmos",
       amount: new BigNumber("1.908"),
       recipient: "ADDRESS",
       customFeeConfig: {},
@@ -193,7 +193,7 @@ describe("cosmosTransaction function", () => {
     });
 
     expect(transaction).toEqual({
-      family: "stellar",
+      family: "cosmos",
       amount: new BigNumber("1.908"),
       recipient: "ADDRESS",
       memo: "MEMO",
