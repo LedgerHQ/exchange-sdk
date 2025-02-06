@@ -153,8 +153,8 @@ importers:
         specifier: ^1.6.1
         version: 1.6.1
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: 0.10.0-nightly.0
+        version: 0.10.0-nightly.0
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
         version: 25.0.4(rollup@3.29.2)
@@ -666,6 +666,9 @@ packages:
 
   '@ledgerhq/wallet-api-core@1.14.0':
     resolution: {integrity: sha512-mvOzQ5H1nFAu4+ene1DSnTTDQCD6+3Q7l+U73FeD9Rx9eJYDGyqpkuSNiFBq2EZyfgINrBTIsElHCMmBlsVgGg==}
+
+  '@ledgerhq/wallet-api-exchange-module@0.10.0-nightly.0':
+    resolution: {integrity: sha512-OSuTzXF6fcVjP/SOT38VYAJwVzJ7J4GOslMQ7f07MgNzTxF7aGbnkE9i+4CJIb9iv4R1kM9JtFvH3hzWCJj/Yw==}
 
   '@ledgerhq/wallet-api-exchange-module@0.9.0':
     resolution: {integrity: sha512-/o2eoCU+9jzxH6a/5AF15he72iUSUgrTScbKIpKjqUrRGahdfi7ZETHnygPHmCKb8c5dWU7CbiRfCsw6BZqDfw==}
@@ -3756,6 +3759,11 @@ snapshots:
       bignumber.js: 9.1.2
       uuid: 9.0.1
       zod: 3.22.4
+
+  '@ledgerhq/wallet-api-exchange-module@0.10.0-nightly.0':
+    dependencies:
+      '@ledgerhq/wallet-api-client': 1.6.1
+      '@ledgerhq/wallet-api-core': 1.14.0
 
   '@ledgerhq/wallet-api-exchange-module@0.9.0':
     dependencies:
