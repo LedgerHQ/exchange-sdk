@@ -53,7 +53,7 @@ export type SellInfo = {
 };
 
 export type BEData = {
-  quoteId: string;
+  quoteId?: string;
   inAmount: number;
   outAmount: number;
 };

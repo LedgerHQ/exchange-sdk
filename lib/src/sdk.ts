@@ -331,7 +331,7 @@ export class ExchangeSDK {
 
     if (getSellPayload) {
       await decodeSellPayloadAndPost(
-        binaryPayload as string,
+        binaryPayload.toString(),
         beData as BEData,
         this.providerId,
       );
@@ -482,7 +482,7 @@ export class ExchangeSDK {
         fromAccountId,
         transaction,
         //TODO: Remove any type cast after updating types for completeFund in LL
-        binaryPayload: binaryPayload as any,
+        binaryPayload: Buffer.from(binaryPayload),
         signature: binaryPayload as any,
         feeStrategy,
       })
@@ -657,7 +657,7 @@ export class ExchangeSDK {
 
       recipientAddress = data.recipientAddress;
       newAmount = data.amount;
-      binaryPayload = data.binaryPayload;
+      binaryPayload = Buffer.from(data.binaryPayload);
       signature = Buffer.from(data.signature);
       beData = data.beData;
     } else {

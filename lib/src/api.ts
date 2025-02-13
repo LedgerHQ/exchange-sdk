@@ -168,8 +168,13 @@ export async function decodeSellPayloadAndPost(
   providerId: string,
 ) {
   try {
+    const bufferPayload = Buffer.from(
+      binaryPayload,
+      "base64",
+    ) as unknown as string;
+
     const { inCurrency, outCurrency, inAddress } =
-      await decodeSellPayload(binaryPayload);
+      await decodeSellPayload(bufferPayload);
 
     const payload = {
       quoteId: beData.quoteId,
