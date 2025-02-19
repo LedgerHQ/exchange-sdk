@@ -331,7 +331,7 @@ export class ExchangeSDK {
 
     if (getSellPayload) {
       const newQuoteId = await decodeSellPayloadAndPost(
-        binaryPayload.toString(),
+        binaryPayload as string,
         beData as BEData,
         this.providerId,
       );
