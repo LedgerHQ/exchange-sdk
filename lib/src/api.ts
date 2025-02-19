@@ -163,13 +163,13 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
 }
 
 export async function decodeSellPayloadAndPost(
-  binaryPayload: string,
+  binaryPayload: Buffer,
   beData: BEData,
   providerId: string,
 ) {
   try {
     const bufferPayload = Buffer.from(
-      binaryPayload,
+      binaryPayload.toString(),
       "base64",
     ) as unknown as string;
 
