@@ -38,16 +38,16 @@ let fundAxiosClient = axios.create({
  * Available product endpoints based on exchange type
  */
 export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
-  {
-    [ExchangeType.SWAP]: {},
-    [ExchangeType.SELL]: {
-      [ProductType.CARD]: "card/v1/remit",
-      [ProductType.SELL]: "sell/v1/remit",
-    },
-    [ExchangeType.FUND]: {
-      [ProductType.CARD]: "fund/card/v1/remit",
-    },
-  };
+{
+  [ExchangeType.SWAP]: {},
+  [ExchangeType.SELL]: {
+    [ProductType.CARD]: "card/v1/remit",
+    [ProductType.SELL]: "sell/v1/remit",
+  },
+  [ExchangeType.FUND]: {
+    [ProductType.CARD]: "fund/card/v1/remit",
+  },
+};
 
 /**
  * Override the default axios client base url environment (default is production)
@@ -191,7 +191,12 @@ export async function decodeSellPayloadAndPost(
       referralFee: null,
     };
 
-    sellAxiosClient.post("/forgeTransaction/offRamp", payload);
+    const res = await sellAxiosClient.post(
+      "/forgeTransaction/offRamp",
+      payload,
+    );
+
+    return res.data?.sellId;
   } catch (e) {
     console.log("Error decoding payload", e);
   }
