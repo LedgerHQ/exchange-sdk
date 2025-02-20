@@ -52,12 +52,6 @@ export type SellInfo = {
   type?: ProductType;
 };
 
-export type BEData = {
-  quoteId?: string;
-  inAmount: number;
-  outAmount: number;
-};
-
 export type GetSellPayload = (
   nonce: string,
   sellAddress: string,
@@ -67,7 +61,6 @@ export type GetSellPayload = (
   amount: BigNumber;
   binaryPayload: string;
   signature: Buffer;
-  beData: BEData;
 }>;
 
 /**

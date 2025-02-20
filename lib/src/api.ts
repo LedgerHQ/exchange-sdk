@@ -1,6 +1,6 @@
 import axios from "axios";
 import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
-import { BEData, ExchangeType, ProductType } from "./sdk.types";
+import { ExchangeType, ProductType } from "./sdk.types";
 import {
   CancelFundRequest,
   CancelSellRequest,
@@ -162,9 +162,36 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
   return parseSellBackendInfo(res.data);
 }
 
+type UDecimal = {
+  coefficient: Uint8Array;
+  exponent: number;
+};
+
+const decodeAmount = (val: Uint8Array | UDecimal) => {
+  if (val instanceof Uint8Array) {
+    // Decode Uint8Array directly
+    const scalingFactor = 1e8;
+    const bufferVal = Buffer.from(val);
+    return bufferVal.readUIntBE(0, bufferVal.length) / scalingFactor;
+  }
+
+  if (val?.coefficient && val?.exponent !== undefined) {
+    // Decode UDecimal properly
+    const coefficientBuffer = Buffer.from(val.coefficient);
+    const coefficient = coefficientBuffer.readUIntBE(
+      0,
+      coefficientBuffer.length,
+    );
+
+    // Apply exponent as a divisor for decimal places
+    return coefficient / Math.pow(10, Math.abs(val.exponent));
+  }
+
+  throw new Error("Unsupported type for decodeAmount");
+};
+
 export async function decodeSellPayloadAndPost(
   binaryPayload: Buffer,
-  beData: BEData,
   providerId: string,
 ) {
   try {
@@ -173,17 +200,20 @@ export async function decodeSellPayloadAndPost(
       "base64",
     ) as unknown as string;
 
-    const { inCurrency, outCurrency, inAddress } =
+    const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
       await decodeSellPayload(bufferPayload);
 
+    const amountTo = decodeAmount(inAmount as Uint8Array);
+    const amountFrom = decodeAmount(outAmount as UDecimal);
+
     const payload = {
-      quoteId: beData.quoteId,
+      quoteId: null,
       provider: providerId,
       fromCurrency: inCurrency,
       toCurrency: outCurrency,
       address: inAddress,
-      amountFrom: beData.outAmount,
-      amountTo: beData.inAmount,
+      amountFrom,
+      amountTo,
 
       // These 3 values are null for now as we do not receive them.
       country: null,
