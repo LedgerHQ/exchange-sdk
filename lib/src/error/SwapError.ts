@@ -91,6 +91,13 @@ export class ProductTypeNotSupportedError extends SwapError {
   }
 }
 
+export class UnsupportedTokenTypeNotSupportedError extends SwapError {
+  constructor(nestedError?: Error) {
+    super("swap012", nestedError);
+    this.name = "UnsupportedTokenTypeStepError";
+  }
+}
+
 export type CompleteExchangeStep =
   | "INIT"
   | "SET_PARTNER_KEY"
