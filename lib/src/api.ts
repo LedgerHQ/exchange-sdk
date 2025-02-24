@@ -222,7 +222,7 @@ export async function decodeSellPayloadAndPost(
     };
 
     const res = await sellAxiosClient.post(
-      "/forgeTransaction/offRamp",
+      "/sell/v1/forgeTransaction/offRamp",
       payload,
     );
 
