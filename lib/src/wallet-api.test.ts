@@ -3,6 +3,7 @@ import {
   cosmosTransaction,
   defaultTransaction,
   elrondTransaction,
+  hederaTransaction,
   modeSendTransaction,
   rippleTransaction,
   solanaTransaction,
@@ -195,6 +196,25 @@ describe("cosmosTransaction function", () => {
     expect(transaction).toEqual({
       family: "cosmos",
       amount: new BigNumber("1.908"),
+      recipient: "ADDRESS",
+      memo: "MEMO",
+    });
+  });
+});
+
+describe("hederaTransaction function", () => {
+  it("creates a HederaTransaction with memo", () => {
+    const transaction = hederaTransaction({
+      family: "hedera",
+      amount: new BigNumber("10"),
+      recipient: "ADDRESS",
+      customFeeConfig: {},
+      payinExtraId: "MEMO",
+    });
+
+    expect(transaction).toEqual({
+      family: "hedera",
+      amount: new BigNumber("10"),
       recipient: "ADDRESS",
       memo: "MEMO",
     });
