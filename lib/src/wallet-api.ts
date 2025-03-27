@@ -48,6 +48,7 @@ const transactionStrategy: {
   tron: modeSendTransaction,
   vechain: defaultTransaction,
   casper: defaultTransaction,
+  sui: defaultTransaction,
   internet_computer: defaultTransaction,
 };
 
