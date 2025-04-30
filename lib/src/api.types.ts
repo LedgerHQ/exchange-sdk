@@ -78,13 +78,13 @@ export type SwapBackendResponse = {
 
 export type ConfirmSellRequest = {
   provider: string;
-  quoteId: string;
+  sellId: string;
   transactionId: string;
 };
 
 export type CancelSellRequest = {
   provider: string;
-  quoteId: string;
+  sellId: string;
   statusCode?: string;
   errorMessage?: string;
 };
