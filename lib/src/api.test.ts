@@ -193,7 +193,7 @@ describe("Sell", () => {
   describe("confirmSell", () => {
     it("calls 'accepted' endpoint", async () => {
       await confirmSell({
-        quoteId: mockQuoteId,
+        sellId: mockQuoteId,
         provider: "provider-name",
         transactionId: "transaction-id",
       });
@@ -208,7 +208,7 @@ describe("Sell", () => {
     it("calls 'cancelled' endpoint", async () => {
       await cancelSell({
         provider: "provider-name",
-        quoteId: mockQuoteId,
+        sellId: mockQuoteId,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(

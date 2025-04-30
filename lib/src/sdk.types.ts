@@ -61,6 +61,7 @@ export type GetSellPayload = (
   amount: BigNumber;
   binaryPayload: string;
   signature: Buffer;
+  sellId: string;
 }>;
 
 /**
