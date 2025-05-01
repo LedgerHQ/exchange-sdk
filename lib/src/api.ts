@@ -38,16 +38,16 @@ let fundAxiosClient = axios.create({
  * Available product endpoints based on exchange type
  */
 export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
-{
-  [ExchangeType.SWAP]: {},
-  [ExchangeType.SELL]: {
-    [ProductType.CARD]: "card/v1/remit",
-    [ProductType.SELL]: "sell/v1/remit",
-  },
-  [ExchangeType.FUND]: {
-    [ProductType.CARD]: "fund/card/v1/remit",
-  },
-};
+  {
+    [ExchangeType.SWAP]: {},
+    [ExchangeType.SELL]: {
+      [ProductType.CARD]: "card/v1/remit",
+      [ProductType.SELL]: "sell/v1/remit",
+    },
+    [ExchangeType.FUND]: {
+      [ProductType.CARD]: "fund/card/v1/remit",
+    },
+  };
 
 /**
  * Override the default axios client base url environment (default is production)
@@ -119,24 +119,24 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
  **/
 
 export async function confirmSell(data: ConfirmSellRequest) {
-  const { quoteId, ...payload } = data;
+  const { sellId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${quoteId}/accepted`,
+    `/webhook/v1/transaction/${sellId}/accepted`,
     payload,
   );
 }
 
 export async function cancelSell(data: CancelSellRequest) {
-  const { quoteId, ...payload } = data;
+  const { sellId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${quoteId}/cancelled`,
+    `/webhook/v1/transaction/${sellId}/cancelled`,
     payload,
   );
 }
 
 const parseSellBackendInfo = (response: SellResponsePayload) => {
   return {
-    quoteId: response.sellId,
+    sellId: response.sellId,
     payinAddress: response.payinAddress,
     providerSig: {
       payload: response.providerSig.payload,

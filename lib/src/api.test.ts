@@ -185,6 +185,7 @@ describe("Swap", () => {
 
 describe("Sell", () => {
   const mockQuoteId = "quoteId";
+  const mockSellId = "sellId";
 
   afterEach(() => {
     mockPost.mockReset();
@@ -193,13 +194,13 @@ describe("Sell", () => {
   describe("confirmSell", () => {
     it("calls 'accepted' endpoint", async () => {
       await confirmSell({
-        quoteId: mockQuoteId,
+        sellId: mockSellId,
         provider: "provider-name",
         transactionId: "transaction-id",
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockQuoteId}/accepted`,
+        `/webhook/v1/transaction/${mockSellId}/accepted`,
       );
     });
   });
@@ -208,11 +209,11 @@ describe("Sell", () => {
     it("calls 'cancelled' endpoint", async () => {
       await cancelSell({
         provider: "provider-name",
-        quoteId: mockQuoteId,
+        sellId: mockSellId,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockQuoteId}/cancelled`,
+        `/webhook/v1/transaction/${mockSellId}/cancelled`,
       );
     });
   });
@@ -240,7 +241,7 @@ describe("Sell", () => {
 
       mockPost.mockResolvedValueOnce({
         data: {
-          sellId: mockQuoteId,
+          sellId: mockSellId,
           payinAddress: mockAccount,
           createdAt: "2023-07-05T22:12:15.378497Z",
           providerFees: 0,
@@ -256,7 +257,7 @@ describe("Sell", () => {
       const result = await retrieveSellPayload(mockRetrieveSellPayloadParams);
 
       const expectedResult = {
-        quoteId: mockQuoteId,
+        sellId: mockSellId,
         payinAddress: mockAccount,
         providerSig: {
           payload: mockResponsePayload,
