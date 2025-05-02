@@ -270,6 +270,47 @@ export class ExchangeSDK {
   }
 
   /**
+   * Full swap flow inside LL wallet-api
+   * @param {SwapInfo} info - Information necessary to create a swap transaction.
+   * @return {Promise<{transactionId: string}>} Promise of the transaction id
+   * @throws {ExchangeError}
+   */
+  async newSwap({
+    fromAccountId,
+    toAccountId,
+    fromAmount,
+    feeStrategy,
+    customFeeConfig = {},
+    quoteId,
+    toNewTokenId,
+  }: SwapInfo): Promise<string> {
+    this.logger.log("*** Start Swap ***");
+
+    const { currency: fromCurrency } =
+      await this.walletAPIDecorator.retrieveUserAccount(
+        fromAccountId,
+        CustomErrorType.SWAP,
+      );
+
+    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
+
+    const transactionHash = await this.exchangeModule.swap({
+      exchangeType: ExchangeType.SWAP,
+      provider: this.providerId,
+      fromAccountId,
+      toAccountId,
+      tokenCurrency: toNewTokenId || "",
+      fromAmount: fromAmount.toString(),
+      fromAmountAtomic: fromAmountAtomic.toNumber(),
+      quoteId,
+      toNewTokenId,
+      feeStrategy,
+    });
+
+    return transactionHash;
+  }
+
+  /**
    * Ask user to validate a sell transaction.
    * @param {SellInfo} info - Information necessary to create a sell transaction.
    * @return {Promise<string | void>} Promise of the hash of the sent transaction.
