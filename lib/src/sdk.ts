@@ -1,6 +1,7 @@
 import BigNumber from "bignumber.js";
 import {
   Account,
+  AnyCustomGetter,
   Currency,
   Transport,
   WalletAPIClient,
@@ -88,7 +89,11 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
+        new WalletAPIClient<AnyCustomGetter>(
+          this.transport,
+          defaultLogger,
+          getCustomModule,
+        ),
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -283,7 +288,7 @@ export class ExchangeSDK {
     customFeeConfig = {},
     quoteId,
     toNewTokenId,
-  }: SwapInfo): Promise<string> {
+  }: SwapInfo): Promise<{ swapId: string; operationHash: string }> {
     this.logger.log("*** Start Swap ***");
 
     const { currency: fromCurrency } =
@@ -294,7 +299,7 @@ export class ExchangeSDK {
 
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
 
-    const transactionHash = await this.exchangeModule.swap({
+    const { swapId, operationHash } = await this.exchangeModule.swap({
       exchangeType: ExchangeType.SWAP,
       provider: this.providerId,
       fromAccountId,
@@ -306,8 +311,8 @@ export class ExchangeSDK {
       toNewTokenId,
       feeStrategy,
     });
-
-    return transactionHash;
+    this.logger.log("swapId, operationHash", swapId, operationHash);
+    return { swapId, operationHash };
   }
 
   /**
