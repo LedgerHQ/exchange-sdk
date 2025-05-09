@@ -280,7 +280,7 @@ export class ExchangeSDK {
    * @return {Promise<{transactionId: string}>} Promise of the transaction id
    * @throws {ExchangeError}
    */
-  async newSwap({
+  async swapComplete({
     fromAccountId,
     toAccountId,
     fromAmount,
@@ -311,7 +311,7 @@ export class ExchangeSDK {
       toNewTokenId,
       feeStrategy,
     });
-    this.logger.log("swapId, operationHash", swapId, operationHash);
+
     return { swapId, operationHash };
   }
 
