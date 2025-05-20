@@ -310,6 +310,7 @@ export class ExchangeSDK {
       quoteId,
       toNewTokenId,
       feeStrategy,
+      customFeeConfig,
     });
 
     return { swapId, operationHash };
