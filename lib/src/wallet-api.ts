@@ -1,5 +1,6 @@
 import {
   CosmosTransaction,
+  HederaTransaction,
   CryptoCurrency,
   Currency,
   ElrondTransaction,
@@ -35,7 +36,7 @@ const transactionStrategy: {
   elrond: elrondTransaction,
   ethereum: withoutGasLimitTransaction,
   filecoin: defaultTransaction,
-  hedera: defaultTransaction,
+  hedera: hederaTransaction,
   near: modeSendTransaction,
   neo: defaultTransaction,
   polkadot: defaultTransaction,
@@ -331,4 +332,17 @@ export function cosmosTransaction({
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
     memo: payinExtraId ?? undefined,
   } as CosmosTransaction;
+}
+
+export function hederaTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+  payinExtraId,
+}: TransactionWithCustomFee): HederaTransaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    memo: payinExtraId ?? undefined,
+  } as HederaTransaction;
 }
