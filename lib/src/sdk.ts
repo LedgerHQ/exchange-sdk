@@ -1,6 +1,7 @@
 import BigNumber from "bignumber.js";
 import {
   Account,
+  AnyCustomGetter,
   Currency,
   Transport,
   WalletAPIClient,
@@ -91,7 +92,11 @@ export class ExchangeSDK {
       }
 
       this.walletAPIDecorator = walletApiDecorator(
-        new WalletAPIClient(this.transport, defaultLogger, getCustomModule),
+        new WalletAPIClient<AnyCustomGetter>(
+          this.transport,
+          defaultLogger,
+          getCustomModule,
+        ),
       );
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
@@ -270,6 +275,48 @@ export class ExchangeSDK {
       // Do not throw error; let the integrating app know that everything is OK for the swap
     });
     return { transactionId, swapId };
+  }
+
+  /**
+   * Full swap flow inside LL wallet-api
+   * @param {SwapInfo} info - Information necessary to create a swap transaction.
+   * @return {Promise<{transactionId: string}>} Promise of the transaction id
+   * @throws {ExchangeError}
+   */
+  async swapComplete({
+    fromAccountId,
+    toAccountId,
+    fromAmount,
+    feeStrategy,
+    customFeeConfig = {},
+    quoteId,
+    toNewTokenId,
+  }: SwapInfo): Promise<{ swapId: string; operationHash: string }> {
+    this.logger.log("*** Start Swap ***");
+
+    const { currency: fromCurrency } =
+      await this.walletAPIDecorator.retrieveUserAccount(
+        fromAccountId,
+        CustomErrorType.SWAP,
+      );
+
+    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
+
+    const { swapId, operationHash } = await this.exchangeModule.swap({
+      exchangeType: ExchangeType.SWAP,
+      provider: this.providerId,
+      fromAccountId,
+      toAccountId,
+      tokenCurrency: toNewTokenId || "",
+      fromAmount: fromAmount.toString(),
+      fromAmountAtomic: fromAmountAtomic.toNumber(),
+      quoteId,
+      toNewTokenId,
+      feeStrategy,
+      customFeeConfig,
+    });
+
+    return { swapId, operationHash };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Account } from "@ledgerhq/wallet-api-client";
+import { Account, Currency } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { ExchangeType, ProductType } from "./sdk.types";
 
