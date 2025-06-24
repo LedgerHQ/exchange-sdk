@@ -19,6 +19,8 @@ import {
   retrieveFundPayload,
   cancelFund,
   confirmFund,
+  cancelTokenApproval,
+  confirmTokenApproval,
   supportedProductsByExchangeType,
 } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
@@ -39,6 +41,7 @@ import {
   ProductType,
   SellInfo,
   SwapInfo,
+  TokenApprovalInfo,
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
@@ -520,6 +523,72 @@ export class ExchangeSDK {
     });
     return tx;
   }
+  /*
+   * Ask for token approval
+   * @param {TokenApprovalInfo} info - Information necessary to create a token approval transaction.
+   * @return {Promise<string | void>} Promise of the hash of the sent transaction.
+   * @throws {ExchangeError}
+   */
+  async tokenApproval(info: TokenApprovalInfo): Promise<string | void> {
+    this.logger.log("*** Start Token Approval ***");
+
+    const { orderId, userAccountId, smartContractAddress, approval, rawTx } =
+      info;
+
+    this.logger.log("Payload received from partner:", {
+      smartContractAddress,
+      amount: approval.amount,
+      rawTx,
+    });
+
+    // Step 1: Validations
+    const { account, currency } =
+      await this.walletAPIDecorator.retrieveUserAccount(userAccountId);
+    const amount = approval.amount || BigNumber(0);
+    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
+    const dataAsBuffer = Buffer.from(rawTx.replace("0x", ""), "hex");
+
+    this.isSupportedToken(currency);
+
+    /**
+     * Hardcoding to etherium for now. In the future if we need to support different families the expexted payloads
+     * can be different and can be found here https://github.com/LedgerHQ/wallet-api/blob/e81e17f1a1e0d03aadc8224fa0be6e42340c150d/packages/core/src/families/types.ts#L71
+     */
+    const tx = await this.walletAPI.transaction
+      .signAndBroadcast(account.parentAccountId!, {
+        amount: fromAmountAtomic,
+        family: "ethereum",
+        recipient: smartContractAddress,
+        nonce: -1,
+        data: dataAsBuffer,
+      })
+      .catch(async (error: Error) => {
+        await this.cancelTokenApprovalOnError({
+          error,
+          orderId,
+        });
+
+        if (error.name === "DisabledTransactionBroadcastError") {
+          throw error;
+        }
+
+        this.handleError({ error, step: StepError.SIGNATURE });
+        throw error;
+      });
+
+    this.logger.log("Transaction sent:", tx);
+    this.logger.log("*** End Token Approval ***");
+
+    await confirmTokenApproval({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      transactionId: tx,
+    }).catch((error: Error) => {
+      this.logger.error(error);
+    });
+
+    return tx;
+  }
 
   /**
    * Disconnects this instance from the WalletAPI server.
@@ -563,6 +632,22 @@ export class ExchangeSDK {
       this.logger.error(err as Error);
       throw err;
     }
+  }
+
+  /**
+   * Check supported token
+   */
+  private isSupportedToken(currency: Currency): void {
+    if (currency.type === "TokenCurrency" && currency.parent === "base") {
+      return;
+    }
+
+    const err = parseError({
+      error: new Error("Currency not supported"),
+      step: StepError.UNSUPPORTED_TOKEN,
+    });
+    this.logger.error(err as Error);
+    throw err;
   }
 
   private convertToAtomicUnit(
@@ -744,6 +829,23 @@ export class ExchangeSDK {
     orderId?: string;
   }) {
     await cancelFund({
+      provider: this.providerId,
+      orderId: orderId ?? "",
+      statusCode: error.name,
+      errorMessage: error.message,
+    }).catch((cancelError: Error) => {
+      this.logger.error(cancelError);
+    });
+  }
+
+  private async cancelTokenApprovalOnError({
+    error,
+    orderId,
+  }: {
+    error: Error;
+    orderId?: string;
+  }) {
+    await cancelTokenApproval({
       provider: this.providerId,
       orderId: orderId ?? "",
       statusCode: error.name,

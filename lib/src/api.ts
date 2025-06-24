@@ -5,9 +5,11 @@ import {
   CancelFundRequest,
   CancelSellRequest,
   CancelSwapRequest,
+  CancelTokenApprovalRequest,
   ConfirmFundRequest,
   ConfirmSellRequest,
   ConfirmSwapRequest,
+  ConfirmTokenApprovalRequest,
   FundRequestPayload,
   FundResponsePayload,
   SellRequestPayload,
@@ -277,3 +279,29 @@ const parseFundBackendInfo = (response: FundResponsePayload) => {
     },
   };
 };
+
+/**
+ * TOKEN APPROVAL *
+ **/
+
+export async function confirmTokenApproval(data: ConfirmTokenApprovalRequest) {
+  // TODO: uncomment when ready
+  // const { orderId, ...payload } = data;
+  // await tokenApprovalAxiosClient.post(
+  //   `/webhook/v1/transaction/token-approval/${orderId}/accepted`,
+  //   payload,
+  // );
+
+  console.log("*** CONFIRM TOKEN APPROVAL ***", data);
+}
+
+export async function cancelTokenApproval(data: CancelTokenApprovalRequest) {
+  // TODO: uncomment when ready
+  // const { orderId, ...payload } = data;
+  // await tokenApprovalAxiosClient.post(
+  //   `/webhook/v1/transaction/token-approval/${orderId}/cancelled`,
+  //   payload,
+  // );
+
+  console.log("*** CANCEL TOKEN APPROVAL ***", data);
+}

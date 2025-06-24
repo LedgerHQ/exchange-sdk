@@ -153,3 +153,20 @@ export interface FundResponsePayload {
     signature: string;
   };
 }
+
+/**
+ * TOKEN APROVAL *
+ **/
+
+export type ConfirmTokenApprovalRequest = {
+  provider: string;
+  orderId: string;
+  transactionId: string;
+};
+
+export type CancelTokenApprovalRequest = {
+  provider: string;
+  orderId: string;
+  statusCode?: string;
+  errorMessage?: string;
+};

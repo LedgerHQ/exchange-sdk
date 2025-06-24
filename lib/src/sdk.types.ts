@@ -75,3 +75,16 @@ export type FundInfo = {
   customFeeConfig?: { [key: string]: BigNumber };
   type?: ProductType;
 };
+
+/**
+ * TokenApproval information required to request a user's token approval transaction.
+ */
+export type TokenApprovalInfo = {
+  orderId: string;
+  userAccountId: string;
+  smartContractAddress: string;
+  approval: {
+    amount?: BigNumber;
+  };
+  rawTx: string;
+};

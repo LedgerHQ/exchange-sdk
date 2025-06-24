@@ -18,6 +18,8 @@ import {
   retrieveFundPayload,
   confirmFund,
   cancelFund,
+  confirmTokenApproval,
+  cancelTokenApproval,
 } from "./api";
 import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
@@ -26,7 +28,13 @@ import {
   IgnoredSignatureStepError,
   PayinExtraIdError,
 } from "./error/SwapError";
-import { FeeStrategy, FundInfo, ProductType, SellInfo } from "./sdk.types";
+import {
+  FeeStrategy,
+  FundInfo,
+  ProductType,
+  SellInfo,
+  TokenApprovalInfo,
+} from "./sdk.types";
 
 jest.mock("./api");
 
@@ -90,6 +98,11 @@ const walletApiClient = new WalletAPIClient(
   defaultLogger,
   getCustomModule,
 );
+
+const mockSignAndBroadcast = jest
+  .spyOn(walletApiClient.transaction, "signAndBroadcast")
+  .mockResolvedValue("TransactionId");
+
 const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
 
 beforeEach(() => {
@@ -378,6 +391,7 @@ describe("fund", () => {
     expect(mockCompleteSwap).not.toBeCalled();
     expect(mockCompleteSell).not.toBeCalled();
     expect(mockCompleteFund).toBeCalled();
+    expect(mockSignAndBroadcast).not.toBeCalled();
     expect(transactionId).toEqual("TransactionId");
   });
 
@@ -394,6 +408,72 @@ describe("fund", () => {
 
     await expect(sdk.fund(fundData)).rejects.toThrowError(
       "Product not supported",
+    );
+  });
+});
+
+describe("tokenApproval", () => {
+  const currencies: Array<Partial<Currency>> = [
+    {
+      id: "base/erc20/usd_coin",
+      decimals: 4,
+      type: "TokenCurrency",
+      parent: "base",
+    },
+  ];
+
+  beforeAll(() => {
+    (confirmTokenApproval as jest.Mock).mockResolvedValue({});
+    (cancelTokenApproval as jest.Mock).mockResolvedValue({});
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+  });
+
+  it("sends back the 'transactionId' from the WalletAPI", async () => {
+    // GIVEN
+    const tokenApprovalData: TokenApprovalInfo = {
+      orderId: "orderId",
+      userAccountId: "id-1",
+      smartContractAddress: "id-2",
+      approval: {
+        amount: new BigNumber("1.908"),
+      },
+      rawTx: "bishbashbosh",
+    };
+
+    // WHEN
+    const transactionId = await sdk.tokenApproval(tokenApprovalData);
+
+    // THEN
+    expect(mockAccountList).toBeCalled();
+    expect(mockCompleteSwap).not.toBeCalled();
+    expect(mockCompleteSell).not.toBeCalled();
+    expect(mockCompleteFund).not.toBeCalled();
+    expect(mockSignAndBroadcast).toBeCalled();
+    expect(transactionId).toEqual("TransactionId");
+  });
+
+  it("throws error if it us for an unsupported currency", async () => {
+    mockCurrenciesList.mockResolvedValue([
+      {
+        id: "currency-id-2",
+        decimals: 4,
+        type: "TokenCurrency",
+        parent: "notbase",
+      },
+    ] as any);
+
+    const tokenApprovalData: TokenApprovalInfo = {
+      orderId: "orderId",
+      userAccountId: "id-2",
+      smartContractAddress: "id-2",
+      approval: {
+        amount: new BigNumber("1.908"),
+      },
+      rawTx: "bishbashbosh",
+    };
+
+    await expect(sdk.tokenApproval(tokenApprovalData)).rejects.toThrowError(
+      "Currency not supported",
     );
   });
 });
