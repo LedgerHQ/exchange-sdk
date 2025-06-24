@@ -170,19 +170,3 @@ export type CancelTokenApprovalRequest = {
   statusCode?: string;
   errorMessage?: string;
 };
-
-export interface TokenApprovalRequestPayload {
-  orderId: string;
-  provider: string;
-  currency: string;
-  refundAddress: string;
-  amount: number;
-  type: ProductType;
-}
-
-export interface TokenApprovalResponsePayload {
-  orderId: string;
-  payinAddress: string;
-  createdAt: string;
-  payload: string;
-}

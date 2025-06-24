@@ -22,7 +22,6 @@ import {
   retrieveFundPayload,
   retrieveSellPayload,
   retrieveSwapPayload,
-  retrieveTokenApprovalPayload,
 } from "./api";
 import { ProductType } from "./sdk.types";
 import {
@@ -30,8 +29,6 @@ import {
   FundResponsePayload,
   SellRequestPayload,
   SellResponsePayload,
-  TokenApprovalRequestPayload,
-  TokenApprovalResponsePayload,
 } from "./api.types";
 
 describe("Swap", () => {
@@ -324,7 +321,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/fund/${mockOrderId}/accepted`,
+        `/webhook/v1/transaction/${mockOrderId}/accepted`,
       );
     });
   });
@@ -337,7 +334,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/fund/${mockOrderId}/cancelled`,
+        `/webhook/v1/transaction/${mockOrderId}/cancelled`,
       );
     });
   });
@@ -390,83 +387,6 @@ describe("Fund", () => {
       expect(result).toEqual(expectedResult);
 
       expect(mockPost.mock.calls[0][0]).toEqual("fund/card/v1/remit");
-      expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
-    });
-  });
-});
-
-describe("TokenApproval", () => {
-  const mockOrderId = "orderId";
-
-  afterEach(() => {
-    mockPost.mockReset();
-  });
-
-  describe("confirmTokenApproval", () => {
-    it("calls 'accepted' endpoint", async () => {
-      await confirmTokenApproval({
-        orderId: mockOrderId,
-        provider: "provider-name",
-        transactionId: "transaction-id",
-      });
-
-      expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/token-approval/${mockOrderId}/accepted`,
-      );
-    });
-  });
-
-  describe("cancelTokenApproval", () => {
-    it("calls 'cancelled' endpoint", async () => {
-      await cancelTokenApproval({
-        provider: "provider-name",
-        orderId: mockOrderId,
-      });
-
-      expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/token-approval/${mockOrderId}/cancelled`,
-      );
-    });
-  });
-
-  describe("retrieveTokenApprovalPayload", () => {
-    it("retrieves payload based on params and parses response", async () => {
-      const mockAccount = "0xfff";
-      const mockResponsePayload = "payload";
-      const mockResponseSignature = "signature";
-
-      const mockRetrieveTokenApprovalPayloadParams: TokenApprovalRequestPayload = {
-        orderId: mockOrderId,
-        provider: "",
-        currency: "",
-        refundAddress: mockAccount,
-        amount: 0,
-        type: ProductType.CARD,
-      };
-
-      const { type: _type, ...expectedRequestPayload } =
-        mockRetrieveTokenApprovalPayloadParams;
-
-      mockPost.mockResolvedValueOnce({
-        data: {
-          orderId: mockOrderId,
-          payinAddress: mockAccount,
-          createdAt: "2023-07-05T22:12:15.378497Z",
-          payload: mockResponsePayload,
-        },
-      });
-
-      const result = await retrieveTokenApprovalPayload(mockRetrieveTokenApprovalPayloadParams);
-
-      const expectedResult = {
-        orderId: mockOrderId,
-        payinAddress: mockAccount,
-        payload: mockResponsePayload,
-      };
-
-      expect(result).toEqual(expectedResult);
-
-      expect(mockPost.mock.calls[0][0]).toEqual("token-approval/card/v1/remit");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
   });

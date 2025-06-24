@@ -14,8 +14,6 @@ import {
   FundResponsePayload,
   SellRequestPayload,
   SellResponsePayload,
-  TokenApprovalRequestPayload,
-  TokenApprovalResponsePayload,
   SupportedProductsByExchangeType,
   SwapBackendResponse,
   SwapPayloadRequestData,
@@ -25,7 +23,6 @@ import {
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
 const FUND_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
-const TOKEN_APPROVAL_URL = "https://buy.api.aws.prd.ldg-tech.com/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -37,10 +34,6 @@ let sellAxiosClient = axios.create({
 
 let fundAxiosClient = axios.create({
   baseURL: FUND_BACKEND_URL,
-});
-
-let tokenApprovalAxiosClient = axios.create({
-  baseURL: TOKEN_APPROVAL_URL,
 });
 
 /**
@@ -56,9 +49,6 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
     [ExchangeType.FUND]: {
       [ProductType.CARD]: "fund/card/v1/remit",
     },
-    [ExchangeType.TOKEN_APPROVAL]: {
-      [ProductType.CARD]: "token-approval/card/v1/remit",
-    }
   };
 
 /**
@@ -211,7 +201,7 @@ export async function decodeSellPayloadAndPost(
 export async function confirmFund(data: ConfirmFundRequest) {
   const { orderId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/fund/${orderId}/accepted`,
+    `/webhook/v1/transaction/${orderId}/accepted`,
     payload,
   );
 }
@@ -219,7 +209,7 @@ export async function confirmFund(data: ConfirmFundRequest) {
 export async function cancelFund(data: CancelFundRequest) {
   const { orderId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/fund/${orderId}/cancelled`,
+    `/webhook/v1/transaction/${orderId}/cancelled`,
     payload,
   );
 }
@@ -255,42 +245,23 @@ const parseFundBackendInfo = (response: FundResponsePayload) => {
  **/
 
 export async function confirmTokenApproval(data: ConfirmTokenApprovalRequest) {
-  const { orderId, ...payload } = data;
-  await sellAxiosClient.post(
-    `/webhook/v1/transaction/token-approval/${orderId}/accepted`,
-    payload,
-  );
+  // TODO: uncomment when ready
+  // const { orderId, ...payload } = data;
+  // await tokenApprovalAxiosClient.post(
+  //   `/webhook/v1/transaction/token-approval/${orderId}/accepted`,
+  //   payload,
+  // );
+
+  console.log("*** CONFIRM TOKEN APPROVAL ***", data);
 }
 
 export async function cancelTokenApproval(data: CancelTokenApprovalRequest) {
-  const { orderId, ...payload } = data;
-  await sellAxiosClient.post(
-    `/webhook/v1/transaction/token-approval/${orderId}/cancelled`,
-    payload,
-  );
+  // TODO: uncomment when ready
+  // const { orderId, ...payload } = data;
+  // await tokenApprovalAxiosClient.post(
+  //   `/webhook/v1/transaction/token-approval/${orderId}/cancelled`,
+  //   payload,
+  // );
+
+  console.log("*** CANCEL TOKEN APPROVAL ***", data);
 }
-  
-export async function retrieveTokenApprovalPayload(data: TokenApprovalRequestPayload) {
-  const request = {
-    orderId: data.orderId,
-    provider: data.provider,
-    currency: data.currency,
-    refundAddress: data.refundAddress,
-    amount: data.amount,
-  };
-
-  const pathname =
-    supportedProductsByExchangeType[ExchangeType.TOKEN_APPROVAL][data.type];
-  const res = await tokenApprovalAxiosClient.post(pathname!, request);
-  return parseTokenApprovalBackendInfo(res.data);
-}
-
-
-
-const parseTokenApprovalBackendInfo = (response: TokenApprovalResponsePayload) => {
-  return {
-    orderId: response.orderId,
-    payinAddress: response.payinAddress,
-    payload: response.payload,
-  };
-};

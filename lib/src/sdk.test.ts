@@ -18,7 +18,6 @@ import {
   retrieveFundPayload,
   confirmFund,
   cancelFund,
-  retrieveTokenApprovalPayload,
   confirmTokenApproval,
   cancelTokenApproval,
 } from "./api";
@@ -29,7 +28,13 @@ import {
   IgnoredSignatureStepError,
   PayinExtraIdError,
 } from "./error/SwapError";
-import { FeeStrategy, FundInfo, ProductType, SellInfo, TokenApprovalInfo } from "./sdk.types";
+import {
+  FeeStrategy,
+  FundInfo,
+  ProductType,
+  SellInfo,
+  TokenApprovalInfo,
+} from "./sdk.types";
 
 jest.mock("./api");
 
@@ -407,21 +412,17 @@ describe("fund", () => {
   });
 });
 
-describe("token approval", () => {
+describe("tokenApproval", () => {
   const currencies: Array<Partial<Currency>> = [
     {
-      id: "currency-id-1",
+      id: "base/erc20/usd_coin",
       decimals: 4,
       type: "TokenCurrency",
+      parent: "base",
     },
   ];
 
   beforeAll(() => {
-    (retrieveTokenApprovalPayload as jest.Mock).mockResolvedValue({
-      payinAddress: "",
-      orderId: "token-approval-id",
-      payload: "",
-    });
     (confirmTokenApproval as jest.Mock).mockResolvedValue({});
     (cancelTokenApproval as jest.Mock).mockResolvedValue({});
     mockCurrenciesList.mockResolvedValue(currencies as any);
@@ -431,10 +432,12 @@ describe("token approval", () => {
     // GIVEN
     const tokenApprovalData: TokenApprovalInfo = {
       orderId: "orderId",
-      fromAccountId: "id-1",
-      amount: new BigNumber("1.908"),
-      feeStrategy: "SLOW" as FeeStrategy,
-      type: ProductType.CARD
+      userAccountId: "id-1",
+      smartContractAddress: "id-2",
+      approval: {
+        amount: new BigNumber("1.908"),
+      },
+      rawTx: "bishbashbosh",
     };
 
     // WHEN
@@ -449,19 +452,28 @@ describe("token approval", () => {
     expect(transactionId).toEqual("TransactionId");
   });
 
-  // it("throws error if passed in product type is not supported", async () => {
-  //   console.error = jest.fn();
+  it("throws error if it us for an unsupported currency", async () => {
+    mockCurrenciesList.mockResolvedValue([
+      {
+        id: "currency-id-2",
+        decimals: 4,
+        type: "TokenCurrency",
+        parent: "notbase",
+      },
+    ] as any);
 
-  //   const tokenApprovalData: TokenApprovalInfo = {
-  //     orderId: "orderId",
-  //     fromAccountId: "id-1",
-  //     amount: new BigNumber("1.908"),
-  //     feeStrategy: "SLOW" as FeeStrategy,
-  //     type: ProductType.SWAP,
-  //   };
+    const tokenApprovalData: TokenApprovalInfo = {
+      orderId: "orderId",
+      userAccountId: "id-2",
+      smartContractAddress: "id-2",
+      approval: {
+        amount: new BigNumber("1.908"),
+      },
+      rawTx: "bishbashbosh",
+    };
 
-  //   await expect(sdk.tokenApproval(tokenApprovalData)).rejects.toThrowError(
-  //     "Product not supported",
-  //   );
-  // });
+    await expect(sdk.tokenApproval(tokenApprovalData)).rejects.toThrowError(
+      "Currency not supported",
+    );
+  });
 });
