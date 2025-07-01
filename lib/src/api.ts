@@ -90,15 +90,13 @@ export async function retrieveSwapPayload(
   return parseSwapBackendInfo(res.data);
 }
 
-const getSwapAppVersionHeader = (swapAppVersion?: string) => {
-  return swapAppVersion ? { "X-Swap-App-Version": swapAppVersion } : {};
-};
-
 export async function confirmSwap(
   payload: ConfirmSwapRequest,
   swapAppVersion?: string,
 ) {
-  const headers = getSwapAppVersionHeader(swapAppVersion);
+  const headers = swapAppVersion
+    ? { "X-Swap-App-Version": swapAppVersion }
+    : undefined;
   await swapAxiosClient.post("accepted", payload, { headers });
 }
 
@@ -106,7 +104,9 @@ export async function cancelSwap(
   payload: CancelSwapRequest,
   swapAppVersion?: string,
 ) {
-  const headers = getSwapAppVersionHeader(swapAppVersion);
+  const headers = swapAppVersion
+    ? { "X-Swap-App-Version": swapAppVersion }
+    : undefined;
   await swapAxiosClient.post("cancelled", payload, { headers });
 }
 
