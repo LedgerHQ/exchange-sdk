@@ -236,17 +236,20 @@ describe("swap", () => {
     await expect(sdk.swap(swapData)).rejects.toThrow(IgnoredSignatureStepError);
 
     // THEN
-    expect(cancelSwap as jest.Mock).toHaveBeenCalledWith({
-      provider: "provider-id",
-      swapId: "swap-id",
-      statusCode: "SignatureStepError",
-      errorMessage: "error message",
-      sourceCurrencyId: "currency-id-1",
-      targetCurrencyId: "currency-id-2",
-      hardwareWalletType: "nanoX",
-      swapType: "fixed",
-      swapStep: "UNKNOWN_STEP",
-    });
+    expect(cancelSwap as jest.Mock).toHaveBeenCalledWith(
+      {
+        provider: "provider-id",
+        swapId: "swap-id",
+        statusCode: "SignatureStepError",
+        errorMessage: "error message",
+        sourceCurrencyId: "currency-id-1",
+        targetCurrencyId: "currency-id-2",
+        hardwareWalletType: "nanoX",
+        swapType: "fixed",
+        swapStep: "UNKNOWN_STEP",
+      },
+      undefined,
+    );
   });
 });
 

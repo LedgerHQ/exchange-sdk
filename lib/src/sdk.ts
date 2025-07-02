@@ -127,6 +127,7 @@ export class ExchangeSDK {
       customFeeConfig = {},
       quoteId,
       toNewTokenId,
+      swapAppVersion,
       getSwapPayload,
     } = info;
 
@@ -216,6 +217,7 @@ export class ExchangeSDK {
           toAccount,
           device?.modelId,
           quoteId ? "fixed" : "float",
+          swapAppVersion,
         );
 
         this.handleError({ error });
@@ -258,14 +260,17 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", transactionId);
     this.logger.log("*** End Swap ***");
-    await confirmSwap({
-      provider: this.providerId,
-      swapId: swapId ?? "",
-      transactionId,
-      sourceCurrencyId: fromAccount.currency,
-      targetCurrencyId: toAccount.currency,
-      hardwareWalletType: device?.modelId ?? "",
-    }).catch((error: Error) => {
+    await confirmSwap(
+      {
+        provider: this.providerId,
+        swapId: swapId ?? "",
+        transactionId,
+        sourceCurrencyId: fromAccount.currency,
+        targetCurrencyId: toAccount.currency,
+        hardwareWalletType: device?.modelId ?? "",
+      },
+      swapAppVersion,
+    ).catch((error: Error) => {
       this.logger.error(error);
       // Do not throw error; let the integrating app know that everything is OK for the swap
     });
@@ -679,18 +684,22 @@ export class ExchangeSDK {
     toAccount: Account,
     deviceModelId: string | undefined,
     swapType: string,
+    swapAppVersion?: string,
   ) {
-    await cancelSwap({
-      provider: this.providerId,
-      swapId: swapId ?? "",
-      swapStep: swapStep,
-      statusCode: error.name,
-      errorMessage: error.message,
-      sourceCurrencyId: fromAccount.currency,
-      targetCurrencyId: toAccount.currency,
-      hardwareWalletType: deviceModelId ?? "",
-      swapType,
-    }).catch((cancelError: Error) => {
+    await cancelSwap(
+      {
+        provider: this.providerId,
+        swapId: swapId ?? "",
+        swapStep: swapStep,
+        statusCode: error.name,
+        errorMessage: error.message,
+        sourceCurrencyId: fromAccount.currency,
+        targetCurrencyId: toAccount.currency,
+        hardwareWalletType: deviceModelId ?? "",
+        swapType,
+      },
+      swapAppVersion,
+    ).catch((cancelError: Error) => {
       this.logger.error(cancelError);
     });
   }

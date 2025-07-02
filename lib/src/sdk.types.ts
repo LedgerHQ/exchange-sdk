@@ -34,6 +34,7 @@ export type SwapInfo = {
   customFeeConfig?: { [key: string]: BigNumber };
   rate: number;
   toNewTokenId?: string;
+  swapAppVersion?: string;
   getSwapPayload?: GetSwapPayload;
 };
 
