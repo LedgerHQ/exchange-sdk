@@ -95,7 +95,7 @@ export async function confirmSwap(
   swapAppVersion?: string,
 ) {
   const headers = swapAppVersion
-    ? { "X-Swap-App-Version": swapAppVersion }
+    ? { "x-swap-app-version": swapAppVersion }
     : undefined;
   await swapAxiosClient.post("accepted", payload, { headers });
 }
@@ -105,7 +105,7 @@ export async function cancelSwap(
   swapAppVersion?: string,
 ) {
   const headers = swapAppVersion
-    ? { "X-Swap-App-Version": swapAppVersion }
+    ? { "x-swap-app-version": swapAppVersion }
     : undefined;
   await swapAxiosClient.post("cancelled", payload, { headers });
 }
