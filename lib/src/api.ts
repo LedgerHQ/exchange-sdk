@@ -156,6 +156,7 @@ const parseSellBackendInfo = (response: SellResponsePayload) => {
       payload: response.providerSig.payload,
       signature: response.providerSig.signature,
     },
+    payinExtraId: response.payinExtraId,
   };
 };
 

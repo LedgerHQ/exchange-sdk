@@ -329,6 +329,7 @@ export class ExchangeSDK {
       signature,
       amount,
       sellId: payloadSellId,
+      payinExtraId,
     } = await this.sellPayloadRequest({
       quoteId,
       rate,
@@ -363,6 +364,7 @@ export class ExchangeSDK {
       amount: fromAmountAtomic,
       binaryPayload,
       signature,
+      payinExtraId,
     });
 
     // Step 3: Send payload
@@ -372,6 +374,7 @@ export class ExchangeSDK {
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
+        payinExtraId,
       })
       .catch(async (error) => {
         await this.cancelSellOnError({
@@ -747,6 +750,7 @@ export class ExchangeSDK {
     let signature: Buffer | string;
     let newAmount = amount;
     let sellId = "";
+    let payinExtraId: string | undefined = undefined;
 
     if (getSellPayload) {
       const data = await getSellPayload(
@@ -782,6 +786,7 @@ export class ExchangeSDK {
       binaryPayload = data.providerSig.payload;
       signature = data.providerSig.signature;
       sellId = data.sellId;
+      payinExtraId = data.payinExtraId;
     }
 
     return {
@@ -790,6 +795,7 @@ export class ExchangeSDK {
       signature,
       amount: newAmount,
       sellId,
+      payinExtraId,
     };
   }
 

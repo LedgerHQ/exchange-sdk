@@ -112,6 +112,7 @@ export interface SellResponsePayload {
     payload: string;
     signature: string;
   };
+  payinExtraId?: string;
 }
 
 /**
