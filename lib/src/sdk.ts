@@ -766,6 +766,7 @@ export class ExchangeSDK {
       newAmount = data.amount;
       binaryPayload = Buffer.from(data.binaryPayload);
       signature = Buffer.from(data.signature);
+      payinExtraId = data.payinExtraId;
     } else {
       const data = await retrieveSellPayload({
         quoteId: quoteId!,
