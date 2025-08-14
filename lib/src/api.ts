@@ -19,6 +19,7 @@ import {
   SwapPayloadRequestData,
   SwapPayloadResponse,
 } from "./api.types";
+import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
@@ -204,18 +205,26 @@ const decodeAmount = (val: Uint8Array | UDecimal) => {
   throw new Error("Unsupported type for decodeAmount");
 };
 
-export async function decodeSellPayloadAndPost(
-  binaryPayload: Buffer,
-  providerId: string,
-) {
+export async function decodeBinarySellPayload(binaryPayload: Buffer) {
   try {
     const bufferPayload = Buffer.from(
       binaryPayload.toString(),
       "base64",
     ) as unknown as string;
 
+    return await decodeSellPayload(bufferPayload);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
+}
+
+export async function postSellPayload(
+  sellPayload: SellPayload,
+  providerId: string,
+) {
+  try {
     const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
-      await decodeSellPayload(bufferPayload);
+      sellPayload;
 
     const amountTo = decodeAmount(outAmount as Uint8Array);
     const amountFrom = decodeAmount(inAmount as UDecimal);
@@ -242,7 +251,7 @@ export async function decodeSellPayloadAndPost(
 
     return res.data?.sellId;
   } catch (e) {
-    console.log("Error decoding payload", e);
+    console.log("Error posting payload", e);
   }
 }
 
