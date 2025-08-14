@@ -1,5 +1,8 @@
 import axios from "axios";
-import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
+import {
+  decodeSellPayload,
+  decodeFundPayload,
+} from "@ledgerhq/hw-app-exchange";
 import { ExchangeType, ProductType } from "./sdk.types";
 import {
   CancelFundRequest,
@@ -258,6 +261,19 @@ export async function postSellPayload(
 /**
  * FUND *
  **/
+
+export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
+  try {
+    const bufferPayload = Buffer.from(
+      binaryPayload.toString(),
+      "base64",
+    ) as unknown as string;
+
+    return await decodeFundPayload(bufferPayload);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
+}
 
 export async function confirmFund(data: ConfirmFundRequest) {
   const { orderId, ...payload } = data;
