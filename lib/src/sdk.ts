@@ -481,12 +481,14 @@ export class ExchangeSDK {
     });
 
     // Step 3: Send payload
+    const fundPayload = await decodeBinaryFundPayload(binaryPayload as Buffer);
     const transaction = await this.walletAPIDecorator
       .createTransaction({
         recipient: recipientAddress,
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
+        payinExtraId: fundPayload?.payinExtraId,
       })
       .catch(async (error) => {
         await this.cancelFundOnError({
