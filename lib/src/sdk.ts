@@ -294,6 +294,7 @@ export class ExchangeSDK {
       customFeeConfig = {},
       rate,
       toFiat,
+      ledgerSessionId,
       getSellPayload,
       type = ProductType.SELL,
     } = info;
@@ -412,6 +413,7 @@ export class ExchangeSDK {
       provider: this.providerId,
       sellId: sellId ?? "",
       transactionId: tx,
+      ledgerSessionId,
     }).catch((error: Error) => {
       this.logger.error(error);
     });
