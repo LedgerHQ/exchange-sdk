@@ -80,6 +80,7 @@ export type ConfirmSellRequest = {
   provider: string;
   sellId: string;
   transactionId: string;
+  ledgerSessionId?: string;
 };
 
 export type CancelSellRequest = {
