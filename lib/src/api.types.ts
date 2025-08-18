@@ -88,6 +88,7 @@ export type CancelSellRequest = {
   sellId: string;
   statusCode?: string;
   errorMessage?: string;
+  ledgerSessionId?: string;
 };
 
 export interface SellRequestPayload {
