@@ -21,8 +21,8 @@ import {
 } from "./api.types";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
-const FUND_BACKEND_URL = "https://buy.api.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
