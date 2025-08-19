@@ -294,7 +294,6 @@ export class ExchangeSDK {
       customFeeConfig = {},
       rate,
       toFiat,
-      ledgerSessionId,
       getSellPayload,
       type = ProductType.SELL,
     } = info;
@@ -378,7 +377,6 @@ export class ExchangeSDK {
         await this.cancelSellOnError({
           error,
           sellId,
-          ledgerSessionId,
         });
 
         this.handleError({ error });
@@ -398,7 +396,6 @@ export class ExchangeSDK {
         await this.cancelSellOnError({
           error,
           sellId,
-          ledgerSessionId,
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -415,7 +412,6 @@ export class ExchangeSDK {
       provider: this.providerId,
       sellId: sellId ?? "",
       transactionId: tx,
-      ledgerSessionId,
     }).catch((error: Error) => {
       this.logger.error(error);
     });
@@ -711,18 +707,15 @@ export class ExchangeSDK {
   private async cancelSellOnError({
     error,
     sellId,
-    ledgerSessionId,
   }: {
     error: Error;
     sellId?: string;
-    ledgerSessionId?: string;
   }) {
     await cancelSell({
       provider: this.providerId,
       sellId: sellId ?? "",
       statusCode: error.name,
       errorMessage: error.message,
-      ledgerSessionId,
     }).catch((cancelError: Error) => {
       this.logger.error(cancelError);
     });
