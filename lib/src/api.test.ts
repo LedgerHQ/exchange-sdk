@@ -188,6 +188,7 @@ describe("Swap", () => {
 describe("Sell", () => {
   const mockQuoteId = "quoteId";
   const mockSellId = "sellId";
+  const mockLedgerSessionId = "ledgerSessionId";
 
   afterEach(() => {
     mockPost.mockReset();
@@ -199,6 +200,7 @@ describe("Sell", () => {
         sellId: mockSellId,
         provider: "provider-name",
         transactionId: "transaction-id",
+        ledgerSessionId: mockLedgerSessionId,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(

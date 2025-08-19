@@ -47,6 +47,7 @@ export type SellInfo = {
   fromAmount: BigNumber;
   toFiat?: string;
   feeStrategy?: FeeStrategy;
+  ledgerSessionId?: string;
   rate?: number;
   customFeeConfig?: { [key: string]: BigNumber };
   getSellPayload?: GetSellPayload;
