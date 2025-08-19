@@ -47,11 +47,11 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
   {
     [ExchangeType.SWAP]: {},
     [ExchangeType.SELL]: {
-      [ProductType.CARD]: "card/v1/remit",
-      [ProductType.SELL]: "sell/v1/remit",
+      [ProductType.CARD]: "v1/sell/card/remit",
+      [ProductType.SELL]: "v1/sell/onramp_offramp/remit",
     },
     [ExchangeType.FUND]: {
-      [ProductType.CARD]: "fund/card/v1/remit",
+      [ProductType.CARD]: "v1/fund/card/remit",
     },
   };
 
@@ -308,7 +308,7 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
 
 const parseFundBackendInfo = (response: FundResponsePayload) => {
   return {
-    orderId: response.sellId, //TODO: Update this identifier once defined in BE
+    orderId: response.sellId,
     payinAddress: response.payinAddress,
     providerSig: {
       payload: response.providerSig.payload,
