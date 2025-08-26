@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { ExchangeSDK } from "@ledgerhq/exchange-sdk";
 import { ReactNode } from "react";
 
-const PROVIDER_ID = "mercuryo";
+const PROVIDER_ID = "FUND_TEST";
 
 const ExchangeContext = createContext<ExchangeSDK | null>(null);
 

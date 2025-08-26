@@ -6,8 +6,6 @@ import styles from "@/styles/Home.module.css";
 import { ExchangeProvider } from "@/providers/ExchangeProvider";
 import { ListAccounts } from "@/components/ListAccounts";
 import { useState } from "react";
-import { useFund } from "@/hooks/useFund";
-import BigNumber from "bignumber.js";
 import { FundForm } from "@/components/FundForm";
 
 const geistSans = Geist({
