@@ -192,7 +192,6 @@ export function modeSendTransaction({
 }: TransactionWithCustomFee): Transaction {
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    // @ts-ignore
     mode: "send",
   };
 }
