@@ -31,7 +31,7 @@ const IndexPage = () => {
 
   useEffect(() => {
     // As a demo app, we may provide a providerId for testing purpose.
-    let providerId = "SELL_TEST";
+    let providerId = "mercuryo";
 
     //-- Retrieve information coming from Deeplink
     for (const entry of searchParams.entries()) {
