@@ -5,19 +5,12 @@ export const useFund = () => {
   const sdk = useExchangeSDK();
 
   const executeFund = async (params: {
-    orderId: string;
     fromAccountId: string;
-    amount: BigNumber;
+    fromAmount: BigNumber;
   }) => {
-    console.log(">> sdk", sdk);
     if (!sdk) return;
     try {
-      const fundData = {
-        orderId: params.orderId,
-        fromAccountId: params.fromAccountId,
-        fromAmount: params.amount,
-      };
-      return await sdk.fund(fundData);
+      return await sdk.fund(params);
     } catch (err) {
       console.error(err);
       throw err;
