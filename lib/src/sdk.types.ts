@@ -70,12 +70,15 @@ export type GetSellPayload = (
  * Fund information required to request a user's fund transaction.
  */
 export type FundInfo = {
-  orderId?: string;
+  quoteId?: string;
   fromAccountId: string;
   fromAmount: BigNumber;
   feeStrategy?: FeeStrategy;
   customFeeConfig?: { [key: string]: BigNumber };
   type?: ProductType;
+  // TODO: confirm if required, optional for now and will default to fromCurrency & fromAmount
+  toCurrency?: string;
+  toAmount?: BigNumber;
 };
 
 /**

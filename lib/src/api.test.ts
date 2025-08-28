@@ -318,7 +318,7 @@ describe("Fund", () => {
   describe("confirmFund", () => {
     it("calls 'accepted' endpoint", async () => {
       await confirmFund({
-        orderId: mockOrderId,
+        quoteId: mockOrderId,
         provider: "provider-name",
         transactionId: "transaction-id",
       });
@@ -333,7 +333,7 @@ describe("Fund", () => {
     it("calls 'cancelled' endpoint", async () => {
       await cancelFund({
         provider: "provider-name",
-        orderId: mockOrderId,
+        quoteId: mockOrderId,
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
@@ -349,11 +349,13 @@ describe("Fund", () => {
       const mockResponseSignature = "signature";
 
       const mockRetrieveFundPayloadParams: FundRequestPayload = {
-        orderId: mockOrderId,
+        quoteId: mockOrderId,
         provider: "",
         fromCurrency: "",
+        toCurrency: "",
         refundAddress: mockAccount,
         amountFrom: 0,
+        amountTo: 0,
         nonce: "",
         type: ProductType.CARD,
       };

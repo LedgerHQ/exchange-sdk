@@ -365,7 +365,7 @@ describe("fund", () => {
   beforeAll(() => {
     (retrieveFundPayload as jest.Mock).mockResolvedValue({
       payinAddress: "",
-      orderId: "fund-id",
+      quoteId: "fund-id",
       providerSig: {
         payload: "",
         signature: "",
@@ -379,7 +379,7 @@ describe("fund", () => {
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
     const fundData: FundInfo = {
-      orderId: "orderId",
+      quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,
@@ -402,7 +402,7 @@ describe("fund", () => {
     console.error = jest.fn();
 
     const fundData: FundInfo = {
-      orderId: "orderId",
+      quoteId: "quoteId",
       fromAccountId: "id-1",
       fromAmount: new BigNumber("1.908"),
       feeStrategy: "SLOW" as FeeStrategy,

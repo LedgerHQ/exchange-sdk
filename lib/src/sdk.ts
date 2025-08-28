@@ -438,8 +438,10 @@ export class ExchangeSDK {
       fromAmount,
       feeStrategy = FeeStrategyEnum.MEDIUM,
       customFeeConfig = {},
-      orderId,
+      quoteId,
       type = ProductType.CARD,
+      toAmount,
+      toCurrency,
     } = info;
 
     const { account, currency } =
@@ -451,9 +453,7 @@ export class ExchangeSDK {
 
     // Step 1: Ask for deviceTransactionId
     const deviceTransactionId = await this.exchangeModule
-      //TODO: pass in provider and fromAccountId after updating startFund in LL
-      // {provider: this.providerId, fromAccountId}
-      .startFund()
+      .startFund({ provider: this.providerId, fromAccountId })
       .catch((error: Error) => {
         const err = parseError({ error, step: StepError.NONCE });
         this.logger.error(err as Error);
@@ -467,11 +467,13 @@ export class ExchangeSDK {
 
     const { recipientAddress, binaryPayload, signature } =
       await this.fundPayloadRequest({
-        orderId,
-        amount: fromAmount,
+        quoteId,
+        amountFrom: fromAmount.toNumber(),
+        amountTo: toAmount?.toNumber(),
         account,
         deviceTransactionId,
         type,
+        toCurrency,
       });
 
     this.logger.log("Payload received:", {
@@ -494,7 +496,7 @@ export class ExchangeSDK {
       .catch(async (error) => {
         await this.cancelFundOnError({
           error,
-          orderId,
+          quoteId,
         });
 
         this.handleError({ error });
@@ -514,7 +516,7 @@ export class ExchangeSDK {
       .catch(async (error: Error) => {
         await this.cancelFundOnError({
           error,
-          orderId,
+          quoteId,
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -529,7 +531,7 @@ export class ExchangeSDK {
     this.logger.log("*** End Fund ***");
     await confirmFund({
       provider: this.providerId,
-      orderId: orderId ?? "",
+      quoteId: quoteId ?? "",
       transactionId: tx,
     }).catch((error: Error) => {
       this.logger.error(error);
@@ -812,23 +814,29 @@ export class ExchangeSDK {
 
   private async fundPayloadRequest({
     account,
-    orderId,
-    amount,
+    quoteId,
+    amountFrom,
+    amountTo,
     deviceTransactionId,
     type,
+    toCurrency,
   }: {
-    amount: BigNumber;
+    amountFrom: number;
     account: Account;
     deviceTransactionId: string;
-    orderId?: string;
+    quoteId?: string;
     type: ProductType;
+    amountTo?: number;
+    toCurrency?: string;
   }) {
     const data = await retrieveFundPayload({
-      orderId: orderId!,
+      quoteId: quoteId!,
+      amountFrom,
+      amountTo: amountTo ?? amountFrom,
       provider: this.providerId,
       fromCurrency: account.currency,
+      toCurrency: toCurrency ?? account.currency,
       refundAddress: account.address,
-      amountFrom: amount.toNumber(),
       nonce: deviceTransactionId,
       type,
     }).catch((error: Error) => {
@@ -851,14 +859,14 @@ export class ExchangeSDK {
 
   private async cancelFundOnError({
     error,
-    orderId,
+    quoteId,
   }: {
     error: Error;
-    orderId?: string;
+    quoteId?: string;
   }) {
     await cancelFund({
       provider: this.providerId,
-      orderId: orderId ?? "",
+      quoteId: quoteId ?? "",
       statusCode: error.name,
       errorMessage: error.message,
     }).catch((cancelError: Error) => {

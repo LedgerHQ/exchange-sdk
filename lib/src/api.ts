@@ -25,8 +25,10 @@ import {
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
-const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL =
+  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
+const FUND_BACKEND_URL =
+  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -276,28 +278,30 @@ export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
 }
 
 export async function confirmFund(data: ConfirmFundRequest) {
-  const { orderId, ...payload } = data;
+  const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${orderId}/accepted`,
+    `/webhook/v1/transaction/${quoteId}/accepted`,
     payload,
   );
 }
 
 export async function cancelFund(data: CancelFundRequest) {
-  const { orderId, ...payload } = data;
+  const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${orderId}/cancelled`,
+    `/webhook/v1/transaction/${quoteId}/cancelled`,
     payload,
   );
 }
 
 export async function retrieveFundPayload(data: FundRequestPayload) {
   const request = {
-    orderId: data.orderId,
+    quoteId: data.quoteId,
     provider: data.provider,
     fromCurrency: data.fromCurrency,
+    toCurrency: data.toCurrency,
     refundAddress: data.refundAddress,
     amountFrom: data.amountFrom,
+    amountTo: data.amountTo,
     nonce: data.nonce,
   };
   const pathname =

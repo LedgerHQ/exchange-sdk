@@ -10,6 +10,10 @@ import {
   TonTransaction,
   Transaction,
   WalletAPIClient,
+  CardanoTransaction,
+  NearTransaction,
+  TezosTransaction,
+  TronTransaction,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
@@ -22,6 +26,7 @@ import {
   UserAccount,
   WalletApiDecorator,
 } from "./wallet-api.types";
+import { CustomModule } from "@ledgerhq/wallet-api-client";
 
 const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
@@ -164,7 +169,9 @@ export default function walletApiDecorator(
   };
 }
 
-export function getCustomModule(client: WalletAPIClient) {
+export function getCustomModule(
+  client: WalletAPIClient,
+): Record<string, CustomModule> {
   return {
     exchange: new ExchangeModule(client),
   };
@@ -184,16 +191,22 @@ export function defaultTransaction({
   } as Transaction;
 }
 
+type ModeSendTransaction =
+  | CardanoTransaction
+  | NearTransaction
+  | TezosTransaction
+  | TronTransaction;
+
 export function modeSendTransaction({
   family,
   amount,
   recipient,
   customFeeConfig,
-}: TransactionWithCustomFee): Transaction {
+}: TransactionWithCustomFee): ModeSendTransaction {
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
     mode: "send",
-  };
+  } as ModeSendTransaction;
 }
 
 export function stellarTransaction({
@@ -303,7 +316,8 @@ export function elrondTransaction({
   customFeeConfig,
 }: TransactionWithCustomFee): ElrondTransaction {
   return {
-    ...modeSendTransaction({ family, amount, recipient, customFeeConfig }),
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    mode: "send",
     gasLimit: 0, // FIXME: Placeholder, adjust as needed
   } as ElrondTransaction;
 }
