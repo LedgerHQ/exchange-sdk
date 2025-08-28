@@ -122,25 +122,27 @@ export interface SellResponsePayload {
 
 export type ConfirmFundRequest = {
   provider: string;
-  orderId: string;
+  quoteId: string;
   transactionId: string;
 };
 
 export type CancelFundRequest = {
   provider: string;
-  orderId: string;
+  quoteId: string;
   statusCode?: string;
   errorMessage?: string;
 };
 
 export interface FundRequestPayload {
-  orderId: string;
+  quoteId: string;
   provider: string;
   fromCurrency: string;
-  refundAddress: string;
   amountFrom: number;
+  refundAddress: string;
   nonce: string;
   type: ProductType;
+  amountTo: number;
+  toCurrency: string;
 }
 
 export interface FundResponsePayload {

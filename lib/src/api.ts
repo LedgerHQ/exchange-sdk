@@ -1,5 +1,8 @@
 import axios from "axios";
-import { decodeSellPayload } from "@ledgerhq/hw-app-exchange";
+import {
+  decodeSellPayload,
+  decodeFundPayload,
+} from "@ledgerhq/hw-app-exchange";
 import { ExchangeType, ProductType } from "./sdk.types";
 import {
   CancelFundRequest,
@@ -19,10 +22,13 @@ import {
   SwapPayloadRequestData,
   SwapPayloadResponse,
 } from "./api.types";
+import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
-const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL =
+  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
+const FUND_BACKEND_URL =
+  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -43,11 +49,11 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
   {
     [ExchangeType.SWAP]: {},
     [ExchangeType.SELL]: {
-      [ProductType.CARD]: "card/v1/remit",
-      [ProductType.SELL]: "sell/v1/remit",
+      [ProductType.CARD]: "v1/sell/card/remit",
+      [ProductType.SELL]: "v1/sell/onramp_offramp/remit",
     },
     [ExchangeType.FUND]: {
-      [ProductType.CARD]: "fund/card/v1/remit",
+      [ProductType.CARD]: "v1/fund/card/remit",
     },
   };
 
@@ -204,18 +210,26 @@ const decodeAmount = (val: Uint8Array | UDecimal) => {
   throw new Error("Unsupported type for decodeAmount");
 };
 
-export async function decodeSellPayloadAndPost(
-  binaryPayload: Buffer,
-  providerId: string,
-) {
+export async function decodeBinarySellPayload(binaryPayload: Buffer) {
   try {
     const bufferPayload = Buffer.from(
       binaryPayload.toString(),
       "base64",
     ) as unknown as string;
 
+    return await decodeSellPayload(bufferPayload);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
+}
+
+export async function postSellPayload(
+  sellPayload: SellPayload,
+  providerId: string,
+) {
+  try {
     const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
-      await decodeSellPayload(bufferPayload);
+      sellPayload;
 
     const amountTo = decodeAmount(outAmount as Uint8Array);
     const amountFrom = decodeAmount(inAmount as UDecimal);
@@ -242,7 +256,7 @@ export async function decodeSellPayloadAndPost(
 
     return res.data?.sellId;
   } catch (e) {
-    console.log("Error decoding payload", e);
+    console.log("Error posting payload", e);
   }
 }
 
@@ -250,29 +264,44 @@ export async function decodeSellPayloadAndPost(
  * FUND *
  **/
 
+export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
+  try {
+    const bufferPayload = Buffer.from(
+      binaryPayload.toString(),
+      "base64",
+    ) as unknown as string;
+
+    return await decodeFundPayload(bufferPayload);
+  } catch (e) {
+    console.log("Error decoding payload", e);
+  }
+}
+
 export async function confirmFund(data: ConfirmFundRequest) {
-  const { orderId, ...payload } = data;
+  const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${orderId}/accepted`,
+    `/webhook/v1/transaction/${quoteId}/accepted`,
     payload,
   );
 }
 
 export async function cancelFund(data: CancelFundRequest) {
-  const { orderId, ...payload } = data;
+  const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${orderId}/cancelled`,
+    `/webhook/v1/transaction/${quoteId}/cancelled`,
     payload,
   );
 }
 
 export async function retrieveFundPayload(data: FundRequestPayload) {
   const request = {
-    orderId: data.orderId,
+    quoteId: data.quoteId,
     provider: data.provider,
     fromCurrency: data.fromCurrency,
+    toCurrency: data.toCurrency,
     refundAddress: data.refundAddress,
     amountFrom: data.amountFrom,
+    amountTo: data.amountTo,
     nonce: data.nonce,
   };
   const pathname =
@@ -283,7 +312,7 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
 
 const parseFundBackendInfo = (response: FundResponsePayload) => {
   return {
-    orderId: response.sellId, //TODO: Update this identifier once defined in BE
+    orderId: response.sellId,
     payinAddress: response.payinAddress,
     providerSig: {
       payload: response.providerSig.payload,

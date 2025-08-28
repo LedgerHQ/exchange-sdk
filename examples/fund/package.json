@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@ledgerhq/exchange-sdk": "workspace:*",
-    "@ledgerhq/wallet-api-client": "^1.7.1",
-    "@ledgerhq/wallet-api-exchange-module": "^0.10.0",
+    "@ledgerhq/wallet-api-client": "^1.9.1",
+    "@ledgerhq/wallet-api-exchange-module": "^0.16.0-nightly.1",
     "bignumber.js": "^9.1.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",

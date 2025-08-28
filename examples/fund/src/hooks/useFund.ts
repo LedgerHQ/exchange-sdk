@@ -10,7 +10,10 @@ export const useFund = () => {
   }) => {
     if (!sdk) return;
     try {
-      return await sdk.fund(params);
+      return await sdk.fund({
+        quoteId: "123",
+        ...params,
+      });
     } catch (err) {
       console.error(err);
       throw err;
