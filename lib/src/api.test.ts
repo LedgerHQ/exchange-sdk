@@ -271,7 +271,7 @@ describe("Sell", () => {
 
       expect(result).toEqual(expectedResult);
 
-      expect(mockPost.mock.calls[0][0]).toEqual("sell/v1/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual("v1/sell/onramp_offramp/remit");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
 
@@ -303,7 +303,7 @@ describe("Sell", () => {
         type: ProductType.CARD,
       });
 
-      expect(mockPost.mock.calls[0][0]).toEqual("card/v1/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual("v1/sell/card/remit");
     });
   });
 });
@@ -391,7 +391,7 @@ describe("Fund", () => {
 
       expect(result).toEqual(expectedResult);
 
-      expect(mockPost.mock.calls[0][0]).toEqual("fund/card/v1/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual("v1/fund/card/remit");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
   });
