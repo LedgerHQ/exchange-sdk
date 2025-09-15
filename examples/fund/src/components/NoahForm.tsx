@@ -3,22 +3,21 @@
 import { Button, Group, Stack, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-import BigNumber from "bignumber.js";
 import { Account } from "@ledgerhq/wallet-api-client";
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
 
-type FundFormProps = {
+type NoahFormProps = {
   account: Account | undefined;
 };
 
-export function FundForm({ account }: FundFormProps) {
+export function NoahForm({ account }: NoahFormProps) {
   const { execute } = useExchangeSdk();
 
-  async function handleFund({ amount }: { amount: number }) {
+  async function handleSign({ message }: { message: string }) {
     try {
-      await execute("fund", {
-        fromAccountId: account?.id ?? "",
-        fromAmount: new BigNumber(amount),
+      await execute("sign", {
+        accountId: account?.id ?? "",
+        message: Buffer.from(message),
       });
     } catch (err) {
       console.error(err);
@@ -28,24 +27,24 @@ export function FundForm({ account }: FundFormProps) {
   const form = useForm({
     mode: "uncontrolled",
     initialValues: {
-      amount: 0,
+      message: "",
     },
   });
 
   return (
     <Stack>
-      <Title order={3}>Fund</Title>
-      <form onSubmit={form.onSubmit(handleFund)}>
+      <Title order={3}>Noah</Title>
+      <form onSubmit={form.onSubmit(handleSign)}>
         <TextInput
-          label="Amount"
-          placeholder="Amount to fund"
-          key={form.key("amount")}
-          {...form.getInputProps("amount")}
+          label="Message"
+          placeholder="Message to sign"
+          key={form.key("message")}
+          {...form.getInputProps("message")}
         />
 
         <Group mt="md">
           <Button type="submit" disabled={!account}>
-            Execute Fund
+            Execute Sign
           </Button>
         </Group>
       </form>

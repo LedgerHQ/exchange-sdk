@@ -1,25 +1,16 @@
 "use client";
 
 import Head from "next/head";
-import { Geist, Geist_Mono } from "next/font/google";
-import styles from "@/styles/Home.module.css";
 import { ExchangeProvider } from "@/providers/ExchangeProvider";
-import { ListAccounts } from "@/components/ListAccounts";
 import { useState } from "react";
 import { FundForm } from "@/components/FundForm";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { AssetToolbar } from "@/components/AssetToolbar";
+import { AppShell, Title } from "@mantine/core";
+import { Account } from "@ledgerhq/wallet-api-client";
+import { NoahForm } from "@/components/NoahForm";
 
 export default function Home() {
-  const [fromAccountId, setFromAccount] = useState<string | null>(null);
+  const [account, setAccount] = useState<Account | undefined>(undefined);
 
   return (
     <>
@@ -28,19 +19,20 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div
-        className={`${styles.page} ${geistSans.variable} ${geistMono.variable}`}
-      >
-        <main className={styles.main}>
-          <h1>Fund Test App</h1>
-          <ExchangeProvider>
-            {fromAccountId && <FundForm fromAccountId={fromAccountId} />}
-            <ListAccounts
-              onAccountClick={(accountId: string) => setFromAccount(accountId)}
-            />
-          </ExchangeProvider>
-        </main>
-      </div>
+      <AppShell padding="md" header={{ height: 60 }}>
+        <ExchangeProvider>
+          <AppShell.Header>
+            <Title order={2}>Test</Title>
+          </AppShell.Header>
+          <AppShell.Aside p="xs">
+            <AssetToolbar account={account} setAccount={setAccount} />
+          </AppShell.Aside>
+          <AppShell.Main>
+            <FundForm account={account} />
+            <NoahForm account={account} />
+          </AppShell.Main>
+        </ExchangeProvider>
+      </AppShell>
     </>
   );
 }

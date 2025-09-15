@@ -2,6 +2,7 @@ import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
+  MessageSign,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
@@ -47,6 +48,7 @@ import {
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
@@ -605,6 +607,23 @@ export class ExchangeSDK {
     return tx;
   }
 
+  async sign({
+    sessionId,
+    accountId,
+    message,
+    options,
+    meta,
+  }: {
+    sessionId: string;
+    // sign params
+    accountId: string;
+    message: Buffer;
+    options?: MessageSign["params"]["options"];
+    meta?: Record<string, unknown>;
+  }): Promise<ReturnType<MessageModule["sign"]>> {
+    this.logger.log("*** Start Sign ***");
+    return await this.walletAPI.message.sign(accountId, message, options, meta);
+  }
   /**
    * Disconnects this instance from the WalletAPI server.
    */
