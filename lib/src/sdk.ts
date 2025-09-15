@@ -51,6 +51,7 @@ import {
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
