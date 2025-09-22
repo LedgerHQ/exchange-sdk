@@ -1,7 +1,7 @@
 "use client";
 
 import { useOpenNativeAccountSelect } from "@/hooks/useOpenNativeAccountSelect";
-import { Box, Title, Button, MultiSelect } from "@mantine/core";
+import { Box, Title, Button, MultiSelect, Stack } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { Account, Currency } from "@ledgerhq/wallet-api-client";
 import { useGetCurrencies } from "@/hooks/useGetCurrencies";
@@ -29,11 +29,11 @@ export function AssetToolbar({ account, setAccount }: AssetToolbarProps) {
 
   return (
     <section>
-      <Box>
+      <Stack>
         <Title order={3}>Assets</Title>
         <MultiSelect
-          label="100 000 options autocomplete"
-          placeholder="Use limit to optimize performance"
+          label="Select currency"
+          placeholder=""
           limit={5}
           data={supportedCurrencies}
           searchable
@@ -49,9 +49,9 @@ export function AssetToolbar({ account, setAccount }: AssetToolbarProps) {
           size="xs"
           style={{ marginLeft: "auto" }}
         >
-          + Add Asset
+          + Select Account
         </Button>
-      </Box>
+      </Stack>
     </section>
   );
 }
