@@ -49,8 +49,16 @@ import {
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
+import { AnalyticsBrowser, Analytics } from "@segment/analytics-next";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
+
+interface AnalyticsOptions {
+  /** Enable or disable analytics tracking. Defaults to false. */
+  enabled?: boolean;
+  /** Your public Segment Write Key. Required if analytics are enabled. */
+  writeKey?: string;
+}
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -62,6 +70,8 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
+  private analytics: Analytics | undefined;
+  private sessionId: string | undefined;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -82,6 +92,7 @@ export class ExchangeSDK {
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string,
+    analytics?: AnalyticsOptions,
   ) {
     this.providerId = providerId;
 
@@ -104,6 +115,19 @@ export class ExchangeSDK {
     if (customUrl) {
       // Set API environment
       setBackendUrl(customUrl);
+    }
+
+    if (analytics?.enabled && analytics.writeKey) {
+      AnalyticsBrowser.load({ writeKey: analytics.writeKey })
+        .then(([response]) => {
+          this.analytics = response;
+          // Identify the client using a non-sensitive unique ID.
+          // The providerId is a great candidate for this.
+          this.analytics.identify(this.providerId);
+          this.logger.log("Segment Analytics initialized.");
+        })
+        .catch((err) => {});
+    } else {
     }
   }
 
@@ -607,22 +631,61 @@ export class ExchangeSDK {
     return tx;
   }
 
-  async sign({
-    sessionId,
-    accountId,
+  /**
+   * Sets the session ID for analytics and updates the user profile in Segment.
+   * Clients should call this method as soon as the session ID is known.
+   * @param {string} sessionId - The session identifier.
+   */
+  public setSessionId(sessionId: string): void {
+    if (!sessionId) return;
+
+    this.sessionId = sessionId;
+
+    // 2. Second identify call to add the new trait
+    this.analytics?.identify(this.providerId, {
+      sessionId: this.sessionId,
+    });
+  }
+
+  async requestAndSignForAccount({
     message,
     options,
     meta,
   }: {
-    sessionId: string;
-    // sign params
-    accountId: string;
     message: Buffer;
     options?: MessageSign["params"]["options"];
     meta?: Record<string, unknown>;
-  }): Promise<ReturnType<MessageModule["sign"]>> {
-    this.logger.log("*** Start Sign ***");
-    return await this.walletAPI.message.sign(accountId, message, options, meta);
+  }): Promise<{
+    accountId: string;
+    message: Buffer;
+  }> {
+    this.logger.log("*** Start Request and Sign for Account ***");
+
+    this.analytics?.track("Start Sign", {
+      providerId: this.providerId,
+      sessionId: this.sessionId,
+    });
+
+    const account = await this.walletAPI.account
+      .request({
+        currencyIds: ["ethereum"],
+      })
+      .catch(async (error: Error) => {
+        this.handleError({ error, step: StepError.REQUEST_ACCOUNT });
+        throw error;
+      });
+
+    const returnedMessage = await this.walletAPI.message
+      .sign(account.id, message, options, meta)
+      .catch(async (error: Error) => {
+        this.handleError({ error, step: StepError.SIGN });
+        throw error;
+      });
+
+    return {
+      accountId: account.id,
+      message: returnedMessage,
+    };
   }
   /**
    * Disconnects this instance from the WalletAPI server.

@@ -7,8 +7,10 @@ import {
   PayinExtraIdError,
   PayloadStepError,
   ProductTypeNotSupportedError,
+  RequestAccountError,
   UnsupportedTokenTypeNotSupportedError,
   SignatureStepError,
+  SignError,
   UnknownAccountError,
 } from "./SwapError";
 import ExchangeSdkError, { ExchangeSdkErrorType } from "./ExchangeSdkError";
@@ -25,6 +27,8 @@ export enum StepError {
   UNKNOWN_ACCOUNT = "UnknownAccountStepError",
   PAYIN_EXTRA_ID = "PayinExtraIdStepError",
   PRODUCT_SUPPORT = "ProductTypeNotSupportedStepError",
+  REQUEST_ACCOUNT = "RequestAccount",
+  SIGN = "Sign",
   UNSUPPORTED_TOKEN = "UnsupportedTokenTypeStepError",
 }
 
@@ -61,10 +65,13 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
   [StepError.IGNORED_SIGNATURE]: undefined,
   [StepError.LIST_ACCOUNT]: ExchangeSdkError.ListAccountError,
   [StepError.LIST_CURRENCY]: ExchangeSdkError.ListCurrencyError,
+  [StepError.REQUEST_ACCOUNT]: ExchangeSdkError.RequestAccountError,
   [StepError.UNKNOWN_ACCOUNT]: ExchangeSdkError.UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: ExchangeSdkError.PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ExchangeSdkError.ProductTypeNotSupportedError,
-  [StepError.UNSUPPORTED_TOKEN]: ExchangeSdkError.UnsupportedTokenTypeNotSupportedError,
+  [StepError.SIGN]: ExchangeSdkError.SignError,
+  [StepError.UNSUPPORTED_TOKEN]:
+    ExchangeSdkError.UnsupportedTokenTypeNotSupportedError,
 };
 
 const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
@@ -75,8 +82,10 @@ const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
   [StepError.IGNORED_SIGNATURE]: IgnoredSignatureStepError,
   [StepError.LIST_ACCOUNT]: ListAccountError,
   [StepError.LIST_CURRENCY]: ListCurrencyError,
+  [StepError.REQUEST_ACCOUNT]: RequestAccountError,
   [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
   [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
   [StepError.PRODUCT_SUPPORT]: ProductTypeNotSupportedError,
+  [StepError.SIGN]: SignError,
   [StepError.UNSUPPORTED_TOKEN]: UnsupportedTokenTypeNotSupportedError,
 };

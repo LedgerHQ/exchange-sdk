@@ -8,6 +8,7 @@ import {
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
+import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
 import {
   retrieveSwapPayload,
   confirmSwap,
@@ -35,6 +36,7 @@ import {
   SellInfo,
   TokenApprovalInfo,
 } from "./sdk.types";
+import { RequestAccountError, SignError } from "./error/ExchangeSdkError";
 
 jest.mock("./api");
 
@@ -66,7 +68,15 @@ const device = {
   deviceId: "device-id",
 };
 const mockAccountList = jest.spyOn(AccountModule.prototype, "list");
+const mockAccountRequest = jest
+  .spyOn(AccountModule.prototype, "request")
+  .mockResolvedValue({
+    id: "ACCOUNT_ID",
+  } as Account);
 const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
+const mockSignMessage = jest
+  .spyOn(MessageModule.prototype, "sign")
+  .mockResolvedValue(Buffer.from("Polo"));
 const mockStartExchange = jest
   .spyOn(ExchangeModule.prototype, "startSell")
   .mockResolvedValue("DeviceTransactionId");
@@ -477,6 +487,52 @@ describe("tokenApproval", () => {
 
     await expect(sdk.tokenApproval(tokenApprovalData)).rejects.toThrowError(
       "Currency not supported",
+    );
+  });
+});
+
+describe("requestAndSignForAccount", () => {
+  it("should send back the accountId from the walletAPI", async () => {
+    // GIVEN
+    const messageData = {
+      message: Buffer.from("Marco"),
+    };
+
+    // WHEN
+    const accountId = await sdk.requestAndSignForAccount(messageData);
+
+    // THEN
+    expect(mockAccountRequest).toBeCalled();
+    expect(mockSignMessage).toBeCalled();
+    expect(accountId).toStrictEqual({
+      accountId: "ACCOUNT_ID",
+      message: Buffer.from("Polo"),
+    });
+  });
+
+  it("should throw an RequestAccountError error if account request fails", async () => {
+    // GIVEN
+    const messageData = {
+      message: Buffer.from("Marco"),
+    };
+
+    mockAccountRequest.mockRejectedValueOnce(new Error("Failed"));
+
+    await expect(sdk.requestAndSignForAccount(messageData)).rejects.toThrow(
+      RequestAccountError,
+    );
+  });
+
+  it("should throw an SignError error if sign message fails", async () => {
+    // GIVEN
+    const messageData = {
+      message: Buffer.from("Marco"),
+    };
+
+    mockSignMessage.mockRejectedValueOnce(new Error("Failed"));
+
+    await expect(sdk.requestAndSignForAccount(messageData)).rejects.toThrow(
+      SignError,
     );
   });
 });

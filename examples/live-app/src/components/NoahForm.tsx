@@ -43,9 +43,7 @@ export function NoahForm({ account }: NoahFormProps) {
         />
 
         <Group mt="md">
-          <Button type="submit" disabled={!account}>
-            Execute Sign
-          </Button>
+          <Button type="submit">Execute Sign</Button>
         </Group>
       </form>
     </Stack>

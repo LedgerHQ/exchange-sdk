@@ -91,6 +91,20 @@ export class UnsupportedTokenTypeNotSupportedError extends ExchangeBaseError {
   }
 }
 
+export class RequestAccountError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange013", nestedError);
+    this.name = "RequestAccountError";
+  }
+}
+
+export class SignError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange014", nestedError);
+    this.name = "SignError";
+  }
+}
+
 export type ExchangeSdkErrorType =
   | ExchangeBaseError
   | NonceStepError
@@ -99,9 +113,11 @@ export type ExchangeSdkErrorType =
   | NotEnoughFunds
   | ListAccountError
   | ListCurrencyError
+  | RequestAccountError
   | UnknownAccountError
   | PayinExtraIdError
   | ProductTypeNotSupportedError
+  | SignError
   | UnsupportedTokenTypeNotSupportedError;
 
 export default {
@@ -112,8 +128,10 @@ export default {
   NotEnoughFunds,
   ListAccountError,
   ListCurrencyError,
+  RequestAccountError,
   UnknownAccountError,
   PayinExtraIdError,
   ProductTypeNotSupportedError,
+  SignError,
   UnsupportedTokenTypeNotSupportedError,
 };
