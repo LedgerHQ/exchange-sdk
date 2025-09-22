@@ -52,8 +52,16 @@ import {
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
+import { AnalyticsBrowser, Analytics } from "@segment/analytics-next";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
+
+interface AnalyticsOptions {
+  /** Enable or disable analytics tracking. Defaults to false. */
+  enabled?: boolean;
+  /** Your public Segment Write Key. Required if analytics are enabled. */
+  writeKey?: string;
+}
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -65,6 +73,8 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
+  private analytics: Analytics | undefined;
+  private sessionId: string | undefined;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
@@ -89,6 +99,7 @@ export class ExchangeSDK {
     transport?: Transport,
     walletAPI?: WalletAPIClient<typeof getCustomModule>,
     customUrl?: string,
+    analytics?: AnalyticsOptions,
   ) {
     this.providerId = providerId;
 
@@ -111,6 +122,19 @@ export class ExchangeSDK {
     if (customUrl) {
       // Set API environment
       setBackendUrl(customUrl);
+    }
+
+    if (analytics?.enabled && analytics.writeKey) {
+      AnalyticsBrowser.load({ writeKey: analytics.writeKey })
+        .then(([response]) => {
+          this.analytics = response;
+          // Identify the client using a non-sensitive unique ID.
+          // The providerId is a great candidate for this.
+          this.analytics.identify(this.providerId);
+          this.logger.log("Segment Analytics initialized.");
+        })
+        .catch((err) => {});
+    } else {
     }
   }
 

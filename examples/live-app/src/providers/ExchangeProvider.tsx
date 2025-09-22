@@ -16,7 +16,12 @@ export function ExchangeProvider({ children }: ExchangeProviderProps) {
   const [sdk, setSdk] = useState<ExchangeSDK | null>(null);
 
   useEffect(() => {
-    setSdk(new ExchangeSDK(PROVIDER_ID));
+    setSdk(
+      new ExchangeSDK(PROVIDER_ID, undefined, undefined, undefined, {
+        enabled: true,
+        writeKey: "6AW57DWSPwJJtRPXtW1tCvNDPUykP6EI",
+      }),
+    );
   }, []);
   return (
     <ExchangeContext.Provider value={sdk}>{children}</ExchangeContext.Provider>
