@@ -374,7 +374,7 @@ export class ExchangeSDK {
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
-        payinExtraId: sellPayload?.payinExtraId,
+        payinExtraId: sellPayload?.inExtraId,
       })
       .catch(async (error) => {
         await this.cancelSellOnError({
