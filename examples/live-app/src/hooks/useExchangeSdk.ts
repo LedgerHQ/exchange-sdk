@@ -27,7 +27,6 @@ export const useExchangeSdk = () => {
   ): Promise<SdkMethodMap[TMethod]["return"] | undefined> {
     if (!sdk) return;
     try {
-      console.log(">> method", method);
       return (sdk[method as keyof typeof sdk] as (...args: any[]) => any)(
         ...params,
       ) as Promise<SdkMethodMap[TMethod]["return"]>;

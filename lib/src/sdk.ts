@@ -622,7 +622,10 @@ export class ExchangeSDK {
     options?: MessageSign["params"]["options"];
     meta?: Record<string, unknown>;
   }): Promise<{
-    accountId: string;
+    account: {
+      id: string;
+      name: string;
+    };
     message: Buffer;
   }> {
     this.logger.log("*** Start Request and Sign for Account ***");
@@ -639,12 +642,16 @@ export class ExchangeSDK {
     const returnedMessage = await this.walletAPI.message
       .sign(account.id, message, options, meta)
       .catch(async (error: Error) => {
+        this.logger.log("*** Sign Unsuccessful ***");
         this.handleError({ error, step: StepError.SIGN });
         throw error;
       });
 
     return {
-      accountId: account.id,
+      account: {
+        id: account.id,
+        name: account.name,
+      },
       message: returnedMessage,
     };
   }
