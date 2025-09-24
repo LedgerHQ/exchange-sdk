@@ -5,6 +5,7 @@ import { useForm } from "@mantine/form";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { generateSignMessage } from "@/utils/generateSignMessage";
 
 type NoahFormProps = {
   account: Account | undefined;
