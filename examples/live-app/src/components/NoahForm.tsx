@@ -18,6 +18,7 @@ export function NoahForm({ account }: NoahFormProps) {
       const result = await execute("requestAndSignForAccount", {
         accountId: account?.id ?? "",
         message: Buffer.from(message),
+        currencyIds: ["ethereum", "ethereum/erc20/usd__coin"],
       });
     } catch (err) {
       console.error(err);
