@@ -64,7 +64,6 @@ export class ExchangeSDK {
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
   private logger: Logger = new Logger(true);
-  private sessionId: string | undefined;
 
   get walletAPI(): WalletAPIClient {
     return this.walletAPIDecorator.walletClient;
