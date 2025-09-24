@@ -72,6 +72,7 @@ const mockAccountRequest = jest
   .spyOn(AccountModule.prototype, "request")
   .mockResolvedValue({
     id: "ACCOUNT_ID",
+    name: "ACCOUNT_NAME",
   } as Account);
 const mockCurrenciesList = jest.spyOn(CurrencyModule.prototype, "list");
 const mockSignMessage = jest
@@ -493,19 +494,19 @@ describe("tokenApproval", () => {
 
 describe("requestAndSignForAccount", () => {
   it("should send back the accountId from the walletAPI", async () => {
-    // GIVEN
     const messageData = {
       message: Buffer.from("Marco"),
     };
 
-    // WHEN
-    const accountId = await sdk.requestAndSignForAccount(messageData);
+    const response = await sdk.requestAndSignForAccount(messageData);
 
-    // THEN
     expect(mockAccountRequest).toBeCalled();
     expect(mockSignMessage).toBeCalled();
-    expect(accountId).toStrictEqual({
-      accountId: "ACCOUNT_ID",
+    expect(response).toStrictEqual({
+      account: {
+        id: "ACCOUNT_ID",
+        name: "ACCOUNT_NAME",
+      },
       message: Buffer.from("Polo"),
     });
   });
