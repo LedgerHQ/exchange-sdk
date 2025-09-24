@@ -617,8 +617,10 @@ export class ExchangeSDK {
     message,
     options,
     meta,
+    currencyIds,
   }: {
     message: Buffer;
+    currencyIds: string[];
     options?: MessageSign["params"]["options"];
     meta?: Record<string, unknown>;
   }): Promise<{
@@ -632,7 +634,7 @@ export class ExchangeSDK {
 
     const account = await this.walletAPI.account
       .request({
-        currencyIds: ["ethereum"],
+        currencyIds,
       })
       .catch(async (error: Error) => {
         this.handleError({ error, step: StepError.REQUEST_ACCOUNT });

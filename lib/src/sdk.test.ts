@@ -496,6 +496,7 @@ describe("requestAndSignForAccount", () => {
   it("should send back the accountId from the walletAPI", async () => {
     const messageData = {
       message: Buffer.from("Marco"),
+      currencyIds: [],
     };
 
     const response = await sdk.requestAndSignForAccount(messageData);
@@ -515,6 +516,7 @@ describe("requestAndSignForAccount", () => {
     // GIVEN
     const messageData = {
       message: Buffer.from("Marco"),
+      currencyIds: [],
     };
 
     mockAccountRequest.mockRejectedValueOnce(new Error("Failed"));
@@ -528,6 +530,7 @@ describe("requestAndSignForAccount", () => {
     // GIVEN
     const messageData = {
       message: Buffer.from("Marco"),
+      currencyIds: [],
     };
 
     mockSignMessage.mockRejectedValueOnce(new Error("Failed"));
