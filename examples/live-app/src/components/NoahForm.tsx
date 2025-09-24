@@ -16,9 +16,9 @@ export function NoahForm({ account }: NoahFormProps) {
 
   async function handleSign({ message }: { message: string }) {
     try {
-      await execute("requestAndSignForAccount", {
+      const result = await execute("requestAndSignForAccount", {
         accountId: account?.id ?? "",
-        message: generateSignMessage(message),
+        message: Buffer.from(message),
       });
     } catch (err) {
       console.error(err);
