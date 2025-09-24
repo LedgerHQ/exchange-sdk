@@ -169,11 +169,25 @@ export default function walletApiDecorator(
   };
 }
 
+type CustomMethodsHandlersType = {
+  "custom.close": () => void;
+};
+
+export class CustomMethods extends CustomModule {
+  closeLiveApp() {
+    return this.request<
+      undefined,
+      ReturnType<CustomMethodsHandlersType["custom.close"]>
+    >("custom.close", undefined);
+  }
+}
+
 export function getCustomModule(
   client: WalletAPIClient,
 ): Record<string, CustomModule> {
   return {
     exchange: new ExchangeModule(client),
+    customMethods: new CustomMethods(client),
   };
 }
 

@@ -5,6 +5,7 @@ import { useForm } from "@mantine/form";
 
 import { Account } from "@ledgerhq/wallet-api-client";
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { generateSignMessage } from "@/utils/generateSignMessage";
 
 type NoahFormProps = {
   account: Account | undefined;
@@ -15,9 +16,9 @@ export function NoahForm({ account }: NoahFormProps) {
 
   async function handleSign({ message }: { message: string }) {
     try {
-      await execute("sign", {
+      await execute("requestAndSignForAccount", {
         accountId: account?.id ?? "",
-        message: Buffer.from(message),
+        message: generateSignMessage(message),
       });
     } catch (err) {
       console.error(err);

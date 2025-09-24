@@ -39,7 +39,8 @@
     "exchange.complete",
     "custom.exchange.error",
     "custom.exchange.start",
-    "custom.exchange.complete"
+    "custom.exchange.complete",
+    "custom.close"
   ],
   "domains": ["https://*", "http://*"]
 }

@@ -29,7 +29,10 @@ import {
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
-import walletApiDecorator, { getCustomModule } from "./wallet-api";
+import walletApiDecorator, {
+  CustomMethods,
+  getCustomModule,
+} from "./wallet-api";
 import {
   CustomErrorType,
   ParseError,
@@ -69,6 +72,10 @@ export class ExchangeSDK {
 
   private get exchangeModule(): ExchangeModule {
     return (this.walletAPI.custom as any).exchange as ExchangeModule;
+  }
+
+  private get customMethods(): CustomMethods {
+    return (this.walletAPI.custom as any).customMethods as CustomMethods;
   }
 
   /**
@@ -642,6 +649,12 @@ export class ExchangeSDK {
       message: returnedMessage,
     };
   }
+
+  closeLiveApp() {
+    this.logger.log("*** Close Live App ***");
+    this.customMethods.closeLiveApp();
+  }
+
   /**
    * Disconnects this instance from the WalletAPI server.
    */

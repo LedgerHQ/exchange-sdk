@@ -4,13 +4,15 @@ import Head from "next/head";
 import { ExchangeProvider } from "@/providers/ExchangeProvider";
 import { useState } from "react";
 import { FundForm } from "@/components/FundForm";
-import { AssetToolbar } from "@/components/AssetToolbar";
 import { AppShell, Stack, Title } from "@mantine/core";
 import { Account } from "@ledgerhq/wallet-api-client";
 import { NoahForm } from "@/components/NoahForm";
+import { CustomMethods } from "@/components/CustomMethods";
 
 export default function Home() {
   const [account, setAccount] = useState<Account | undefined>(undefined);
+
+  function handleCustomClose() {}
 
   return (
     <>
@@ -28,13 +30,14 @@ export default function Home() {
           <AppShell.Header p="md">
             <Title order={2}>Test Live App</Title>
           </AppShell.Header>
-          <AppShell.Aside p="xs">
+          {/* <AppShell.Aside p="xs">
             <AssetToolbar account={account} setAccount={setAccount} />
-          </AppShell.Aside>
+          </AppShell.Aside> */}
           <AppShell.Main>
             <Stack>
               <FundForm account={account} />
               <NoahForm account={account} />
+              <CustomMethods />
             </Stack>
           </AppShell.Main>
         </ExchangeProvider>
