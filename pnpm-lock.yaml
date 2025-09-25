@@ -54,8 +54,8 @@ importers:
         specifier: workspace:*
         version: link:../../lib
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.9.1
-        version: 1.9.1(@ton/crypto@3.3.0)
+        specifier: ^1.12.0
+        version: 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-exchange-module':
         specifier: ^0.16.0-nightly.1
         version: 0.16.0-nightly.1(@ton/crypto@3.3.0)
@@ -229,8 +229,8 @@ importers:
         version: 1.3.4
     devDependencies:
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.9.1
-        version: 1.9.1(@ton/crypto@3.3.0)
+        specifier: ^1.12.0
+        version: 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-exchange-module':
         specifier: 0.16.0-nightly.1
         version: 0.16.0-nightly.1(@ton/crypto@3.3.0)
@@ -989,17 +989,20 @@ packages:
   '@ledgerhq/types-live@6.83.0':
     resolution: {integrity: sha512-2yqtx25vCFsuUQM8k8w+7lA5WixtorOfisSKbsomk8mDHeImTwwCFQkykkE6FxIsbHaJ/G1kPNvQ6IXH6ztskA==}
 
+  '@ledgerhq/wallet-api-client@1.12.0':
+    resolution: {integrity: sha512-8SH/8yc2SFWfNbJT8wnBPm11+IdI/2mdWPibR+nhdIjQ/e6cBnCdXP9v3mBjzYZxB4cCxfGFXsDgeWWYXiga2w==}
+
   '@ledgerhq/wallet-api-client@1.7.1':
     resolution: {integrity: sha512-NEMRzlImkvAUB74Pdb5/jvD2zWoOUT9UgZPBHkPtzGYMXF5AanNREznDQaQzVF7QeLkPmhKs+iYbDUAiv6Zukw==}
-
-  '@ledgerhq/wallet-api-client@1.9.1':
-    resolution: {integrity: sha512-qvcSXhfXQOIE4wqgiWJniOWi0z7hdoo+/neUgbhpVh5l0J254Kn1Slw90ikvYGgQTK+qeKXoPxkRC3+LpQ5ZVw==}
 
   '@ledgerhq/wallet-api-core@1.17.0':
     resolution: {integrity: sha512-T0HSkCLDZW9EoizjDCV6FARl777ZE/eux3X3slRgw0SPOUTPXlxq+K0uNb6ohsRmIXDADC06E4G4VxcTOkbwKQ==}
 
   '@ledgerhq/wallet-api-core@1.21.1':
     resolution: {integrity: sha512-aKAdN0hfphPLgjHeDA4MMSJgCxA4xjWpWR2DuM903ikmVJkYJecHMbupe+3n7eByTzRjB2SwhymHQlXJMxBRTA==}
+
+  '@ledgerhq/wallet-api-core@1.24.0':
+    resolution: {integrity: sha512-AMimfYo9lEWgokTJ60y3zy+RunLqspLKJJAbU6t6e2tWEWT1i7lE+67ICpJsBVZyJMefubxX5JxWKsqJFb0fSw==}
 
   '@ledgerhq/wallet-api-exchange-module@0.10.0':
     resolution: {integrity: sha512-iDy+mb4OaTAmvmVwoZkc4qoUBAy6HhwrQhA6q9g3J5r7MlGMCxPT0QRm+cj6hzfbNutSAZxs939jfd+dzjPkvA==}
@@ -5522,20 +5525,20 @@ snapshots:
       bignumber.js: 9.1.2
       rxjs: 7.8.1
 
+  '@ledgerhq/wallet-api-client@1.12.0(@ton/crypto@3.3.0)':
+    dependencies:
+      '@ledgerhq/hw-transport': 6.31.9
+      '@ledgerhq/wallet-api-core': 1.24.0(@ton/crypto@3.3.0)
+      bignumber.js: 9.1.2
+    transitivePeerDependencies:
+      - '@ton/crypto'
+      - encoding
+
   '@ledgerhq/wallet-api-client@1.7.1':
     dependencies:
       '@ledgerhq/hw-transport': 6.31.4
       '@ledgerhq/wallet-api-core': 1.17.0
       bignumber.js: 9.1.2
-
-  '@ledgerhq/wallet-api-client@1.9.1(@ton/crypto@3.3.0)':
-    dependencies:
-      '@ledgerhq/hw-transport': 6.31.9
-      '@ledgerhq/wallet-api-core': 1.21.1(@ton/crypto@3.3.0)
-      bignumber.js: 9.1.2
-    transitivePeerDependencies:
-      - '@ton/crypto'
-      - encoding
 
   '@ledgerhq/wallet-api-core@1.17.0':
     dependencies:
@@ -5557,9 +5560,22 @@ snapshots:
       - '@ton/crypto'
       - encoding
 
+  '@ledgerhq/wallet-api-core@1.24.0(@ton/crypto@3.3.0)':
+    dependencies:
+      '@ledgerhq/errors': 6.25.0
+      '@stacks/transactions': 6.17.0
+      '@ton/core': 0.60.1(@ton/crypto@3.3.0)
+      bignumber.js: 9.1.2
+      thor-devkit: 2.1.1
+      uuid: 9.0.1
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - '@ton/crypto'
+      - encoding
+
   '@ledgerhq/wallet-api-exchange-module@0.10.0':
     dependencies:
-      '@ledgerhq/wallet-api-client': 1.9.1(@ton/crypto@3.3.0)
+      '@ledgerhq/wallet-api-client': 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-core': 1.17.0
     transitivePeerDependencies:
       - '@ton/crypto'
@@ -5567,7 +5583,7 @@ snapshots:
 
   '@ledgerhq/wallet-api-exchange-module@0.16.0-nightly.1(@ton/crypto@3.3.0)':
     dependencies:
-      '@ledgerhq/wallet-api-client': 1.9.1(@ton/crypto@3.3.0)
+      '@ledgerhq/wallet-api-client': 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-core': 1.21.1(@ton/crypto@3.3.0)
       bignumber.js: 9.1.2
     transitivePeerDependencies:

@@ -42,6 +42,7 @@ const transactionStrategy: {
   ethereum: withoutGasLimitTransaction,
   filecoin: defaultTransaction,
   hedera: hederaTransaction,
+  kaspa: defaultTransaction,
   near: modeSendTransaction,
   neo: defaultTransaction,
   polkadot: defaultTransaction,
