@@ -219,8 +219,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: 0.12.0-nightly.2
-        version: 0.12.0-nightly.2(rxjs@7.8.1)
+        specifier: 0.14.0
+        version: 0.14.0(rxjs@7.8.1)
       '@segment/analytics-next':
         specifier: ^1.81.1
         version: 1.81.1
@@ -942,10 +942,10 @@ packages:
   '@ledgerhq/cryptoassets@13.27.0':
     resolution: {integrity: sha512-JbKGe43oH6q5QFqv5vzrmY3jSpb6W0sK477iy+55VNU/5QUiZ6w2TBy9hu3tb/GX8zH7/gDh2cLjKNT3d/NLdg==}
 
-  '@ledgerhq/device-management-kit@0.0.0-apex-support-20250721132630':
-    resolution: {integrity: sha512-I8X0WC5VT0c1yKOzD8VMIkRlzRDHxJVIWhVELUrIfmytklO60Cf0t87Rn3sICWrVtNpp1TZJSZzVBageP6xQZg==}
+  '@ledgerhq/device-management-kit@0.9.0':
+    resolution: {integrity: sha512-zWcQ0TOerZU4tvBdHd7RWpmYB+nVN3aTZ/hHz5IVnESEmQa2m4YsmOb2vm55k3tvyc5yRW/sOqX83Bnr+y+G+w==}
     peerDependencies:
-      rxjs: ^7.8.2
+      rxjs: 7.8.2
 
   '@ledgerhq/devices@8.5.0':
     resolution: {integrity: sha512-zDB6Pdk6NYYbYis8cWoLLkL9k/IvjhC3hkuuz2lhpJ2AxIs3/PDMUKoyK4DpjPtRyKk1W1lwsnpc6J1i87r4/Q==}
@@ -953,14 +953,17 @@ packages:
   '@ledgerhq/devices@8.5.1':
     resolution: {integrity: sha512-oW75YQQiP2muHveXTuwSAze6CBxJ7jOYILhFiJbsVzmgLPVqtdw4s0bJJlOBft4Aup67yNAjboFCIU7kTYQBFg==}
 
-  '@ledgerhq/errors@6.24.0':
-    resolution: {integrity: sha512-UMy+nGH4hmlaML7vPiSwGQ/mOoq/rwExYGEZVpb9TPoG0AcSfzpG43LAdAemvCTX/gK0MUO+int4FpNkD1ZrtQ==}
+  '@ledgerhq/devices@8.6.0':
+    resolution: {integrity: sha512-ISp5g6OfWr3WnAvmph0/iEHpFvWRDflRfhZH1/oDeXb/okmmAimKOnSUCMC0voOAou7CEoMTCtRkelHPok41Yg==}
 
   '@ledgerhq/errors@6.25.0':
     resolution: {integrity: sha512-9cU0dgUyq3Adb1bHAjJnbwl+r+4WBjuPq0k+/DbBNpuYHwcz2xKtRIjLimUJyACjHti3iWwRt1sFcbQDDdI08w==}
 
-  '@ledgerhq/hw-app-exchange@0.12.0-nightly.2':
-    resolution: {integrity: sha512-Gg9PvXyoDgPO6a+ce9bN/Xl8ugi9EsUIOhe5vsEHfh1GF1KZ9CKT8HJURGvxxuwlDGVSW8k7r/jAju3hVApSww==}
+  '@ledgerhq/hw-app-exchange@0.14.0':
+    resolution: {integrity: sha512-UVyMWjYrHD0MVzn0gG29TtWECfT3vlWYwmNA+nHPugMQvCWh09Y2J43s+/1a8DQqnIEz0SUglm97v48TcK9cpg==}
+
+  '@ledgerhq/hw-transport@6.31.11':
+    resolution: {integrity: sha512-vAbZkYSa3ClHyvZxcnfzv8Mf1uaO+huB9a2lTiXP0V8QGYaGLU9CfGMtECvqqRRPEUomhelAzYTI+2UEWrokwg==}
 
   '@ledgerhq/hw-transport@6.31.4':
     resolution: {integrity: sha512-6c1ir/cXWJm5dCWdq55NPgCJ3UuKuuxRvf//Xs36Bq9BwkV2YaRQhZITAkads83l07NAdR16hkTWqqpwFMaI6A==}
@@ -5426,7 +5429,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/device-management-kit@0.0.0-apex-support-20250721132630(rxjs@7.8.1)':
+  '@ledgerhq/device-management-kit@0.9.0(rxjs@7.8.1)':
     dependencies:
       '@sentry/minimal': 6.19.7
       axios: 1.8.2
@@ -5435,7 +5438,7 @@ snapshots:
       purify-ts: 2.1.0
       reflect-metadata: 0.2.2
       rxjs: 7.8.1
-      semver: 7.7.0
+      semver: 7.7.2
       url: 0.11.4
       uuid: 11.0.3
       ws: 8.18.3
@@ -5459,15 +5462,20 @@ snapshots:
       rxjs: 7.8.1
       semver: 7.7.2
 
-  '@ledgerhq/errors@6.24.0': {}
+  '@ledgerhq/devices@8.6.0':
+    dependencies:
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/logs': 6.13.0
+      rxjs: 7.8.1
+      semver: 7.7.2
 
   '@ledgerhq/errors@6.25.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.12.0-nightly.2(rxjs@7.8.1)':
+  '@ledgerhq/hw-app-exchange@0.14.0(rxjs@7.8.1)':
     dependencies:
-      '@ledgerhq/device-management-kit': 0.0.0-apex-support-20250721132630(rxjs@7.8.1)
-      '@ledgerhq/errors': 6.24.0
-      '@ledgerhq/hw-transport': 6.31.9
+      '@ledgerhq/device-management-kit': 0.9.0(rxjs@7.8.1)
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/hw-transport': 6.31.11
       bignumber.js: 9.1.2
       invariant: 2.2.4
       protobufjs: 7.2.5
@@ -5477,6 +5485,13 @@ snapshots:
       - debug
       - rxjs
       - utf-8-validate
+
+  '@ledgerhq/hw-transport@6.31.11':
+    dependencies:
+      '@ledgerhq/devices': 8.6.0
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/logs': 6.13.0
+      events: 3.3.0
 
   '@ledgerhq/hw-transport@6.31.4':
     dependencies:
@@ -6186,7 +6201,7 @@ snapshots:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.6.0
+      semver: 7.7.2
       tsutils: 3.21.0(typescript@4.8.3)
     optionalDependencies:
       typescript: 4.8.3
@@ -6200,7 +6215,7 @@ snapshots:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.6.0
+      semver: 7.7.2
       tsutils: 3.21.0(typescript@5.9.2)
     optionalDependencies:
       typescript: 5.9.2
@@ -9264,7 +9279,7 @@ snapshots:
       jsdoc: 4.0.3
       minimist: 1.2.8
       protobufjs: 7.2.5
-      semver: 7.7.0
+      semver: 7.7.2
       tmp: 0.2.3
       uglify-js: 3.19.0
 
