@@ -54,8 +54,8 @@ importers:
         specifier: workspace:*
         version: link:../../lib
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.9.1
-        version: 1.9.1(@ton/crypto@3.3.0)
+        specifier: ^1.12.0
+        version: 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-exchange-module':
         specifier: ^0.16.0-nightly.1
         version: 0.16.0-nightly.1(@ton/crypto@3.3.0)
@@ -219,8 +219,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: 0.12.0-nightly.2
-        version: 0.12.0-nightly.2(rxjs@7.8.1)
+        specifier: 0.14.0
+        version: 0.14.0(rxjs@7.8.1)
       '@segment/analytics-next':
         specifier: ^1.81.1
         version: 1.81.1
@@ -229,8 +229,8 @@ importers:
         version: 1.3.4
     devDependencies:
       '@ledgerhq/wallet-api-client':
-        specifier: ^1.9.1
-        version: 1.9.1(@ton/crypto@3.3.0)
+        specifier: ^1.12.0
+        version: 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-exchange-module':
         specifier: 0.16.0-nightly.1
         version: 0.16.0-nightly.1(@ton/crypto@3.3.0)
@@ -942,10 +942,10 @@ packages:
   '@ledgerhq/cryptoassets@13.27.0':
     resolution: {integrity: sha512-JbKGe43oH6q5QFqv5vzrmY3jSpb6W0sK477iy+55VNU/5QUiZ6w2TBy9hu3tb/GX8zH7/gDh2cLjKNT3d/NLdg==}
 
-  '@ledgerhq/device-management-kit@0.0.0-apex-support-20250721132630':
-    resolution: {integrity: sha512-I8X0WC5VT0c1yKOzD8VMIkRlzRDHxJVIWhVELUrIfmytklO60Cf0t87Rn3sICWrVtNpp1TZJSZzVBageP6xQZg==}
+  '@ledgerhq/device-management-kit@0.9.0':
+    resolution: {integrity: sha512-zWcQ0TOerZU4tvBdHd7RWpmYB+nVN3aTZ/hHz5IVnESEmQa2m4YsmOb2vm55k3tvyc5yRW/sOqX83Bnr+y+G+w==}
     peerDependencies:
-      rxjs: ^7.8.2
+      rxjs: 7.8.2
 
   '@ledgerhq/devices@8.5.0':
     resolution: {integrity: sha512-zDB6Pdk6NYYbYis8cWoLLkL9k/IvjhC3hkuuz2lhpJ2AxIs3/PDMUKoyK4DpjPtRyKk1W1lwsnpc6J1i87r4/Q==}
@@ -953,14 +953,17 @@ packages:
   '@ledgerhq/devices@8.5.1':
     resolution: {integrity: sha512-oW75YQQiP2muHveXTuwSAze6CBxJ7jOYILhFiJbsVzmgLPVqtdw4s0bJJlOBft4Aup67yNAjboFCIU7kTYQBFg==}
 
-  '@ledgerhq/errors@6.24.0':
-    resolution: {integrity: sha512-UMy+nGH4hmlaML7vPiSwGQ/mOoq/rwExYGEZVpb9TPoG0AcSfzpG43LAdAemvCTX/gK0MUO+int4FpNkD1ZrtQ==}
+  '@ledgerhq/devices@8.6.0':
+    resolution: {integrity: sha512-ISp5g6OfWr3WnAvmph0/iEHpFvWRDflRfhZH1/oDeXb/okmmAimKOnSUCMC0voOAou7CEoMTCtRkelHPok41Yg==}
 
   '@ledgerhq/errors@6.25.0':
     resolution: {integrity: sha512-9cU0dgUyq3Adb1bHAjJnbwl+r+4WBjuPq0k+/DbBNpuYHwcz2xKtRIjLimUJyACjHti3iWwRt1sFcbQDDdI08w==}
 
-  '@ledgerhq/hw-app-exchange@0.12.0-nightly.2':
-    resolution: {integrity: sha512-Gg9PvXyoDgPO6a+ce9bN/Xl8ugi9EsUIOhe5vsEHfh1GF1KZ9CKT8HJURGvxxuwlDGVSW8k7r/jAju3hVApSww==}
+  '@ledgerhq/hw-app-exchange@0.14.0':
+    resolution: {integrity: sha512-UVyMWjYrHD0MVzn0gG29TtWECfT3vlWYwmNA+nHPugMQvCWh09Y2J43s+/1a8DQqnIEz0SUglm97v48TcK9cpg==}
+
+  '@ledgerhq/hw-transport@6.31.11':
+    resolution: {integrity: sha512-vAbZkYSa3ClHyvZxcnfzv8Mf1uaO+huB9a2lTiXP0V8QGYaGLU9CfGMtECvqqRRPEUomhelAzYTI+2UEWrokwg==}
 
   '@ledgerhq/hw-transport@6.31.4':
     resolution: {integrity: sha512-6c1ir/cXWJm5dCWdq55NPgCJ3UuKuuxRvf//Xs36Bq9BwkV2YaRQhZITAkads83l07NAdR16hkTWqqpwFMaI6A==}
@@ -989,17 +992,20 @@ packages:
   '@ledgerhq/types-live@6.83.0':
     resolution: {integrity: sha512-2yqtx25vCFsuUQM8k8w+7lA5WixtorOfisSKbsomk8mDHeImTwwCFQkykkE6FxIsbHaJ/G1kPNvQ6IXH6ztskA==}
 
+  '@ledgerhq/wallet-api-client@1.12.0':
+    resolution: {integrity: sha512-8SH/8yc2SFWfNbJT8wnBPm11+IdI/2mdWPibR+nhdIjQ/e6cBnCdXP9v3mBjzYZxB4cCxfGFXsDgeWWYXiga2w==}
+
   '@ledgerhq/wallet-api-client@1.7.1':
     resolution: {integrity: sha512-NEMRzlImkvAUB74Pdb5/jvD2zWoOUT9UgZPBHkPtzGYMXF5AanNREznDQaQzVF7QeLkPmhKs+iYbDUAiv6Zukw==}
-
-  '@ledgerhq/wallet-api-client@1.9.1':
-    resolution: {integrity: sha512-qvcSXhfXQOIE4wqgiWJniOWi0z7hdoo+/neUgbhpVh5l0J254Kn1Slw90ikvYGgQTK+qeKXoPxkRC3+LpQ5ZVw==}
 
   '@ledgerhq/wallet-api-core@1.17.0':
     resolution: {integrity: sha512-T0HSkCLDZW9EoizjDCV6FARl777ZE/eux3X3slRgw0SPOUTPXlxq+K0uNb6ohsRmIXDADC06E4G4VxcTOkbwKQ==}
 
   '@ledgerhq/wallet-api-core@1.21.1':
     resolution: {integrity: sha512-aKAdN0hfphPLgjHeDA4MMSJgCxA4xjWpWR2DuM903ikmVJkYJecHMbupe+3n7eByTzRjB2SwhymHQlXJMxBRTA==}
+
+  '@ledgerhq/wallet-api-core@1.24.0':
+    resolution: {integrity: sha512-AMimfYo9lEWgokTJ60y3zy+RunLqspLKJJAbU6t6e2tWEWT1i7lE+67ICpJsBVZyJMefubxX5JxWKsqJFb0fSw==}
 
   '@ledgerhq/wallet-api-exchange-module@0.10.0':
     resolution: {integrity: sha512-iDy+mb4OaTAmvmVwoZkc4qoUBAy6HhwrQhA6q9g3J5r7MlGMCxPT0QRm+cj6hzfbNutSAZxs939jfd+dzjPkvA==}
@@ -5423,7 +5429,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/device-management-kit@0.0.0-apex-support-20250721132630(rxjs@7.8.1)':
+  '@ledgerhq/device-management-kit@0.9.0(rxjs@7.8.1)':
     dependencies:
       '@sentry/minimal': 6.19.7
       axios: 1.8.2
@@ -5432,7 +5438,7 @@ snapshots:
       purify-ts: 2.1.0
       reflect-metadata: 0.2.2
       rxjs: 7.8.1
-      semver: 7.7.0
+      semver: 7.7.2
       url: 0.11.4
       uuid: 11.0.3
       ws: 8.18.3
@@ -5456,15 +5462,20 @@ snapshots:
       rxjs: 7.8.1
       semver: 7.7.2
 
-  '@ledgerhq/errors@6.24.0': {}
+  '@ledgerhq/devices@8.6.0':
+    dependencies:
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/logs': 6.13.0
+      rxjs: 7.8.1
+      semver: 7.7.2
 
   '@ledgerhq/errors@6.25.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.12.0-nightly.2(rxjs@7.8.1)':
+  '@ledgerhq/hw-app-exchange@0.14.0(rxjs@7.8.1)':
     dependencies:
-      '@ledgerhq/device-management-kit': 0.0.0-apex-support-20250721132630(rxjs@7.8.1)
-      '@ledgerhq/errors': 6.24.0
-      '@ledgerhq/hw-transport': 6.31.9
+      '@ledgerhq/device-management-kit': 0.9.0(rxjs@7.8.1)
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/hw-transport': 6.31.11
       bignumber.js: 9.1.2
       invariant: 2.2.4
       protobufjs: 7.2.5
@@ -5474,6 +5485,13 @@ snapshots:
       - debug
       - rxjs
       - utf-8-validate
+
+  '@ledgerhq/hw-transport@6.31.11':
+    dependencies:
+      '@ledgerhq/devices': 8.6.0
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/logs': 6.13.0
+      events: 3.3.0
 
   '@ledgerhq/hw-transport@6.31.4':
     dependencies:
@@ -5522,20 +5540,20 @@ snapshots:
       bignumber.js: 9.1.2
       rxjs: 7.8.1
 
+  '@ledgerhq/wallet-api-client@1.12.0(@ton/crypto@3.3.0)':
+    dependencies:
+      '@ledgerhq/hw-transport': 6.31.9
+      '@ledgerhq/wallet-api-core': 1.24.0(@ton/crypto@3.3.0)
+      bignumber.js: 9.1.2
+    transitivePeerDependencies:
+      - '@ton/crypto'
+      - encoding
+
   '@ledgerhq/wallet-api-client@1.7.1':
     dependencies:
       '@ledgerhq/hw-transport': 6.31.4
       '@ledgerhq/wallet-api-core': 1.17.0
       bignumber.js: 9.1.2
-
-  '@ledgerhq/wallet-api-client@1.9.1(@ton/crypto@3.3.0)':
-    dependencies:
-      '@ledgerhq/hw-transport': 6.31.9
-      '@ledgerhq/wallet-api-core': 1.21.1(@ton/crypto@3.3.0)
-      bignumber.js: 9.1.2
-    transitivePeerDependencies:
-      - '@ton/crypto'
-      - encoding
 
   '@ledgerhq/wallet-api-core@1.17.0':
     dependencies:
@@ -5557,9 +5575,22 @@ snapshots:
       - '@ton/crypto'
       - encoding
 
+  '@ledgerhq/wallet-api-core@1.24.0(@ton/crypto@3.3.0)':
+    dependencies:
+      '@ledgerhq/errors': 6.25.0
+      '@stacks/transactions': 6.17.0
+      '@ton/core': 0.60.1(@ton/crypto@3.3.0)
+      bignumber.js: 9.1.2
+      thor-devkit: 2.1.1
+      uuid: 9.0.1
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - '@ton/crypto'
+      - encoding
+
   '@ledgerhq/wallet-api-exchange-module@0.10.0':
     dependencies:
-      '@ledgerhq/wallet-api-client': 1.9.1(@ton/crypto@3.3.0)
+      '@ledgerhq/wallet-api-client': 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-core': 1.17.0
     transitivePeerDependencies:
       - '@ton/crypto'
@@ -5567,7 +5598,7 @@ snapshots:
 
   '@ledgerhq/wallet-api-exchange-module@0.16.0-nightly.1(@ton/crypto@3.3.0)':
     dependencies:
-      '@ledgerhq/wallet-api-client': 1.9.1(@ton/crypto@3.3.0)
+      '@ledgerhq/wallet-api-client': 1.12.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-core': 1.21.1(@ton/crypto@3.3.0)
       bignumber.js: 9.1.2
     transitivePeerDependencies:
@@ -6170,7 +6201,7 @@ snapshots:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.6.0
+      semver: 7.7.2
       tsutils: 3.21.0(typescript@4.8.3)
     optionalDependencies:
       typescript: 4.8.3
@@ -6184,7 +6215,7 @@ snapshots:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.6.0
+      semver: 7.7.2
       tsutils: 3.21.0(typescript@5.9.2)
     optionalDependencies:
       typescript: 5.9.2
@@ -9248,7 +9279,7 @@ snapshots:
       jsdoc: 4.0.3
       minimist: 1.2.8
       protobufjs: 7.2.5
-      semver: 7.7.0
+      semver: 7.7.2
       tmp: 0.2.3
       uglify-js: 3.19.0
 
