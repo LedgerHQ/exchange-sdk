@@ -275,10 +275,12 @@ describe("sell", () => {
 
   beforeAll(() => {
     (retrieveSellPayload as jest.Mock).mockResolvedValue({
-      binaryPayload: "",
-      signature: "",
       payinAddress: "",
-      quoteId: "sell-id",
+      providerSig: {
+        payload: Buffer.from(""),
+        signature: Buffer.from(""),
+      },
+      sellId: "sell-id",
     });
     (confirmSell as jest.Mock).mockResolvedValue({});
     (cancelSell as jest.Mock).mockResolvedValue({});
@@ -361,6 +363,28 @@ describe("sell", () => {
     await expect(sdk.sell(sellData)).rejects.toThrowError(
       "Product not supported",
     );
+  });
+
+  it("throws PayinExtraIdError error when no payinExtraId provided for ripple", async () => {
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "ripple",
+        family: "ripple",
+        decimals: 4,
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    const sellData: SellInfo = {
+      quoteId: "quoteId",
+      fromAccountId: "id-ripple",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "slow" as FeeStrategy,
+      toFiat: "EUR",
+      rate: 1000,
+    };
+
+    await expect(sdk.sell(sellData)).rejects.toThrow("Missing payinExtraId");
   });
 });
 
