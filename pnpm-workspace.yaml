@@ -2,4 +2,4 @@ packages:
   - "lib"
   - "examples/sell"
   - "examples/swap"
-  - "examples/fund"
+  - "examples/live-app"

@@ -98,6 +98,20 @@ export class UnsupportedTokenTypeNotSupportedError extends SwapError {
   }
 }
 
+export class RequestAccountError extends SwapError {
+  constructor(nestedError?: Error) {
+    super("swap013", nestedError);
+    this.name = "RequestAccountError";
+  }
+}
+
+export class SignError extends SwapError {
+  constructor(nestedError?: Error) {
+    super("swap014", nestedError);
+    this.name = "SignError";
+  }
+}
+
 export type CompleteExchangeStep =
   | "INIT"
   | "SET_PARTNER_KEY"

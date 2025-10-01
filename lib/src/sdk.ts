@@ -2,6 +2,7 @@ import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
+  MessageSign,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
@@ -28,7 +29,10 @@ import {
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
-import walletApiDecorator, { getCustomModule } from "./wallet-api";
+import walletApiDecorator, {
+  CustomMethods,
+  getCustomModule,
+} from "./wallet-api";
 import {
   CustomErrorType,
   ParseError,
@@ -67,6 +71,10 @@ export class ExchangeSDK {
 
   private get exchangeModule(): ExchangeModule {
     return (this.walletAPI.custom as any).exchange as ExchangeModule;
+  }
+
+  private get customMethods(): CustomMethods {
+    return (this.walletAPI.custom as any).customMethods as CustomMethods;
   }
 
   /**
@@ -603,6 +611,56 @@ export class ExchangeSDK {
     });
 
     return tx;
+  }
+
+  async requestAndSignForAccount({
+    message,
+    options,
+    meta,
+    currencyIds,
+  }: {
+    message: Buffer;
+    currencyIds: string[];
+    options?: MessageSign["params"]["options"];
+    meta?: Record<string, unknown>;
+  }): Promise<{
+    account: {
+      id: string;
+      name: string;
+    };
+    message: Buffer;
+  }> {
+    this.logger.log("*** Start Request and Sign for Account ***");
+
+    const account = await this.walletAPI.account
+      .request({
+        currencyIds,
+      })
+      .catch(async (error: Error) => {
+        this.handleError({ error, step: StepError.REQUEST_ACCOUNT });
+        throw error;
+      });
+
+    const returnedMessage = await this.walletAPI.message
+      .sign(account.id, message, options, meta)
+      .catch(async (error: Error) => {
+        this.logger.log("*** Sign Unsuccessful ***");
+        this.handleError({ error, step: StepError.SIGN });
+        throw error;
+      });
+
+    return {
+      account: {
+        id: account.id,
+        name: account.name,
+      },
+      message: returnedMessage,
+    };
+  }
+
+  closeLiveApp() {
+    this.logger.log("*** Close Live App ***");
+    this.customMethods.closeLiveApp();
   }
 
   /**
