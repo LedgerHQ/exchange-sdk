@@ -219,8 +219,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: 0.14.0
-        version: 0.14.0(rxjs@7.8.1)
+        specifier: 0.14.0-nightly.2
+        version: 0.14.0-nightly.2(rxjs@7.8.1)
       '@segment/analytics-next':
         specifier: ^1.81.1
         version: 1.81.1
@@ -959,8 +959,11 @@ packages:
   '@ledgerhq/errors@6.25.0':
     resolution: {integrity: sha512-9cU0dgUyq3Adb1bHAjJnbwl+r+4WBjuPq0k+/DbBNpuYHwcz2xKtRIjLimUJyACjHti3iWwRt1sFcbQDDdI08w==}
 
-  '@ledgerhq/hw-app-exchange@0.14.0':
-    resolution: {integrity: sha512-UVyMWjYrHD0MVzn0gG29TtWECfT3vlWYwmNA+nHPugMQvCWh09Y2J43s+/1a8DQqnIEz0SUglm97v48TcK9cpg==}
+  '@ledgerhq/errors@6.26.0-nightly.0':
+    resolution: {integrity: sha512-ybu6wQw+aAj/tWKYr0yi6U2WNMgDv3nzmFmYd2rwTXLW0RiWoYidI9ve9ZY+Pkb8rEsE8U+nODAh//yPqdhIRw==}
+
+  '@ledgerhq/hw-app-exchange@0.14.0-nightly.2':
+    resolution: {integrity: sha512-8gIHt+urFTK+Abz02s39DMapz7dFkKteujp76Q0/L5+hkOfnaLo0a0FTWsyF4YFaUjbqTrnMn3QQVIyCjadKlg==}
 
   '@ledgerhq/hw-transport@6.31.11':
     resolution: {integrity: sha512-vAbZkYSa3ClHyvZxcnfzv8Mf1uaO+huB9a2lTiXP0V8QGYaGLU9CfGMtECvqqRRPEUomhelAzYTI+2UEWrokwg==}
@@ -5471,10 +5474,12 @@ snapshots:
 
   '@ledgerhq/errors@6.25.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.14.0(rxjs@7.8.1)':
+  '@ledgerhq/errors@6.26.0-nightly.0': {}
+
+  '@ledgerhq/hw-app-exchange@0.14.0-nightly.2(rxjs@7.8.1)':
     dependencies:
       '@ledgerhq/device-management-kit': 0.9.0(rxjs@7.8.1)
-      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/errors': 6.26.0-nightly.0
       '@ledgerhq/hw-transport': 6.31.11
       bignumber.js: 9.1.2
       invariant: 2.2.4
