@@ -26,9 +26,9 @@ import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL =
-  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
+  "https://exchange-tx-manager.aws.prd.ldg-tech.com/exchange/";
 const FUND_BACKEND_URL =
-  "https://exchange-tx-manager.aws.stg.ldg-tech.com/exchange/";
+  "https://exchange-tx-manager.aws.prd.ldg-tech.com/exchange/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
