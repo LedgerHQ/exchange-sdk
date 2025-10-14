@@ -641,8 +641,10 @@ export class ExchangeSDK {
         throw error;
       });
 
+    const accountId = account.parentAccountId ?? account.id;
+
     const returnedMessage = await this.walletAPI.message
-      .sign(account.id, message, options, meta)
+      .sign(accountId, message, options, meta)
       .catch(async (error: Error) => {
         this.logger.log("*** Sign Unsuccessful ***");
         this.handleError({ error, step: StepError.SIGN });
