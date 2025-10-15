@@ -531,6 +531,7 @@ describe("requestAndSignForAccount", () => {
       account: {
         id: "ACCOUNT_ID",
         name: "ACCOUNT_NAME",
+        parentAccountId: undefined,
       },
       message: Buffer.from("Polo"),
     });
