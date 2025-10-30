@@ -248,7 +248,7 @@ export async function postSellPayload(
     };
 
     const res = await sellAxiosClient.post(
-      "/sell/v1/forgeTransaction/offRamp",
+      "/exchange/sell/v1/forgeTransaction/offRamp",
       payload,
     );
 
