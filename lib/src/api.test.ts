@@ -204,7 +204,7 @@ describe("Sell", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockSellId}/accepted`,
+        `/history/webhook/v1/transaction/${mockSellId}/accepted`,
       );
     });
   });
@@ -217,7 +217,7 @@ describe("Sell", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockSellId}/cancelled`,
+        `/history/webhook/v1/transaction/${mockSellId}/cancelled`,
       );
     });
   });
@@ -271,7 +271,9 @@ describe("Sell", () => {
 
       expect(result).toEqual(expectedResult);
 
-      expect(mockPost.mock.calls[0][0]).toEqual("v1/sell/onramp_offramp/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual(
+        "/exchange/v1/sell/onramp_offramp/remit",
+      );
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
 
@@ -303,7 +305,7 @@ describe("Sell", () => {
         type: ProductType.CARD,
       });
 
-      expect(mockPost.mock.calls[0][0]).toEqual("v1/sell/card/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual("/exchange/v1/sell/card/remit");
     });
   });
 });
@@ -324,7 +326,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockOrderId}/accepted`,
+        `/history/webhook/v1/transaction/${mockOrderId}/accepted`,
       );
     });
   });
@@ -337,7 +339,7 @@ describe("Fund", () => {
       });
 
       expect(mockPost.mock.calls[0][0]).toEqual(
-        `/webhook/v1/transaction/${mockOrderId}/cancelled`,
+        `/history/webhook/v1/transaction/${mockOrderId}/cancelled`,
       );
     });
   });
@@ -391,7 +393,7 @@ describe("Fund", () => {
 
       expect(result).toEqual(expectedResult);
 
-      expect(mockPost.mock.calls[0][0]).toEqual("v1/fund/card/remit");
+      expect(mockPost.mock.calls[0][0]).toEqual("/exchange/v1/fund/card/remit");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequestPayload);
     });
   });
