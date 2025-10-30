@@ -25,10 +25,8 @@ import {
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL =
-  "https://exchange-tx-manager.aws.prd.ldg-tech.com/exchange/";
-const FUND_BACKEND_URL =
-  "https://exchange-tx-manager.aws.prd.ldg-tech.com/exchange/";
+const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -49,11 +47,11 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
   {
     [ExchangeType.SWAP]: {},
     [ExchangeType.SELL]: {
-      [ProductType.CARD]: "v1/sell/card/remit",
-      [ProductType.SELL]: "v1/sell/onramp_offramp/remit",
+      [ProductType.CARD]: "exchange/v1/sell/card/remit",
+      [ProductType.SELL]: "exchange/v1/sell/onramp_offramp/remit",
     },
     [ExchangeType.FUND]: {
-      [ProductType.CARD]: "v1/fund/card/remit",
+      [ProductType.CARD]: "exchange/v1/fund/card/remit",
     },
   };
 
@@ -141,7 +139,7 @@ function parseSwapBackendInfo(response: SwapBackendResponse): {
 export async function confirmSell(data: ConfirmSellRequest) {
   const { sellId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${sellId}/accepted`,
+    `/history/webhook/v1/transaction/${sellId}/accepted`,
     payload,
   );
 }
@@ -149,7 +147,7 @@ export async function confirmSell(data: ConfirmSellRequest) {
 export async function cancelSell(data: CancelSellRequest) {
   const { sellId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${sellId}/cancelled`,
+    `/history/webhook/v1/transaction/${sellId}/cancelled`,
     payload,
   );
 }
@@ -280,7 +278,7 @@ export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
 export async function confirmFund(data: ConfirmFundRequest) {
   const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${quoteId}/accepted`,
+    `/history/webhook/v1/transaction/${quoteId}/accepted`,
     payload,
   );
 }
@@ -288,7 +286,7 @@ export async function confirmFund(data: ConfirmFundRequest) {
 export async function cancelFund(data: CancelFundRequest) {
   const { quoteId, ...payload } = data;
   await sellAxiosClient.post(
-    `/webhook/v1/transaction/${quoteId}/cancelled`,
+    `/history/webhook/v1/transaction/${quoteId}/cancelled`,
     payload,
   );
 }
