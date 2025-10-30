@@ -25,8 +25,8 @@ import {
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
-const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
-const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com";
+const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com";
 
 let swapAxiosClient = axios.create({
   baseURL: SWAP_BACKEND_URL,
@@ -47,11 +47,11 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
   {
     [ExchangeType.SWAP]: {},
     [ExchangeType.SELL]: {
-      [ProductType.CARD]: "exchange/v1/sell/card/remit",
-      [ProductType.SELL]: "exchange/v1/sell/onramp_offramp/remit",
+      [ProductType.CARD]: "/exchange/v1/sell/card/remit",
+      [ProductType.SELL]: "/exchange/v1/sell/onramp_offramp/remit",
     },
     [ExchangeType.FUND]: {
-      [ProductType.CARD]: "exchange/v1/fund/card/remit",
+      [ProductType.CARD]: "/exchange/v1/fund/card/remit",
     },
   };
 
