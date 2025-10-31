@@ -2,18 +2,14 @@
 
 import Head from "next/head";
 import { ExchangeProvider } from "@/providers/ExchangeProvider";
-import { useState } from "react";
 import { FundForm } from "@/components/FundForm";
 import { AppShell, Stack, Title } from "@mantine/core";
-import { Account } from "@ledgerhq/wallet-api-client";
-import { NoahForm } from "@/components/NoahForm";
-import { CustomMethods } from "@/components/CustomMethods";
+import { RequestAndSignForAccount } from "@/components/RequestAndSignForAccountForm";
+import { SwapForm } from "@/components/SwapForm";
+import { SellForm } from "@/components/SellForm";
+import { TokenApprovalForm } from "@/components/TokenApprovalForm";
 
 export default function Home() {
-  const [account, setAccount] = useState<Account | undefined>(undefined);
-
-  function handleCustomClose() {}
-
   return (
     <>
       <Head>
@@ -28,16 +24,15 @@ export default function Home() {
       >
         <ExchangeProvider>
           <AppShell.Header p="md">
-            <Title order={2}>Test Live App</Title>
+            <Title order={3}>Exchange SDK Test Suite</Title>
           </AppShell.Header>
-          {/* <AppShell.Aside p="xs">
-            <AssetToolbar account={account} setAccount={setAccount} />
-          </AppShell.Aside> */}
           <AppShell.Main>
             <Stack>
-              <FundForm account={account} />
-              <NoahForm account={account} />
-              <CustomMethods />
+              <FundForm />
+              <RequestAndSignForAccount />
+              <TokenApprovalForm />
+              <SwapForm />
+              <SellForm />
             </Stack>
           </AppShell.Main>
         </ExchangeProvider>

@@ -6,17 +6,12 @@ import { useForm } from "@mantine/form";
 import { Account } from "@ledgerhq/wallet-api-client";
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
 
-type NoahFormProps = {
-  account: Account | undefined;
-};
-
-export function NoahForm({ account }: NoahFormProps) {
+export function RequestAndSignForAccount() {
   const { execute } = useExchangeSdk();
 
   async function handleSign({ message }: { message: string }) {
     try {
-      const result = await execute("requestAndSignForAccount", {
-        accountId: account?.id ?? "",
+      await execute("requestAndSignForAccount", {
         message: Buffer.from(message),
         currencyIds: ["ethereum", "ethereum/erc20/usd__coin"],
       });
@@ -34,7 +29,7 @@ export function NoahForm({ account }: NoahFormProps) {
 
   return (
     <Stack>
-      <Title order={3}>Noah</Title>
+      <Title order={4}>Request and Sign for Account</Title>
       <form onSubmit={form.onSubmit(handleSign)}>
         <TextInput
           label="Message"

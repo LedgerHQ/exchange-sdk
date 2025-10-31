@@ -6,18 +6,23 @@ import { useForm } from "@mantine/form";
 import BigNumber from "bignumber.js";
 import { Account } from "@ledgerhq/wallet-api-client";
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useRequestAccounts } from "@/hooks/useRequestAccounts";
 
-type FundFormProps = {
-  account: Account | undefined;
-};
-
-export function FundForm({ account }: FundFormProps) {
+export function FundForm() {
   const { execute } = useExchangeSdk();
+  const requestAccounts = useRequestAccounts();
 
   async function handleFund({ amount }: { amount: number }) {
     try {
+      const account = await requestAccounts();
+
+      if (!account) {
+        console.log("[FundForm] no account selected");
+      }
+
       await execute("fund", {
-        fromAccountId: account?.id ?? "",
+        // @ts-ignore
+        fromAccountId: account.id ?? "",
         fromAmount: new BigNumber(amount),
       });
     } catch (err) {
@@ -44,9 +49,7 @@ export function FundForm({ account }: FundFormProps) {
         />
 
         <Group mt="md">
-          <Button type="submit" disabled={!account}>
-            Execute Fund
-          </Button>
+          <Button type="submit">Execute Fund</Button>
         </Group>
       </form>
     </Stack>

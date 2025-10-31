@@ -681,6 +681,11 @@ export class ExchangeSDK {
     amount: BigNumber,
     customErrorType?: CustomErrorType,
   ): void {
+    console.log(
+      ">> amount",
+      amount.toString(),
+      account.spendableBalance.toString(),
+    );
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
       const err = parseError({
         error: new Error("Not enough funds"),

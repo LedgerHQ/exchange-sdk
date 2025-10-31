@@ -2,6 +2,10 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ExchangeSDK } from "@ledgerhq/exchange-sdk";
+import {
+  getSimulatorTransport,
+  profiles,
+} from "@ledgerhq/wallet-api-simulator";
 import { ReactNode } from "react";
 
 const PROVIDER_ID = "FUND_TEST";
@@ -16,7 +20,12 @@ export function ExchangeProvider({ children }: ExchangeProviderProps) {
   const [sdk, setSdk] = useState<ExchangeSDK | null>(null);
 
   useEffect(() => {
-    setSdk(new ExchangeSDK(PROVIDER_ID));
+    let transport;
+    if (process.env.NEXT_PUBLIC_SIMULATOR_MODE) {
+      transport = getSimulatorTransport(profiles.STANDARD);
+    }
+
+    setSdk(new ExchangeSDK(PROVIDER_ID, transport));
   }, []);
   return (
     <ExchangeContext.Provider value={sdk}>{children}</ExchangeContext.Provider>
