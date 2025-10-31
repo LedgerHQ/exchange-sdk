@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NEXT_PUBLIC_SIMULATOR_MODE=1 next dev --turbopack",
+    "dev": "next dev --turbopack",
     "dev:simulator": "NEXT_PUBLIC_SIMULATOR_MODE=1 next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
