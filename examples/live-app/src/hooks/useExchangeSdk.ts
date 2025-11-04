@@ -7,7 +7,7 @@ type SdkMethodMap = {
     return: unknown;
   };
   requestAndSignForAccount: {
-    params: { accountId: string; message: Buffer; currencyIds: string[] };
+    params: { message: Buffer; currencyIds: string[] };
     return: unknown;
   };
   closeLiveApp: {

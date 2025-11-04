@@ -10,7 +10,7 @@
     "removeComments": false,
     "noEmitOnError": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src", "__e2e__"]
 }
