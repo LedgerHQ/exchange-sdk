@@ -31,13 +31,15 @@ export default function Home() {
           <AppShell.Main>
             <Stack>
               <Title order={4}>Flows</Title>
-              <FundForm />
-              <RequestAndSignForAccount />
-              <TokenApprovalForm />
-              <SwapForm />
-              <SellForm />
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                <FundForm />
+                <RequestAndSignForAccount />
+                <TokenApprovalForm />
+                <SwapForm />
+                <SellForm />
+              </SimpleGrid>
             </Stack>
-            <Stack>
+            <Stack mt="xl">
               <Title order={4}>Utilities</Title>
               <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
                 <CloseApp />

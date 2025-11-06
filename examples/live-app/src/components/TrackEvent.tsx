@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, Card, Group, Text, TextInput, JsonInput } from "@mantine/core";
+import { Button, Group, TextInput, JsonInput } from "@mantine/core";
 import { TrackingSdkFactory } from "@ledgerhq/tracking-sdk";
 import { useForm } from "@mantine/form";
+import { DashboardCard } from "./DashboardCard";
 
 // Removed useExchangeSdk as it wasn't used in the example
 // import { useExchangeSdk } from "@/hooks/useExchangeSdk";
@@ -60,13 +61,10 @@ export function TrackEvent() {
   }
 
   return (
-    <Card withBorder radius="md" p="xl">
-      <Text fz="lg" fw={500}>
-        Track Event
-      </Text>
-      <Text fz="xs" c="dimmed" mt={3} mb="md">
-        Event name and parameters must be supported within the TrackingSDK
-      </Text>
+    <DashboardCard
+      title="Track Event"
+      description="Event name and parameters must be supported within the TrackingSDK"
+    >
       <form onSubmit={form.onSubmit(handleTrackEvent)}>
         <TextInput
           label="Event Name"
@@ -95,6 +93,6 @@ export function TrackEvent() {
           </Button>
         </Group>
       </form>
-    </Card>
+    </DashboardCard>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 
-import { Stack, Title } from "@mantine/core";
-
 import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { DashboardCard } from "./DashboardCard";
 
 export function TokenApprovalForm() {
   const { execute } = useExchangeSdk();
 
   return (
-    <Stack>
-      <Title order={4}>TODO: Token Approval</Title>
-    </Stack>
+    <DashboardCard
+      title="Token Approval"
+      description="Token approval functionality coming soon"
+    />
   );
 }
