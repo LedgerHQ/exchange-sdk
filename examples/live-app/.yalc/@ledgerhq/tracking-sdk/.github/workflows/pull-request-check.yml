@@ -1,0 +1,24 @@
+name: PR - Changeset Check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  changeset-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          skip-build: "true"
+
+      - name: Check for missing changeset
+        run: pnpm changeset status --since=origin/${{ github.base_ref }}
