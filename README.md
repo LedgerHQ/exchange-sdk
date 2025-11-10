@@ -56,7 +56,7 @@ exchangeSDK.swap({
   feeStrategy,
   customFeeConfig,
   rate,
-  toNewTokenId
+  toNewTokenId,
 });
 ```
 
@@ -64,6 +64,7 @@ You can update some of them (ex: `quoteId`), if your interface offers the user t
 Typically, the `quoteId` is an information coming from your system, so you can update its value if during your interaction with the user it has more mearning to do so.
 
 #### toNewTokenId
+
 When user swaps to a token, your app will receive toNewTokenId as a query parameter. In this case, it should be passed to swap method, without any modification.
 When user swaps to a native coin, this parameter won't be present, and you should not use this parameter neither in the swap method.
 
@@ -104,10 +105,14 @@ Then it instanciate an ExchangeSDK with a default `providerId`.
 For testing purpose, a default `quoteId` is provided, but in Production this query param is mandatory.
 
 ## Testing
+
 You can test your integration by setting a custom url for the backend called by this SDK.
 Instanciate the exchangeSDK this way:
+
 ```js
-const exchangeSDK = new ExchangeSDK(providerId, undefined, undefined, "https://custom-url.swap.test");
+const exchangeSDK = new ExchangeSDK(providerId, {
+  customUrl: "https://custom-url.swap.test",
+});
 ```
 
 ## Why

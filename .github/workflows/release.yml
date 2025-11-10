@@ -31,9 +31,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.16
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
           cache: pnpm
-          
+
       - name: Setup jq
         run: sudo apt-get install jq
 
@@ -53,24 +53,39 @@ jobs:
         working-directory: ./lib
         run: pnpm version ${{ inputs.version }} --no-git-tag-version --workspaces-update false
 
+      - name: 📦 Get new version
+        id: get_version
+        working-directory: ./lib
+        run: |
+          NEW_VERSION=$(jq -r ".version" package.json)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version is: $NEW_VERSION"
+
+      - name: ✏️ Update version in TrackingService.ts
+        run: |
+          # Get the version from the previous step's output
+          VERSION_STRING="${{ steps.get_version.outputs.version }}"
+          FILE_PATH="lib/src/version.ts" 
+
+          echo "Updating version in $FILE_PATH to $VERSION_STRING"
+          sed -i "s@version: \"1.0.0\",@version: \"$VERSION_STRING\",@" $FILE_PATH
+
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
-      - name: Publish package to npm registry
-        run: pnpm publish --filter exchange-sdk --access public --no-git-checks
-        env:
-          NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      # - name: Publish package to npm registry
+      #   run: pnpm publish --filter exchange-sdk --access public --no-git-checks
+      #   env:
+      #     NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-      - name: Revert git changes and push version tag
-        working-directory: ./lib
-        run: |
-          VERSION=$(jq ".version" ./package.json)
-          GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-          git checkout $GIT_HASH -- ./package.json
-          git tag $VERSION
-          git push --tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
+      # - name: Revert git changes and push version tag
+      # working-directory: ./lib
+      # run: |
+      #   VERSION=$(jq ".version" ./package.json)
+      #   GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+      #   git checkout $GIT_HASH -- ./package.json
+      #   git tag $VERSION
+      #   git push --tags
+      # env:
+      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

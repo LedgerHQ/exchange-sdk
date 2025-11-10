@@ -230,12 +230,6 @@ importers:
       '@ledgerhq/tracking-sdk':
         specifier: ^1.1.1
         version: 1.1.1
-      '@ledgerhq/wallet-api-simulator':
-        specifier: ^1.2.21
-        version: 1.2.21(@ton/crypto@3.3.0)(react@19.1.0)
-      '@segment/analytics-next':
-        specifier: ^1.81.1
-        version: 1.81.1
       axios:
         specifier: ^1.3.4
         version: 1.3.4
@@ -246,6 +240,9 @@ importers:
       '@ledgerhq/wallet-api-exchange-module':
         specifier: 0.16.0-nightly.1
         version: 0.16.0-nightly.1(@ton/crypto@3.3.0)
+      '@ledgerhq/wallet-api-simulator':
+        specifier: ^1.2.21
+        version: 1.2.21(@ton/crypto@3.3.0)(react@19.1.0)
       '@rollup/plugin-commonjs':
         specifier: ^25.0.4
         version: 25.0.4(rollup@3.29.2)

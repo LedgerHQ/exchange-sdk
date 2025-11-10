@@ -1,9 +1,0 @@
-{
-  "version": "v1",
-  "packages": {
-    "@ledgerhq/tracking-sdk": {
-      "signature": "7acca9c2860b9452b26fc2af2dda809b",
-      "file": true
-    }
-  }
-}
