@@ -73,19 +73,19 @@ jobs:
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
-      # - name: Publish package to npm registry
-      #   run: pnpm publish --filter exchange-sdk --access public --no-git-checks
-      #   env:
-      #     NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      - name: Publish package to npm registry
+        run: pnpm publish --filter exchange-sdk --access public --no-git-checks
+        env:
+          NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-      # - name: Revert git changes and push version tag
-      # working-directory: ./lib
-      # run: |
-      #   VERSION=$(jq ".version" ./package.json)
-      #   GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-      #   git checkout $GIT_HASH -- ./package.json
-      #   git tag $VERSION
-      #   git push --tags
-      # env:
-      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Revert git changes and push version tag
+        working-directory: ./lib
+        run: |
+          VERSION=$(jq ".version" ./package.json)
+          GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+          git checkout $GIT_HASH -- ./package.json
+          git tag $VERSION
+          git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
