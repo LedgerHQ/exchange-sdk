@@ -51,6 +51,7 @@ import {
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { TrackingService } from "./services/TrackingService";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
@@ -60,6 +61,8 @@ export type GetSwapPayload = typeof retrieveSwapPayload;
  */
 export class ExchangeSDK {
   readonly providerId: string;
+
+  public tracking: TrackingService;
 
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
@@ -79,16 +82,22 @@ export class ExchangeSDK {
 
   /**
    * @param {string} providerId - Your providerId that Ledger has assigned to you.
-   * @param {WindowMessageTransport} [transport]
-   * @param {WalletAPIClient} [walletAPI]
-   * @param {string} [customUrl] - Backend URL environment
+   * @param {"production" | "staging"} [options.environment] - Environment for the Ledger backend services
+   * @param {Transport} [options.transport] - Custom transport instance such as wallet-api-simulator transport
+   * @param {WalletAPIClient} [options.walletAPI] - Custom WalletAPIClient instance
+   * @param {string} [options.customUrl] - Custom backend URL
    */
   constructor(
     providerId: string,
-    transport?: Transport,
-    walletAPI?: WalletAPIClient<typeof getCustomModule>,
-    customUrl?: string,
+    options?: {
+      transport?: Transport;
+      walletAPI?: WalletAPIClient<typeof getCustomModule>;
+      customUrl?: string;
+      environment?: "staging" | "preproduction" | "production";
+    },
   ) {
+    const { transport, walletAPI, customUrl, environment } = options || {};
+
     this.providerId = providerId;
 
     if (!walletAPI) {
@@ -111,6 +120,11 @@ export class ExchangeSDK {
       // Set API environment
       setBackendUrl(customUrl);
     }
+
+    this.tracking = new TrackingService({
+      walletAPI: this.walletAPI,
+      environment,
+    });
   }
 
   private handleError({ error, step, customErrorType }: ParseError) {

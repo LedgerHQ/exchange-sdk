@@ -2,15 +2,15 @@
 
 import { Button, Group } from "@mantine/core";
 
-import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
 import { DashboardCard } from "./DashboardCard";
 
 export function CloseApp() {
-  const { execute } = useExchangeSdk();
+  const sdk = useExchangeSDK();
 
   async function handleCloseApp() {
     try {
-      await execute("closeLiveApp");
+      await sdk?.closeLiveApp();
     } catch (err) {
       console.error(err);
     }

@@ -25,7 +25,7 @@ export function ExchangeProvider({ children }: ExchangeProviderProps) {
       transport = getSimulatorTransport(profiles.STANDARD);
     }
 
-    setSdk(new ExchangeSDK(PROVIDER_ID, transport));
+    setSdk(new ExchangeSDK(PROVIDER_ID, { transport }));
   }, []);
   return (
     <ExchangeContext.Provider value={sdk}>{children}</ExchangeContext.Provider>

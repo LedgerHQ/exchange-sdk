@@ -4,12 +4,12 @@ import { Button, Group, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
 import BigNumber from "bignumber.js";
-import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
 import { useRequestAccounts } from "@/hooks/useRequestAccounts";
 import { DashboardCard } from "./DashboardCard";
 
 export function FundForm() {
-  const { execute } = useExchangeSdk();
+  const sdk = useExchangeSDK();
   const requestAccounts = useRequestAccounts();
 
   async function handleFund({ amount }: { amount: number }) {
@@ -20,7 +20,7 @@ export function FundForm() {
         console.log("[FundForm] no account selected");
       }
 
-      await execute("fund", {
+      sdk?.fund({
         // @ts-ignore
         fromAccountId: account.id ?? "",
         fromAmount: new BigNumber(amount),

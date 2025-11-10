@@ -1,19 +1,13 @@
 "use client";
 
 import { Button, Group, TextInput, JsonInput } from "@mantine/core";
-import { TrackingSdkFactory } from "@ledgerhq/tracking-sdk";
 import { useForm } from "@mantine/form";
 import { DashboardCard } from "./DashboardCard";
 
-// Removed useExchangeSdk as it wasn't used in the example
-// import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
 
 export function TrackEvent() {
-  // const { execute } = useExchangeSdk(); // Not used in the tracking logic
-
-  const trackingSdk = TrackingSdkFactory.getInstance({
-    environment: "staging", // or 'production'
-  });
+  const sdk = useExchangeSDK();
 
   const form = useForm({
     mode: "uncontrolled",
@@ -51,13 +45,8 @@ export function TrackEvent() {
       return;
     }
 
-    trackingSdk.trackEvent(
-      // @ts-ignore
-      eventName,
-      paramObject,
-    );
-
-    console.log("Tracking event:", eventName, paramObject);
+    // @ts-ignore
+    sdk?.tracking.trackEvent(eventName, paramObject);
   }
 
   return (

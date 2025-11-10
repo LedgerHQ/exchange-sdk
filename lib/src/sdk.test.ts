@@ -114,7 +114,10 @@ const mockSignAndBroadcast = jest
   .spyOn(walletApiClient.transaction, "signAndBroadcast")
   .mockResolvedValue("TransactionId");
 
-const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
+const sdk = new ExchangeSDK("provider-id", {
+  transport: mockedTransport,
+  walletAPI: walletApiClient,
+});
 
 beforeEach(() => {
   mockAccountList.mockClear();

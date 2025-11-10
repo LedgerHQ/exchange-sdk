@@ -3,15 +3,15 @@
 import { Button, Group, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
 import { DashboardCard } from "./DashboardCard";
 
 export function RequestAndSignForAccount() {
-  const { execute } = useExchangeSdk();
+  const sdk = useExchangeSDK();
 
   async function handleSign({ message }: { message: string }) {
     try {
-      await execute("requestAndSignForAccount", {
+      await sdk?.requestAndSignForAccount({
         message: Buffer.from(message),
         currencyIds: ["ethereum", "ethereum/erc20/usd__coin"],
       });
