@@ -568,3 +568,10 @@ describe("requestAndSignForAccount", () => {
     );
   });
 });
+
+describe("tracking", () => {
+  it('should expose the tracking service instance as "tracking" property', () => {
+    expect(sdk.tracking).toBeDefined();
+    expect(typeof sdk.tracking.trackEvent).toBe("function");
+  });
+});
