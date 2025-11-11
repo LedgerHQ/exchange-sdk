@@ -106,6 +106,16 @@ For testing purpose, a default `quoteId` is provided, but in Production this que
 
 ## Testing
 
+Within the `examples` folder there are a few test live apps that can be used for testing.
+
+### Live App (WIP)
+
+Used to test multiple flows and utilities of the exchangeSDK. Can be run indepedently via the Wallet API Simulator or as a more true to life live app that can be loaded via the Ledger Wallet.
+
+More details can be found within the apps [README](./examples/live-app)
+
+### Custom Backend
+
 You can test your integration by setting a custom url for the backend called by this SDK.
 Instanciate the exchangeSDK this way:
 

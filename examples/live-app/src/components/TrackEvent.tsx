@@ -13,17 +13,16 @@ export function TrackEvent() {
     mode: "uncontrolled",
     initialValues: {
       eventName: "",
-      // The parameters are now a single JSON string
       eventParams: '{\n  "example_key": "example_value",\n  "price": 100\n}',
     },
-    // You can add built-in JSON validation
     validate: {
       eventParams: (value) => {
         try {
           JSON.parse(value);
-          return null; // No error
+          return null;
         } catch (e) {
-          return "Invalid JSON"; // Error message
+          console.log(e);
+          return "Invalid JSON";
         }
       },
     },
@@ -31,7 +30,7 @@ export function TrackEvent() {
 
   async function handleTrackEvent({
     eventName,
-    eventParams, // This is now a JSON string
+    eventParams,
   }: {
     eventName: string;
     eventParams: string;
