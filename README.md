@@ -1,130 +1,170 @@
-# Exchange SDK
+# Ledger Exchange SDK
 
-## About
+The Exchange SDK enables exchange providers to integrate their services directly into Ledger Wallet as a **dApp**. This kit provides the necessary tools, methods, and guidelines to create a seamless and secure exchange experience for Ledger users.
 
-The goal of this SDK is to provide an easy way to interact with Ledger Live for exchange methods (example: Swap).
+For a complete overview of the exchange flows and integration patterns, please see the **[official Ledger developer documentation](https://developers.ledger.com/docs/ledger-live/exchange)**.
 
-[This LiveApp](https://github.com/LedgerHQ/exchange-sdk/blob/main/example) is an example of how to interact with ExchangeSDK to ask user to validate a swap transaction.
+## 🚀 Key Features
 
-To have more details on how the swap features is working in Ledger Live, go to [Ledger's dev portal](https://developers.ledger.com/docs/swap/howto/providers-liveapp/).
+- **Wallet Integration:** Wraps the [Ledger Wallet API](https://github.com/LedgerHQ/wallet-api) to provide easy access to user accounts and wallet information.
+- **Analytics:** Includes a tracking module to send standardized analytics events to Ledger's infrastructure.
+- **App Control:** Allows you to programmatically manage the dApp lifecycle, such as closing the app.
+- **Backend Flexibility:** Supports pointing the SDK to a custom backend for development and testing.
 
-## Installation
+## 🔧 Getting Started
+
+### 1. Installation
+
+Install the package using npm:
 
 ```bash
 npm install @ledgerhq/exchange-sdk
 ```
 
-## Prerequisite
+### 2. Prerequisites: dApp Manifest
 
-### LiveApp Settings
+Your dApp `manifest.json` file must include the following permissions to interact with Ledger Wallet and the user's wallet:
 
-Your LiveApp will need to have the following permissions in your `manifest.json` file:
-
-```json
-  "permissions": [
-    "account.list",
-    "account.request",
-    "currency.list",
-    "custom.exchange.error",
-    "custom.exchange.start",
-    "custom.exchange.complete"
-  ]
+```json copy
+"permissions": [
+  "account.list",
+  "account.request",
+  "currency.list",
+  "custom.exchange.error",
+  "custom.exchange.start",
+  "custom.exchange.complete",
+  "custom.close",
+  "wallet.info"
+]
 ```
 
 ## Usage
 
-First you need an instance of the ExchangeSDK:
+### SDK Initialization
 
-```js
-import { ExchangeSDK, QueryParams } from "@ledgerhq/exchange-sdk";
+First, import and initialize the ExchangeSDK with your unique providerId.
 
-// The providerId has to be set with coordination with Ledger's team. It is your unique identifier when interacting with Ledger Live.
+Note: The providerId is your unique identifier and must be set in coordination with the Ledger team.
+
+```js copy
+import { ExchangeSDK } from "@ledgerhq/exchange-sdk";
+
+const providerId = "your-provider-id"; // Provided by the Ledger team
 const exchangeSDK = new ExchangeSDK(providerId);
 ```
 
-When your LiveApp is called by Ledger Live through a deeplink, it will receive some informations. Check [QueryParams type](https://github.com/LedgerHQ/exchange-sdk/blob/main/lib/src/liveapp.ts) to have more details about it.
+## Core API Methods
 
-Then you can call the swap method in order to start a new swap process.
+Here are the primary methods you will use to build your integration.
 
-```js
-// Those are parameters that given through deeplink.
+### Swap
+
+Full documentation on the [developer portal](https://developers.ledger.com/docs/ledger-live/exchange/swap/providers-liveapp)
+
+```js copy
 exchangeSDK.swap({
-  quoteId,
-  fromAccountId,
-  toAccountId,
-  fromAmount,
-  feeStrategy,
-  customFeeConfig,
-  rate,
-  toNewTokenId,
+  quoteId: "1234",
+  fromAccountId: "07AB5930-C73A-433F-A2FA-920640AF3A02",
+  toAccountId: "76A239EB-1C2A-4237-B942-CA87472106EB",
+  fromAmount: "12.3",
+  feeStrategy: "SLOW",
+  rate: 0.7555,
 });
 ```
 
-You can update some of them (ex: `quoteId`), if your interface offers the user to change those parameters.
-Typically, the `quoteId` is an information coming from your system, so you can update its value if during your interaction with the user it has more mearning to do so.
+### Sell
 
-#### toNewTokenId
+Full documentation on the [developer portal](https://developers.ledger.com/docs/ledger-live/exchange/sell/providers-liveapp)
 
-When user swaps to a token, your app will receive toNewTokenId as a query parameter. In this case, it should be passed to swap method, without any modification.
-When user swaps to a native coin, this parameter won't be present, and you should not use this parameter neither in the swap method.
+```js copy
+exchangeSDK.sell({
+  quoteId: "123abc",
+  fromAccountId: "97f06be9-6fb2-5da3-be71-4e762ed6e115",
+  fromAmount: new BigNumber(1),
+  toFiat: "EUR",
+  rate: 66564,
+  type: "SELL",
+});
+```
 
-### Using WalletAPI methods
+### Fund
 
-The ExchangeSDK is a simple wrapper around the [WalletAPI](https://github.com/LedgerHQ/wallet-api). However, you cannot instantiate the WalletAPI client twice inside your LiveApp.
+Full documentation on the [developer portal](https://developers.ledger.com/docs/ledger-live/exchange/card/fund-card/providers-liveapp)
 
-If you want to use a method(s) provided by WalletAPI in your Live App, you have two options:
+```js copy
+exchangeSDK.fund({
+  orderId: "123abc",
+  fromAccountId: "97f06be9-6fb2-5da3-be71-4e762ed6e115",
+  fromAmount: new BigNumber(1),
+  type: "card",
+});
+```
 
-- use the WalletAPI client instance provided by the ExchangeSDK or
-- pass the WalletAPI client instance as the second parameter when invoking the ExchangeSDK()
+### Analytics Event Tracking
 
-#### Option 1: Having a direct dependency with `exchange-sdk` only
+This is the primary method used to send analytics events from your application to Ledger's tracking infrastructure. The SDK handles adding necessary metadata (like user ID) automatically.
 
-Once you have your ExchangeSDK instance, you can call [WalletAPI methods](https://github.com/LedgerHQ/wallet-api/tree/main/packages/client) through its `walletAPI` property:
+```js copy
+exchangeSDK.tracking.trackEvent("event_name", {
+  property1: "value1",
+  property2: "value2",
+});
+```
 
-```js
+### Close dApp
+
+This method allows you to programmatically close the dApp from within your application. This is useful for redirecting the user back to Ledger Wallet after a completed action.
+
+```js copy
+exchangeSDK.closeLiveApp();
+```
+
+## Advanced Usage
+
+### Using the WalletAPI Client
+
+The ExchangeSDK is a wrapper around the [Ledger Wallet API](https://github.com/LedgerHQ/wallet-api/tree/main/packages/client). You cannot instantiate the WalletAPI client twice inside your dApp. If you need to call WalletAPI methods directly, you have two options:
+
+### Option 1: Access the SDK's WalletAPI Instance (Recommended)
+
+Once you have an `ExchangeSDK` instance, you can access the full WalletAPI client through its `walletAPI` property:
+
+```js copy
+// Example: Requesting accounts for the user
 exchangeSDK.walletAPI.account.list();
 ```
 
-#### Option 2: Having a direct dependency with `wallet-api` & `exchange-sdk`
+### Option 2: Provide Your Own WalletAPI Instance
 
-If you already have a WalletAPI client instance, you can provide it when instanciating the ExchangeSDK:
+If your application already has its own WalletAPI client instance, you can pass it to the ExchangeSDK during initialization:
 
-```js
+```js copy
+import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
+import { ExchangeSDK } from "@ledgerhq/exchange-sdk";
+
+const myWalletAPI = new WalletAPIClient();
+const providerId = "your-provider-id";
+
+// Pass your instance in the options object
 const exchangeSDK = new ExchangeSDK(providerId, { walletAPI: myWalletAPI });
 ```
 
-## Testing - example apps
+### Using a Custom Backend
 
-Within the `examples` folder there are a few test live apps that can be used for testing.
+For testing or development, you can instruct the SDK to send its requests to a custom backend URL.
 
-### Live App (WIP)
-
-Used to test multiple flows and utilities of the exchangeSDK. Can be run indepedently via the Wallet API Simulator or as a more true to life live app that can be loaded via the Ledger Wallet.
-
-More details can be found within the apps [README](./examples/live-app)
-
-### Swap & Sell
-
-Whilst the live app is WIP these legacy apps remain to help test the swap and sell flows. They are no longer being maintained.
-
-`useEffect` is used when the LiveApp is launch.
-It catches the deeplink query params provided to populate the form inputs.
-Then it instanciate an ExchangeSDK with a default `providerId`.
-
-`onSwap` gets all form inputs info to send them to the ExchangeSDK.
-For testing purpose, a default `quoteId` is provided, but in Production this query param is mandatory.
-
-### Custom Backend
-
-You can test your integration by setting a custom url for the backend called by this SDK.
-Instanciate the exchangeSDK this way:
-
-```js
+```js copy
 const exchangeSDK = new ExchangeSDK(providerId, {
-  customUrl: "https://custom-url.swap.test",
+  customUrl: "https://your-custom-backend.test",
 });
 ```
 
-## Why
+## 🧪 Examples & Testing
 
-`lib/package.json` has 2 pre/post script on bump version. This is due to an [NPM issue](https://github.com/npm/npm/issues/9111).
+The `examples` folder in this repository contains sample dApps that demonstrate various SDK features.
+
+- live-app: The primary example app used to test multiple flows and utilities. It can be run independently using the Wallet API Simulator or as a dApp within Ledger Wallet.
+
+- Legacy Apps: Older swap and sell apps are also present but are no longer maintained. We recommend using the main live-app example as your primary reference.
+
+For more details on running the examples, please see the [README](./examples/live-app/) within the examples/live-app folder.
