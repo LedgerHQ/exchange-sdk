@@ -90,21 +90,10 @@ exchangeSDK.walletAPI.account.list();
 If you already have a WalletAPI client instance, you can provide it when instanciating the ExchangeSDK:
 
 ```js
-const exchangeSDK = new ExchangeSDK(providerId, undefined, myWalletAPI);
+const exchangeSDK = new ExchangeSDK(providerId, { walletAPI: myWalletAPI });
 ```
 
-## The example app
-
-### /example/src/pages/index.tsx
-
-`useEffect` is used when the LiveApp is launch.
-It catches the deeplink query params provided to populate the form inputs.
-Then it instanciate an ExchangeSDK with a default `providerId`.
-
-`onSwap` gets all form inputs info to send them to the ExchangeSDK.
-For testing purpose, a default `quoteId` is provided, but in Production this query param is mandatory.
-
-## Testing
+## Testing - example apps
 
 Within the `examples` folder there are a few test live apps that can be used for testing.
 
@@ -113,6 +102,17 @@ Within the `examples` folder there are a few test live apps that can be used for
 Used to test multiple flows and utilities of the exchangeSDK. Can be run indepedently via the Wallet API Simulator or as a more true to life live app that can be loaded via the Ledger Wallet.
 
 More details can be found within the apps [README](./examples/live-app)
+
+### Swap & Sell
+
+Whilst the live app is WIP these legacy apps remain to help test the swap and sell flows. They are no longer being maintained.
+
+`useEffect` is used when the LiveApp is launch.
+It catches the deeplink query params provided to populate the form inputs.
+Then it instanciate an ExchangeSDK with a default `providerId`.
+
+`onSwap` gets all form inputs info to send them to the ExchangeSDK.
+For testing purpose, a default `quoteId` is provided, but in Production this query param is mandatory.
 
 ### Custom Backend
 
