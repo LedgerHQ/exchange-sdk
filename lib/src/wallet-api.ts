@@ -252,18 +252,10 @@ export function rippleTransaction({
   recipient,
   customFeeConfig,
   payinExtraId,
-  customErrorType,
 }: TransactionWithCustomFee): RippleTransaction {
-  if (!payinExtraId)
-    throw parseError({
-      error: new Error("Missing payinExtraId"),
-      step: StepError.PAYIN_EXTRA_ID,
-      customErrorType,
-    });
-
   return {
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
-    tag: new BigNumber(payinExtraId).toNumber(),
+    ...(payinExtraId && { tag: new BigNumber(payinExtraId).toNumber() }),
   } as RippleTransaction;
 }
 
