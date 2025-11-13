@@ -99,19 +99,7 @@ describe("stellarTransaction function", () => {
 });
 
 describe("rippleTransaction function", () => {
-  it("throws PayinExtraIdError if payinExtraId is missing", () => {
-    expect(() =>
-      rippleTransaction({
-        family: "ripple",
-        amount: new BigNumber("10"),
-        recipient: "ADDRESS",
-        customFeeConfig: {},
-        customErrorType: CustomErrorType.SWAP,
-      }),
-    ).toThrowError(PayinExtraIdError);
-  });
-
-  it("creates a RippleTransaction with tag", () => {
+  it("creates a RippleTransaction with tag when payinExtraId is defined", () => {
     const transaction = rippleTransaction({
       family: "ripple",
       amount: new BigNumber("10"),
@@ -126,6 +114,39 @@ describe("rippleTransaction function", () => {
       recipient: "ADDRESS",
       tag: 123456,
     });
+  });
+
+  it("creates a RippleTransaction without tag when payinExtraId is undefined", () => {
+    const transaction = rippleTransaction({
+      family: "ripple",
+      amount: new BigNumber("10"),
+      recipient: "ADDRESS",
+      customFeeConfig: {},
+    });
+
+    expect(transaction).toEqual({
+      family: "ripple",
+      amount: new BigNumber("10"),
+      recipient: "ADDRESS",
+    });
+    expect(transaction).not.toHaveProperty("tag");
+  });
+
+  it("creates a RippleTransaction without tag when payinExtraId is an empty string", () => {
+    const transaction = rippleTransaction({
+      family: "ripple",
+      amount: new BigNumber("10"),
+      recipient: "ADDRESS",
+      customFeeConfig: {},
+      payinExtraId: "",
+    });
+
+    expect(transaction).toEqual({
+      family: "ripple",
+      amount: new BigNumber("10"),
+      recipient: "ADDRESS",
+    });
+    expect(transaction).not.toHaveProperty("tag");
   });
 });
 
