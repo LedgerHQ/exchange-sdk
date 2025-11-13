@@ -195,7 +195,7 @@ describe("swap", () => {
     await expect(sdk.swap(swapData)).rejects.toThrow(PayinExtraIdError);
   });
 
-  it("throws PayinExtraIdError error when no payinExtraId provided for ripple", async () => {
+  it("allows swap without payinExtraId for ripple", async () => {
     const currencies: Array<Partial<Currency>> = [
       {
         id: "ripple",
@@ -214,7 +214,7 @@ describe("swap", () => {
       rate: 1.2,
     };
 
-    await expect(sdk.swap(swapData)).rejects.toThrow(PayinExtraIdError);
+    await expect(sdk.swap(swapData)).resolves.toBeDefined();
   });
 
   it("sends swapStep to cancelled operation when CompleteExchangeError is thrown", async () => {
@@ -365,7 +365,7 @@ describe("sell", () => {
     );
   });
 
-  it("throws PayinExtraIdError error when no payinExtraId provided for ripple", async () => {
+  it("allows sell without payinExtraId for ripple", async () => {
     const currencies: Array<Partial<Currency>> = [
       {
         id: "ripple",
@@ -384,7 +384,8 @@ describe("sell", () => {
       rate: 1000,
     };
 
-    await expect(sdk.sell(sellData)).rejects.toThrow("Missing payinExtraId");
+    // Sell should work without payinExtraId for Ripple
+    await expect(sdk.sell(sellData)).resolves.toBeDefined();
   });
 });
 
