@@ -1,15 +1,15 @@
 "use client";
 
-import { Button, Group, Stack, TextInput, Title } from "@mantine/core";
+import { Button, Group, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
 import BigNumber from "bignumber.js";
-import { Account } from "@ledgerhq/wallet-api-client";
-import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
 import { useRequestAccounts } from "@/hooks/useRequestAccounts";
+import { DashboardCard } from "./DashboardCard";
 
 export function FundForm() {
-  const { execute } = useExchangeSdk();
+  const sdk = useExchangeSDK();
   const requestAccounts = useRequestAccounts();
 
   async function handleFund({ amount }: { amount: number }) {
@@ -20,7 +20,7 @@ export function FundForm() {
         console.log("[FundForm] no account selected");
       }
 
-      await execute("fund", {
+      sdk?.fund({
         // @ts-ignore
         fromAccountId: account.id ?? "",
         fromAmount: new BigNumber(amount),
@@ -38,8 +38,10 @@ export function FundForm() {
   });
 
   return (
-    <Stack>
-      <Title order={3}>Fund</Title>
+    <DashboardCard
+      title="Fund"
+      description="Fund an account with a specified amount"
+    >
       <form onSubmit={form.onSubmit(handleFund)}>
         <TextInput
           label="Amount"
@@ -52,6 +54,6 @@ export function FundForm() {
           <Button type="submit">Execute Fund</Button>
         </Group>
       </form>
-    </Stack>
+    </DashboardCard>
   );
 }

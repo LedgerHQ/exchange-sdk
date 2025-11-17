@@ -114,7 +114,10 @@ const mockSignAndBroadcast = jest
   .spyOn(walletApiClient.transaction, "signAndBroadcast")
   .mockResolvedValue("TransactionId");
 
-const sdk = new ExchangeSDK("provider-id", mockedTransport, walletApiClient);
+const sdk = new ExchangeSDK("provider-id", {
+  transport: mockedTransport,
+  walletAPI: walletApiClient,
+});
 
 beforeEach(() => {
   mockAccountList.mockClear();
@@ -564,5 +567,12 @@ describe("requestAndSignForAccount", () => {
     await expect(sdk.requestAndSignForAccount(messageData)).rejects.toThrow(
       SignError,
     );
+  });
+});
+
+describe("tracking", () => {
+  it('should expose the tracking service instance as "tracking" property', () => {
+    expect(sdk.tracking).toBeDefined();
+    expect(typeof sdk.tracking.trackEvent).toBe("function");
   });
 });

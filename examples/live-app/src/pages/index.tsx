@@ -3,11 +3,13 @@
 import Head from "next/head";
 import { ExchangeProvider } from "@/providers/ExchangeProvider";
 import { FundForm } from "@/components/FundForm";
-import { AppShell, Stack, Title } from "@mantine/core";
+import { AppShell, Grid, Group, SimpleGrid, Stack, Title } from "@mantine/core";
 import { RequestAndSignForAccount } from "@/components/RequestAndSignForAccountForm";
 import { SwapForm } from "@/components/SwapForm";
 import { SellForm } from "@/components/SellForm";
 import { TokenApprovalForm } from "@/components/TokenApprovalForm";
+import { CloseApp } from "@/components/CloseApp";
+import { TrackEvent } from "@/components/TrackEvent";
 
 export default function Home() {
   return (
@@ -28,11 +30,21 @@ export default function Home() {
           </AppShell.Header>
           <AppShell.Main>
             <Stack>
-              <FundForm />
-              <RequestAndSignForAccount />
-              <TokenApprovalForm />
-              <SwapForm />
-              <SellForm />
+              <Title order={4}>Flows</Title>
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                <FundForm />
+                <RequestAndSignForAccount />
+                <TokenApprovalForm />
+                <SwapForm />
+                <SellForm />
+              </SimpleGrid>
+            </Stack>
+            <Stack mt="xl">
+              <Title order={4}>Utilities</Title>
+              <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
+                <CloseApp />
+                <TrackEvent />
+              </SimpleGrid>
             </Stack>
           </AppShell.Main>
         </ExchangeProvider>

@@ -12,7 +12,7 @@ describe("ExchangeSDK.requestAndSignForAccount", () => {
 
     const transport = getSimulatorTransport(profiles.STANDARD);
 
-    sdk = new ExchangeSDK("provider-id", transport);
+    sdk = new ExchangeSDK("provider-id", { transport });
   });
 
   it("should request and sign for an account successfully", async () => {

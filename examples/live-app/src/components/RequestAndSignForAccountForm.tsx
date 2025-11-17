@@ -1,17 +1,17 @@
 "use client";
 
-import { Button, Group, Stack, TextInput, Title } from "@mantine/core";
+import { Button, Group, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-import { Account } from "@ledgerhq/wallet-api-client";
-import { useExchangeSdk } from "@/hooks/useExchangeSdk";
+import { useExchangeSDK } from "@/providers/ExchangeProvider";
+import { DashboardCard } from "./DashboardCard";
 
 export function RequestAndSignForAccount() {
-  const { execute } = useExchangeSdk();
+  const sdk = useExchangeSDK();
 
   async function handleSign({ message }: { message: string }) {
     try {
-      await execute("requestAndSignForAccount", {
+      await sdk?.requestAndSignForAccount({
         message: Buffer.from(message),
         currencyIds: ["ethereum", "ethereum/erc20/usd__coin"],
       });
@@ -28,8 +28,10 @@ export function RequestAndSignForAccount() {
   });
 
   return (
-    <Stack>
-      <Title order={4}>Request and Sign for Account</Title>
+    <DashboardCard
+      title="Request and Sign for Account"
+      description="Request an account and sign a message with it"
+    >
       <form onSubmit={form.onSubmit(handleSign)}>
         <TextInput
           label="Message"
@@ -42,6 +44,6 @@ export function RequestAndSignForAccount() {
           <Button type="submit">Execute Sign</Button>
         </Group>
       </form>
-    </Stack>
+    </DashboardCard>
   );
 }
