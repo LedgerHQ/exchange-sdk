@@ -123,7 +123,12 @@ export class ExchangeSDK {
 
     this.tracking = new TrackingService({
       walletAPI: this.walletAPI,
+      providerId: this.providerId,
       environment,
+    });
+
+    this.tracking.trackEvent("exchange_sdk_initialized", {
+      providerId: this.providerId,
     });
   }
 
