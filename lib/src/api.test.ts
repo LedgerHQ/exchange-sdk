@@ -4,9 +4,15 @@ import { Account } from "@ledgerhq/wallet-api-client";
 
 jest.mock("axios");
 const mockPost = jest.fn();
+const mockInterceptorUse = jest.fn((callback) => callback);
 (axios.create as jest.Mock).mockImplementation(() => {
   return {
     post: mockPost,
+    interceptors: {
+      request: {
+        use: mockInterceptorUse,
+      },
+    },
   };
 });
 

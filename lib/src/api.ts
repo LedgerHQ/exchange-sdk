@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import {
   decodeSellPayload,
   decodeFundPayload,
@@ -23,22 +23,27 @@ import {
   SwapPayloadResponse,
 } from "./api.types";
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
+import { VERSION } from "./version";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
 const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 
-let swapAxiosClient = axios.create({
-  baseURL: SWAP_BACKEND_URL,
-});
+const createClientWithVersionInterceptor = (baseURL: string): AxiosInstance => {
+  const client = axios.create({ baseURL });
 
-let sellAxiosClient = axios.create({
-  baseURL: SELL_BACKEND_URL,
-});
+  client.interceptors.request.use((config) => {
+    config.headers = config.headers || {};
+    config.headers["x-exchange-sdk-version"] = VERSION;
+    return config;
+  });
 
-let fundAxiosClient = axios.create({
-  baseURL: FUND_BACKEND_URL,
-});
+  return client;
+};
+
+let swapAxiosClient = createClientWithVersionInterceptor(SWAP_BACKEND_URL);
+let sellAxiosClient = createClientWithVersionInterceptor(SELL_BACKEND_URL);
+let fundAxiosClient = createClientWithVersionInterceptor(FUND_BACKEND_URL);
 
 /**
  * Available product endpoints based on exchange type
@@ -60,15 +65,9 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
  * @param {string} url
  */
 export function setBackendUrl(url: string) {
-  swapAxiosClient = axios.create({
-    baseURL: url,
-  });
-  sellAxiosClient = axios.create({
-    baseURL: url,
-  });
-  fundAxiosClient = axios.create({
-    baseURL: url,
-  });
+  swapAxiosClient = createClientWithVersionInterceptor(url);
+  sellAxiosClient = createClientWithVersionInterceptor(url);
+  fundAxiosClient = createClientWithVersionInterceptor(url);
 }
 
 /**
