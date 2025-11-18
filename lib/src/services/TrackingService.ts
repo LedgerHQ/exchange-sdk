@@ -24,15 +24,18 @@ export class TrackingService {
     walletAPI,
     providerId,
     environment,
+    providerSessionId,
   }: {
     walletAPI: WalletAPIClient;
     providerId: string;
     environment?: "staging" | "preproduction" | "production";
+    providerSessionId?: string;
   }) {
     this.walletAPI = walletAPI;
     this.providerId = providerId;
     this.client = TrackingSdkFactory.getInstance({
       environment,
+      providerSessionId,
     });
     this.optInStatusPromise = this.fetchOptInStatus();
     this.updateUserId();
