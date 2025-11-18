@@ -86,6 +86,7 @@ export class ExchangeSDK {
    * @param {Transport} [options.transport] - Custom transport instance such as wallet-api-simulator transport
    * @param {WalletAPIClient} [options.walletAPI] - Custom WalletAPIClient instance
    * @param {string} [options.customUrl] - Custom backend URL
+   * @param {string} [options.providerSessionId] - Provider session ID to be used for tracking
    */
   constructor(
     providerId: string,
@@ -94,6 +95,7 @@ export class ExchangeSDK {
       walletAPI?: WalletAPIClient<typeof getCustomModule>;
       customUrl?: string;
       environment?: "staging" | "preproduction" | "production";
+      providerSessionId?: string;
     },
   ) {
     const { transport, walletAPI, customUrl, environment } = options || {};
@@ -125,6 +127,7 @@ export class ExchangeSDK {
       walletAPI: this.walletAPI,
       providerId: this.providerId,
       environment,
+      providerSessionId: options?.providerSessionId,
     });
 
     this.tracking.trackEvent("exchange_sdk_initialized", {
