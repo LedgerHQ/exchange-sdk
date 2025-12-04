@@ -14,14 +14,10 @@ import {
   cancelSell,
   confirmSell,
   decodeBinarySellPayload,
-  decodeBinaryFundPayload,
   postSellPayload,
   retrieveSellPayload,
   retrieveSwapPayload,
   setBackendUrl,
-  retrieveFundPayload,
-  cancelFund,
-  confirmFund,
   cancelTokenApproval,
   confirmTokenApproval,
   supportedProductsByExchangeType,
@@ -52,6 +48,8 @@ import {
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { TrackingService } from "./services/TrackingService";
+import { createBackendService } from "./services/BackendService";
+import { decodeFundPayload } from "@ledgerhq/hw-app-exchange";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
 
@@ -63,6 +61,7 @@ export class ExchangeSDK {
   readonly providerId: string;
 
   public tracking: TrackingService;
+  private backend: ReturnType<typeof createBackendService>;
 
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
@@ -123,6 +122,7 @@ export class ExchangeSDK {
       setBackendUrl(customUrl);
     }
 
+    this.backend = createBackendService(environment || "production", customUrl);
     this.tracking = new TrackingService({
       walletAPI: this.walletAPI,
       providerId: this.providerId,
@@ -474,79 +474,104 @@ export class ExchangeSDK {
       toCurrency,
     } = info;
 
+    //
+    // STEP 1 — Retrieve account & check funds
+    //
     const { account, currency } =
       await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
-    // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, currency);
     this.canSpendAmount(account, fromAmountAtomic);
 
-    // Step 1: Ask for deviceTransactionId
+    //
+    // STEP 2 — Retrieve deviceTransactionId (nonce)
+    //
     const deviceTransactionId = await this.exchangeModule
       .startFund({ provider: this.providerId, fromAccountId })
       .catch((error: Error) => {
-        const err = parseError({ error, step: StepError.NONCE });
-        this.logger.error(err as Error);
-        throw err;
+        throw this.handleError({ error, step: StepError.NONCE });
       });
 
-    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
+    this.logger.debug("DeviceTransactionId:", deviceTransactionId);
 
-    // Step 2: Ask for payload creation
+    //
+    // STEP 3 — Retrieve raw backend payload
+    //
     this.isProductTypeSupported(ExchangeType.FUND, type);
 
-    const { recipientAddress, binaryPayload, signature } =
-      await this.fundPayloadRequest({
-        quoteId,
+    const raw = await this.backend.fund
+      .retrievePayload({
+        quoteId: quoteId!,
+        provider: this.providerId,
+        fromCurrency: account.currency,
+        toCurrency: toCurrency ?? account.currency,
+        refundAddress: account.address,
         amountFrom: fromAmount.toNumber(),
-        amountTo: toAmount?.toNumber(),
-        account,
-        deviceTransactionId,
+        amountTo: toAmount ? toAmount.toNumber() : fromAmount.toNumber(),
+        nonce: deviceTransactionId,
         type,
-        toCurrency,
+      })
+      .catch((error: Error) => {
+        this.handleError({ error, step: StepError.PAYLOAD });
+        throw error;
       });
 
-    this.logger.log("Payload received:", {
-      recipientAddress,
-      amount: fromAmountAtomic,
-      binaryPayload,
-      signature,
-    });
+    //
+    // STEP 4 — Decode provider payload
+    //
+    const decodedPayload = await decodeFundPayload(
+      Buffer.from(raw.providerSig.payload, "base64").toString(),
+    ).catch((error: Error) => this.logger.error(error));
 
-    // Step 3: Send payload
-    const fundPayload = await decodeBinaryFundPayload(binaryPayload as Buffer);
+    const payload = {
+      binaryPayload: raw.providerSig.payload,
+      signature: raw.providerSig.signature,
+      recipientAddress: raw.payinAddress,
+      payinExtraId: decodedPayload?.payinExtraId,
+    };
+
+    this.logger.log("Fund SDK Payload:", payload);
+
+    //
+    // STEP 5 — Create transaction on device
+    //
     const transaction = await this.walletAPIDecorator
       .createTransaction({
-        recipient: recipientAddress,
+        recipient: payload.recipientAddress,
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
-        payinExtraId: fundPayload?.payinExtraId,
+        payinExtraId: payload.payinExtraId,
       })
       .catch(async (error) => {
-        await this.cancelFundOnError({
-          error,
-          quoteId,
+        await this.backend.fund.cancel({
+          provider: this.providerId,
+          quoteId: quoteId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
         });
-
         this.handleError({ error });
         throw error;
       });
 
+    //
+    // STEP 6 — Ask device to sign and broadcast
+    //
     const tx = await this.exchangeModule
       .completeFund({
         provider: this.providerId,
         fromAccountId,
         transaction,
-        //TODO: Remove any type cast after updating types for completeFund in LL
-        binaryPayload: binaryPayload as any,
-        signature: binaryPayload as any,
+        binaryPayload: payload.binaryPayload,
+        signature: payload.signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
-        await this.cancelFundOnError({
-          error,
-          quoteId,
+        await this.backend.fund.cancel({
+          provider: this.providerId,
+          quoteId: quoteId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -557,17 +582,24 @@ export class ExchangeSDK {
         throw error;
       });
 
-    this.logger.log("Transaction sent:", tx);
+    this.logger.log("Fund transaction completed:", tx);
+
+    //
+    // STEP 7 — Confirm with backend
+    //
+    await this.backend.fund
+      .confirm({
+        provider: this.providerId,
+        quoteId: quoteId ?? "",
+        transactionId: tx,
+      })
+      .catch((error: Error) => this.logger.error(error));
+
     this.logger.log("*** End Fund ***");
-    await confirmFund({
-      provider: this.providerId,
-      quoteId: quoteId ?? "",
-      transactionId: tx,
-    }).catch((error: Error) => {
-      this.logger.error(error);
-    });
+
     return tx;
   }
+
   /*
    * Ask for token approval
    * @param {TokenApprovalInfo} info - Information necessary to create a token approval transaction.
@@ -894,68 +926,6 @@ export class ExchangeSDK {
       amount: newAmount,
       sellId,
     };
-  }
-
-  private async fundPayloadRequest({
-    account,
-    quoteId,
-    amountFrom,
-    amountTo,
-    deviceTransactionId,
-    type,
-    toCurrency,
-  }: {
-    amountFrom: number;
-    account: Account;
-    deviceTransactionId: string;
-    quoteId?: string;
-    type: ProductType;
-    amountTo?: number;
-    toCurrency?: string;
-  }) {
-    const data = await retrieveFundPayload({
-      quoteId: quoteId!,
-      amountFrom,
-      amountTo: amountTo ?? amountFrom,
-      provider: this.providerId,
-      fromCurrency: account.currency,
-      toCurrency: toCurrency ?? account.currency,
-      refundAddress: account.address,
-      nonce: deviceTransactionId,
-      type,
-    }).catch((error: Error) => {
-      this.handleError({ error, step: StepError.PAYLOAD });
-      throw error;
-    });
-
-    const recipientAddress: string = data.payinAddress;
-    const binaryPayload: Buffer | string = Buffer.from(
-      data.providerSig.payload,
-    );
-    const signature: Buffer | string = Buffer.from(data.providerSig.signature);
-
-    return {
-      recipientAddress,
-      binaryPayload,
-      signature,
-    };
-  }
-
-  private async cancelFundOnError({
-    error,
-    quoteId,
-  }: {
-    error: Error;
-    quoteId?: string;
-  }) {
-    await cancelFund({
-      provider: this.providerId,
-      quoteId: quoteId ?? "",
-      statusCode: error.name,
-      errorMessage: error.message,
-    }).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
   }
 
   private async cancelTokenApprovalOnError({

@@ -258,68 +258,6 @@ export async function postSellPayload(
 }
 
 /**
- * FUND *
- **/
-
-export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
-  try {
-    const bufferPayload = Buffer.from(
-      binaryPayload.toString(),
-      "base64",
-    ) as unknown as string;
-
-    return await decodeFundPayload(bufferPayload);
-  } catch (e) {
-    console.log("Error decoding payload", e);
-  }
-}
-
-export async function confirmFund(data: ConfirmFundRequest) {
-  const { quoteId, ...payload } = data;
-  await sellAxiosClient.post(
-    `/history/webhook/v1/transaction/${quoteId}/accepted`,
-    payload,
-  );
-}
-
-export async function cancelFund(data: CancelFundRequest) {
-  const { quoteId, ...payload } = data;
-  await sellAxiosClient.post(
-    `/history/webhook/v1/transaction/${quoteId}/cancelled`,
-    payload,
-  );
-}
-
-export async function retrieveFundPayload(data: FundRequestPayload) {
-  const request = {
-    quoteId: data.quoteId,
-    provider: data.provider,
-    fromCurrency: data.fromCurrency,
-    toCurrency: data.toCurrency,
-    refundAddress: data.refundAddress,
-    amountFrom: data.amountFrom,
-    amountTo: data.amountTo,
-    nonce: data.nonce,
-  };
-
-  const pathname =
-    supportedProductsByExchangeType[ExchangeType.FUND][data.type];
-  const res = await fundAxiosClient.post(pathname!, request);
-  return parseFundBackendInfo(res.data);
-}
-
-const parseFundBackendInfo = (response: FundResponsePayload) => {
-  return {
-    orderId: response.sellId,
-    payinAddress: response.payinAddress,
-    providerSig: {
-      payload: response.providerSig.payload,
-      signature: response.providerSig.signature,
-    },
-  };
-};
-
-/**
  * TOKEN APPROVAL *
  **/
 
