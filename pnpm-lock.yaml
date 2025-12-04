@@ -228,8 +228,8 @@ importers:
         specifier: 0.14.0-nightly.2
         version: 0.14.0-nightly.2(rxjs@7.8.1)
       '@ledgerhq/tracking-sdk':
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: ^1.4.0
+        version: 1.4.0
       axios:
         specifier: ^1.3.4
         version: 1.3.4
@@ -1219,6 +1219,9 @@ packages:
 
   '@ledgerhq/tracking-sdk@1.3.0':
     resolution: {integrity: sha512-BhQRfv0VlutiTJY87ig9B+9zu4oq0GlejQosyp0LzMhBKEYQiUJ6JB21L5027MPYR9ouqVr59Z7DTC8OSD2MHg==}
+
+  '@ledgerhq/tracking-sdk@1.4.0':
+    resolution: {integrity: sha512-zwVWJbgc+LuyIOVzM4bS4TgBFQNr9T1iSBCkX8rHgm5Ue7SjrUkDZ6MR5t7zuUFIqH49Zo0sQMFodAQBEkoBQQ==}
 
   '@ledgerhq/types-cryptoassets@7.26.0':
     resolution: {integrity: sha512-OPp2tZYe/Xh34NhSNm4hHSxtO3xc5o1ULald6Kd9Fvclzz2JdJMnaFvvRy+BT8SXN0rUImLJ+Xx65XULfjnvbA==}
@@ -6153,6 +6156,15 @@ snapshots:
   '@ledgerhq/logs@6.13.0': {}
 
   '@ledgerhq/tracking-sdk@1.3.0':
+    dependencies:
+      '@segment/analytics-next': 1.81.1
+      firebase: 12.6.0
+      zod: 4.1.12
+    transitivePeerDependencies:
+      - '@react-native-async-storage/async-storage'
+      - encoding
+
+  '@ledgerhq/tracking-sdk@1.4.0':
     dependencies:
       '@segment/analytics-next': 1.81.1
       firebase: 12.6.0
