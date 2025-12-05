@@ -32,7 +32,7 @@ const createSwapBackend = (client: AxiosInstance) => ({
     return res.data;
   },
 
-  confirm: (payload: ConfirmSwapRequest, swapAppVersion: string) =>
+  confirm: (payload: ConfirmSwapRequest, swapAppVersion?: string) =>
     client.post(
       "accepted",
       payload,
@@ -41,7 +41,7 @@ const createSwapBackend = (client: AxiosInstance) => ({
         : undefined,
     ),
 
-  cancel: (payload: CancelSwapRequest, swapAppVersion: string) =>
+  cancel: (payload: CancelSwapRequest, swapAppVersion?: string) =>
     client.post(
       "cancelled",
       payload,
