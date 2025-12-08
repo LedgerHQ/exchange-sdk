@@ -118,7 +118,6 @@ beforeEach(() => {
   mockCompleteFund.mockClear();
 });
 
-// At the top of your test file, before importing the SDK
 jest.mock("./services/BackendService", () => {
   const mockSwap = {
     retrievePayload: jest.fn().mockResolvedValue({
