@@ -8,7 +8,6 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import { cancelTokenApproval, supportedProductsByExchangeType } from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
@@ -39,6 +38,7 @@ import {
   decodeFundPayload,
   decodeSellPayload,
 } from "@ledgerhq/hw-app-exchange";
+import { exchangeProductConfig } from "./config";
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -103,7 +103,6 @@ export class ExchangeSDK {
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
     }
-
     this.backend = createBackendService(environment || "production", customUrl);
     this.tracking = new TrackingService({
       walletAPI: this.walletAPI,
@@ -768,7 +767,9 @@ export class ExchangeSDK {
     productType: ProductType,
     customErrorType?: CustomErrorType,
   ): void {
-    if (!supportedProductsByExchangeType[exchangeType][productType]) {
+    const productConfig = exchangeProductConfig[exchangeType]?.[productType];
+
+    if (!productConfig) {
       const err = parseError({
         error: new Error("Product not supported"),
         step: StepError.PRODUCT_SUPPORT,

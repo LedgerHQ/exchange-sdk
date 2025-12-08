@@ -9,19 +9,7 @@ import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { AccountModule } from "@ledgerhq/wallet-api-client/lib/modules/Account";
 import { CurrencyModule } from "@ledgerhq/wallet-api-client/lib/modules/Currency";
 import { MessageModule } from "@ledgerhq/wallet-api-client/lib/modules/Message";
-import {
-  retrieveSwapPayload,
-  confirmSwap,
-  cancelSwap,
-  retrieveSellPayload,
-  confirmSell,
-  cancelSell,
-  retrieveFundPayload,
-  confirmFund,
-  cancelFund,
-  confirmTokenApproval,
-  cancelTokenApproval,
-} from "./api";
+import { createBackendService } from "./services/BackendService";
 import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
 import {
@@ -37,8 +25,6 @@ import {
   TokenApprovalInfo,
 } from "./sdk.types";
 import { RequestAccountError, SignError } from "./error/ExchangeSdkError";
-
-jest.mock("./api");
 
 const accounts: Array<Partial<Account>> = [
   {
@@ -132,18 +118,49 @@ beforeEach(() => {
   mockCompleteFund.mockClear();
 });
 
-describe("swap", () => {
-  beforeAll(() => {
-    (retrieveSwapPayload as jest.Mock).mockResolvedValue({
+// At the top of your test file, before importing the SDK
+jest.mock("./services/BackendService", () => {
+  const mockSwap = {
+    retrievePayload: jest.fn().mockResolvedValue({
       binaryPayload: "",
       signature: "",
       payinAddress: "",
       swapId: "swap-id",
-    });
-    (confirmSwap as jest.Mock).mockResolvedValue({});
-    (cancelSwap as jest.Mock).mockResolvedValue({});
-  });
+    }),
+    confirm: jest.fn().mockResolvedValue({}),
+    cancel: jest.fn().mockResolvedValue({}),
+  };
 
+  const mockSell = {
+    retrievePayload: jest.fn().mockResolvedValue({
+      payinAddress: "",
+      providerSig: { payload: Buffer.from(""), signature: Buffer.from("") },
+      sellId: "sell-id",
+    }),
+    confirm: jest.fn().mockResolvedValue({}),
+    cancel: jest.fn().mockResolvedValue({}),
+  };
+
+  const mockFund = {
+    retrievePayload: jest.fn().mockResolvedValue({
+      payinAddress: "",
+      quoteId: "fund-id",
+      providerSig: { payload: "", signature: "" },
+    }),
+    confirm: jest.fn().mockResolvedValue({}),
+    cancel: jest.fn().mockResolvedValue({}),
+  };
+
+  return {
+    createBackendService: jest.fn().mockImplementation(() => ({
+      swap: mockSwap,
+      sell: mockSell,
+      fund: mockFund,
+    })),
+  };
+});
+
+describe("swap", () => {
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
     const currencies: Array<Partial<Currency>> = [
@@ -221,6 +238,7 @@ describe("swap", () => {
   });
 
   it("sends swapStep to cancelled operation when CompleteExchangeError is thrown", async () => {
+    const backend = createBackendService("staging");
     // GIVEN
     const currencies: Array<Partial<Currency>> = [
       {
@@ -250,7 +268,7 @@ describe("swap", () => {
     await expect(sdk.swap(swapData)).rejects.toThrow(IgnoredSignatureStepError);
 
     // THEN
-    expect(cancelSwap as jest.Mock).toHaveBeenCalledWith(
+    expect(backend.swap.cancel).toHaveBeenCalledWith(
       {
         provider: "provider-id",
         swapId: "swap-id",
@@ -277,16 +295,6 @@ describe("sell", () => {
   ];
 
   beforeAll(() => {
-    (retrieveSellPayload as jest.Mock).mockResolvedValue({
-      payinAddress: "",
-      providerSig: {
-        payload: Buffer.from(""),
-        signature: Buffer.from(""),
-      },
-      sellId: "sell-id",
-    });
-    (confirmSell as jest.Mock).mockResolvedValue({});
-    (cancelSell as jest.Mock).mockResolvedValue({});
     mockCurrenciesList.mockResolvedValue(currencies as any);
   });
   it("sends back the 'transactionId' from the WalletAPI", async () => {
@@ -320,15 +328,6 @@ describe("sell", () => {
 
   it("handles the scenario when no getSellPayload is provided", async () => {
     // GIVEN
-    // Mock `retrieveSellPayload` since `getSellPayload` is not provided
-    (retrieveSellPayload as jest.Mock).mockResolvedValue({
-      payinAddress: "0xfff",
-      providerSig: {
-        payload: Buffer.from(""),
-        signature: Buffer.from(""),
-      },
-    });
-
     const sellData: SellInfo = {
       quoteId: "quoteId",
       fromAccountId: "id-1",
@@ -402,16 +401,6 @@ describe("fund", () => {
   ];
 
   beforeAll(() => {
-    (retrieveFundPayload as jest.Mock).mockResolvedValue({
-      payinAddress: "",
-      quoteId: "fund-id",
-      providerSig: {
-        payload: "",
-        signature: "",
-      },
-    });
-    (confirmFund as jest.Mock).mockResolvedValue({});
-    (cancelFund as jest.Mock).mockResolvedValue({});
     mockCurrenciesList.mockResolvedValue(currencies as any);
   });
 
@@ -465,8 +454,6 @@ describe("tokenApproval", () => {
   ];
 
   beforeAll(() => {
-    (confirmTokenApproval as jest.Mock).mockResolvedValue({});
-    (cancelTokenApproval as jest.Mock).mockResolvedValue({});
     mockCurrenciesList.mockResolvedValue(currencies as any);
   });
 

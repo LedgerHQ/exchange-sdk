@@ -1,7 +1,9 @@
-import { cancelFund, confirmFund, retrieveFundPayload } from "../../src/api";
+import { createBackendService } from "../../src/services/BackendService";
 import { ProductType } from "../../src/sdk.types";
 
 describe("Api >> Fund", () => {
+  const backend = createBackendService("staging");
+
   describe("retrieveFundPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {
@@ -16,9 +18,11 @@ describe("Api >> Fund", () => {
         type: ProductType.CARD,
       };
 
-      await expect(retrieveFundPayload(payload)).rejects.toMatchObject({
-        response: { status: 400 },
-      });
+      await expect(backend.fund.retrievePayload(payload)).rejects.toMatchObject(
+        {
+          response: { status: 400 },
+        },
+      );
     });
   });
 
@@ -30,7 +34,7 @@ describe("Api >> Fund", () => {
         transactionId: "xxx",
       };
 
-      await expect(confirmFund(payload)).rejects.toMatchObject({
+      await expect(backend.fund.confirm(payload)).rejects.toMatchObject({
         response: { status: 400 },
       });
     });
@@ -43,7 +47,7 @@ describe("Api >> Fund", () => {
         quoteId: "xxx",
       };
 
-      await expect(cancelFund(payload)).rejects.toMatchObject({
+      await expect(backend.fund.cancel(payload)).rejects.toMatchObject({
         response: { status: 400 },
       });
     });

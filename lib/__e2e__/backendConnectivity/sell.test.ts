@@ -1,12 +1,9 @@
-import {
-  cancelSell,
-  confirmSell,
-  postSellPayload,
-  retrieveSellPayload,
-} from "../../src/api";
+import { createBackendService } from "../../src/services/BackendService";
 import { ProductType } from "../../src/sdk.types";
 
 describe("Api >> Sell", () => {
+  const backend = createBackendService("staging");
+
   describe("retrieveSellPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {
@@ -21,36 +18,10 @@ describe("Api >> Sell", () => {
         type: ProductType.SELL,
       };
 
-      await expect(retrieveSellPayload(payload)).rejects.toMatchObject({
-        response: { status: 400 },
-      });
-    });
-  });
-
-  describe("postSellPayload", () => {
-    it("should reject when an invalid payload is passed", async () => {
-      jest.spyOn(console, "log").mockImplementation(() => {});
-      const coefficient = new Uint8Array([0x04, 0xd2]);
-      const payload = {
-        deviceTransactionId: {},
-        inAddress: "xxx",
-        inAmount: { coefficient, exponent: -2 },
-        inCurrency: "XXX",
-        outAmount: new Uint8Array(Buffer.from([0x49, 0x27, 0xc5, 0x00])),
-        outCurrency: "YYY",
-        traderEmail: "",
-      };
-
-      const result = await postSellPayload(payload, "provider123");
-
-      expect(result).toBeUndefined();
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining("Error posting payload"),
-        expect.objectContaining({
-          response: expect.objectContaining({
-            status: 400,
-          }),
-        }),
+      await expect(backend.sell.retrievePayload(payload)).rejects.toMatchObject(
+        {
+          response: { status: 400 },
+        },
       );
     });
   });
@@ -63,7 +34,7 @@ describe("Api >> Sell", () => {
         transactionId: "xxx",
       };
 
-      await expect(confirmSell(payload)).rejects.toMatchObject({
+      await expect(backend.sell.confirm(payload)).rejects.toMatchObject({
         response: { status: 400 },
       });
     });
@@ -76,7 +47,7 @@ describe("Api >> Sell", () => {
         sellId: "xxx",
       };
 
-      await expect(cancelSell(payload)).rejects.toMatchObject({
+      await expect(backend.sell.cancel(payload)).rejects.toMatchObject({
         response: { status: 400 },
       });
     });

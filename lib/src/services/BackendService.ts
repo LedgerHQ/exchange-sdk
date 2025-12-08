@@ -1,4 +1,4 @@
-import { BACKEND_CONFIG, Environment } from "../config";
+import { BACKEND_CONFIG, Environment, exchangeProductConfig } from "../config";
 import axios, { AxiosInstance } from "axios";
 import {
   CancelFundRequest,
@@ -10,9 +10,12 @@ import {
   FundRequestPayload,
   FundResponsePayload,
   SellRequestPayload,
+  SellResponsePayload,
   SwapPayloadRequestData,
-} from "../api.types";
+  SwapPayloadResponse,
+} from "./BackendService.types";
 import { VERSION } from "../version";
+import { ExchangeType } from "../sdk.types";
 
 export const createBackendService = (env: Environment, customUrl?: string) => {
   const urls = customUrl
@@ -28,7 +31,7 @@ export const createBackendService = (env: Environment, customUrl?: string) => {
 
 const createSwapBackend = (client: AxiosInstance) => ({
   retrievePayload: async (req: SwapPayloadRequestData) => {
-    const res = await client.post("", req);
+    const res = await client.post<SwapPayloadResponse>("", req);
     return res.data;
   },
 
@@ -52,8 +55,16 @@ const createSwapBackend = (client: AxiosInstance) => ({
 });
 
 const createSellBackend = (client: AxiosInstance) => ({
-  retrievePayload: async (req: SellRequestPayload) => {
-    const res = await client.post("sell/payload", req);
+  retrievePayload: async ({ type, ...req }: SellRequestPayload) => {
+    const endpoint = exchangeProductConfig[ExchangeType.SELL]?.[type]?.endpoint;
+
+    if (!endpoint) {
+      throw new Error(
+        `Unsupported product type ${type} for ${ExchangeType.SELL}`,
+      );
+    }
+
+    const res = await client.post<SellResponsePayload>(endpoint, req);
     return res.data;
   },
 
@@ -67,17 +78,26 @@ const createSellBackend = (client: AxiosInstance) => ({
   cancel: (body: CancelSellRequest) => {
     const { sellId, ...payload } = body;
     return client.post(
-      `/history/webhook/v1/transaction/${sellId}/accepted`,
+      `/history/webhook/v1/transaction/${sellId}/cancelled`,
       payload,
     );
   },
 });
 
 export const createFundBackend = (client: AxiosInstance) => ({
-  retrievePayload: async (
-    req: FundRequestPayload,
-  ): Promise<FundResponsePayload> => {
-    const res = await client.post("exchange/v1/fund/card/remit", req);
+  retrievePayload: async ({
+    type,
+    ...req
+  }: FundRequestPayload): Promise<FundResponsePayload> => {
+    const endpoint = exchangeProductConfig[ExchangeType.FUND]?.[type]?.endpoint;
+
+    if (!endpoint) {
+      throw new Error(
+        `Unsupported product type ${type} for ${ExchangeType.FUND}`,
+      );
+    }
+
+    const res = await client.post<FundResponsePayload>(endpoint, req);
     return res.data;
   },
 
@@ -91,7 +111,7 @@ export const createFundBackend = (client: AxiosInstance) => ({
     ),
 });
 
-function createHttpClient(baseURL: string) {
+export function createHttpClient(baseURL: string) {
   const client = axios.create({ baseURL });
 
   client.interceptors.request.use((config) => {
