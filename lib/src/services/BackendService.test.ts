@@ -12,7 +12,7 @@ describe("BackendService", () => {
     mockedAxios.create.mockReset();
   });
 
-  describe.only("createHttpClient", () => {
+  describe("createHttpClient", () => {
     beforeEach(() => {
       mockedAxios.create.mockReturnValue({
         post: jest.fn(),
