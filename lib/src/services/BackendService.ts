@@ -1,4 +1,9 @@
-import { BACKEND_CONFIG, Environment, exchangeProductConfig } from "../config";
+import {
+  BACKEND_CONFIG,
+  Environment,
+  exchangeProductConfig,
+  webhookEndpoints,
+} from "../config";
 import axios, { AxiosInstance } from "axios";
 import {
   CancelFundRequest,
@@ -29,30 +34,25 @@ export const createBackendService = (env: Environment, customUrl?: string) => {
   };
 };
 
-const createSwapBackend = (client: AxiosInstance) => ({
-  retrievePayload: async (req: SwapPayloadRequestData) => {
-    const res = await client.post<SwapPayloadResponse>("", req);
-    return res.data;
-  },
+const createSwapBackend = (client: AxiosInstance) => {
+  const withVersionHeader = (swapAppVersion?: string) =>
+    swapAppVersion
+      ? { headers: { "x-swap-app-version": swapAppVersion } }
+      : undefined;
 
-  confirm: (payload: ConfirmSwapRequest, swapAppVersion?: string) =>
-    client.post(
-      "accepted",
-      payload,
-      swapAppVersion
-        ? { headers: { "x-swap-app-version": swapAppVersion } }
-        : undefined,
-    ),
+  return {
+    retrievePayload: async (req: SwapPayloadRequestData) => {
+      const res = await client.post<SwapPayloadResponse>("", req);
+      return res.data;
+    },
 
-  cancel: (payload: CancelSwapRequest, swapAppVersion?: string) =>
-    client.post(
-      "cancelled",
-      payload,
-      swapAppVersion
-        ? { headers: { "x-swap-app-version": swapAppVersion } }
-        : undefined,
-    ),
-});
+    confirm: (payload: ConfirmSwapRequest, swapAppVersion?: string) =>
+      client.post("accepted", payload, withVersionHeader(swapAppVersion)),
+
+    cancel: (payload: CancelSwapRequest, swapAppVersion?: string) =>
+      client.post("cancelled", payload, withVersionHeader(swapAppVersion)),
+  };
+};
 
 const createSellBackend = (client: AxiosInstance) => ({
   retrievePayload: async ({ type, ...req }: SellRequestPayload) => {
@@ -70,17 +70,11 @@ const createSellBackend = (client: AxiosInstance) => ({
 
   confirm: (body: ConfirmSellRequest) => {
     const { sellId, ...payload } = body;
-    return client.post(
-      `/history/webhook/v1/transaction/${sellId}/accepted`,
-      payload,
-    );
+    return client.post(webhookEndpoints.confirm(sellId), payload);
   },
   cancel: (body: CancelSellRequest) => {
     const { sellId, ...payload } = body;
-    return client.post(
-      `/history/webhook/v1/transaction/${sellId}/cancelled`,
-      payload,
-    );
+    return client.post(webhookEndpoints.cancel(sellId), payload);
   },
 });
 
@@ -102,13 +96,10 @@ export const createFundBackend = (client: AxiosInstance) => ({
   },
 
   confirm: ({ quoteId, ...payload }: ConfirmFundRequest) =>
-    client.post(`/history/webhook/v1/transaction/${quoteId}/accepted`, payload),
+    client.post(webhookEndpoints.confirm(quoteId), payload),
 
   cancel: ({ quoteId, ...payload }: CancelFundRequest) =>
-    client.post(
-      `/history/webhook/v1/transaction/${quoteId}/cancelled`,
-      payload,
-    ),
+    client.post(webhookEndpoints.cancel(quoteId), payload),
 });
 
 export function createHttpClient(baseURL: string) {
