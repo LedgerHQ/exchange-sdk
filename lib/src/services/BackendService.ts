@@ -20,7 +20,7 @@ import {
   SwapPayloadResponse,
 } from "./BackendService.types";
 import { VERSION } from "../version";
-import { ExchangeType } from "../sdk.types";
+import { ExchangeType, ProductType } from "../sdk.types";
 
 export const createBackendService = (env: Environment, customUrl?: string) => {
   const urls = customUrl
@@ -56,14 +56,7 @@ const createSwapBackend = (client: AxiosInstance) => {
 
 const createSellBackend = (client: AxiosInstance) => ({
   retrievePayload: async ({ type, ...req }: SellRequestPayload) => {
-    const endpoint = exchangeProductConfig[ExchangeType.SELL]?.[type]?.endpoint;
-
-    if (!endpoint) {
-      throw new Error(
-        `Unsupported product type ${type} for ${ExchangeType.SELL}`,
-      );
-    }
-
+    const endpoint = getEndpoint(ExchangeType.FUND, type);
     const res = await client.post<SellResponsePayload>(endpoint, req);
     return res.data;
   },
@@ -83,14 +76,7 @@ export const createFundBackend = (client: AxiosInstance) => ({
     type,
     ...req
   }: FundRequestPayload): Promise<FundResponsePayload> => {
-    const endpoint = exchangeProductConfig[ExchangeType.FUND]?.[type]?.endpoint;
-
-    if (!endpoint) {
-      throw new Error(
-        `Unsupported product type ${type} for ${ExchangeType.FUND}`,
-      );
-    }
-
+    const endpoint = getEndpoint(ExchangeType.FUND, type);
     const res = await client.post<FundResponsePayload>(endpoint, req);
     return res.data;
   },
@@ -112,4 +98,12 @@ export function createHttpClient(baseURL: string) {
   });
 
   return client;
+}
+
+function getEndpoint(exchange: ExchangeType, type: ProductType): string {
+  const endpoint = exchangeProductConfig[exchange]?.[type]?.endpoint;
+  if (!endpoint) {
+    throw new Error(`Unsupported product type ${type} for ${exchange}`);
+  }
+  return endpoint;
 }
