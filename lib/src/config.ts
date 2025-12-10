@@ -20,18 +20,17 @@ export const BACKEND_CONFIG = {
   },
 };
 
-type SupportedProductsByExchangeType = {
-  [key in ExchangeType]: Partial<{
-    [key in ProductType]: boolean;
-  }>;
-};
-
 type ExchangeProductConfig = {
   [E in ExchangeType]?: {
     [P in ProductType]?: {
       endpoint: string;
     };
   };
+};
+
+export const webhookEndpoints = {
+  confirm: (id: string) => `/history/webhook/v1/transaction/${id}/accepted`,
+  cancel: (id: string) => `/history/webhook/v1/transaction/${id}/cancelled`,
 };
 
 /**
