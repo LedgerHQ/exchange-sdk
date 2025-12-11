@@ -56,7 +56,7 @@ const createSwapBackend = (client: AxiosInstance) => {
 
 const createSellBackend = (client: AxiosInstance) => ({
   retrievePayload: async ({ type, ...req }: SellRequestPayload) => {
-    const endpoint = getEndpoint(ExchangeType.FUND, type);
+    const endpoint = getEndpoint(ExchangeType.SELL, type);
     const res = await client.post<SellResponsePayload>(endpoint, req);
     return res.data;
   },
