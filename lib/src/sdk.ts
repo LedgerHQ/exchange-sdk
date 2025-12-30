@@ -8,24 +8,6 @@ import {
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
-import {
-  cancelSwap,
-  confirmSwap,
-  cancelSell,
-  confirmSell,
-  decodeBinarySellPayload,
-  decodeBinaryFundPayload,
-  postSellPayload,
-  retrieveSellPayload,
-  retrieveSwapPayload,
-  setBackendUrl,
-  retrieveFundPayload,
-  cancelFund,
-  confirmFund,
-  cancelTokenApproval,
-  confirmTokenApproval,
-  supportedProductsByExchangeType,
-} from "./api";
 import { CompleteExchangeError } from "./error/SwapError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
@@ -43,7 +25,6 @@ import {
   ExchangeType,
   FeeStrategyEnum,
   FundInfo,
-  GetSellPayload,
   ProductType,
   SellInfo,
   SwapInfo,
@@ -51,9 +32,13 @@ import {
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
-import { TrackingService } from "./services/TrackingService";
-
-export type GetSwapPayload = typeof retrieveSwapPayload;
+import { createTrackingService } from "./services/TrackingService";
+import { createBackendService } from "./services/BackendService";
+import {
+  decodeFundPayload,
+  decodeSellPayload,
+} from "@ledgerhq/hw-app-exchange";
+import { exchangeProductConfig } from "./config";
 
 /**
  * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
@@ -62,7 +47,8 @@ export type GetSwapPayload = typeof retrieveSwapPayload;
 export class ExchangeSDK {
   readonly providerId: string;
 
-  public tracking: TrackingService;
+  public tracking: ReturnType<typeof createTrackingService>;
+  private backend: ReturnType<typeof createBackendService>;
 
   private walletAPIDecorator: WalletApiDecorator;
   private transport: WindowMessageTransport | Transport | undefined;
@@ -117,13 +103,8 @@ export class ExchangeSDK {
     } else {
       this.walletAPIDecorator = walletApiDecorator(walletAPI);
     }
-
-    if (customUrl) {
-      // Set API environment
-      setBackendUrl(customUrl);
-    }
-
-    this.tracking = new TrackingService({
+    this.backend = createBackendService(environment || "production", customUrl);
+    this.tracking = createTrackingService({
       walletAPI: this.walletAPI,
       providerId: this.providerId,
       environment,
@@ -160,9 +141,11 @@ export class ExchangeSDK {
       quoteId,
       toNewTokenId,
       swapAppVersion,
-      getSwapPayload,
     } = info;
 
+    //
+    // STEP 1 — Retrieve account & check funds
+    //
     const { account: fromAccount, currency: fromCurrency } =
       await this.walletAPIDecorator.retrieveUserAccount(
         fromAccountId,
@@ -179,7 +162,9 @@ export class ExchangeSDK {
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
     this.canSpendAmount(fromAccount, fromAmountAtomic, CustomErrorType.SWAP);
 
-    // Step 1: Ask for deviceTransactionId
+    //
+    // STEP 2 — Retrieve deviceTransactionId (nonce)
+    //
     const { transactionId: deviceTransactionId, device } =
       await this.exchangeModule
         .startSwap({
@@ -200,8 +185,9 @@ export class ExchangeSDK {
         });
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
-    // Step 2: Ask for payload creation
-    const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
+    //
+    // STEP 3 — Retrieve raw backend payload
+    //
     const {
       binaryPayload,
       signature,
@@ -209,25 +195,29 @@ export class ExchangeSDK {
       swapId,
       payinExtraId,
       extraTransactionParameters,
-    } = await payloadRequest({
-      provider: this.providerId,
-      deviceTransactionId,
-      fromAccount,
-      toAccount,
-      toNewTokenId,
-      amount: fromAmount,
-      amountInAtomicUnit: fromAmountAtomic,
-      quoteId,
-    }).catch((error: Error) => {
-      this.handleError({
-        error,
-        step: StepError.PAYLOAD,
-        customErrorType: CustomErrorType.SWAP,
+    } = await this.backend.swap
+      .retrievePayload({
+        provider: this.providerId,
+        deviceTransactionId,
+        fromAccount,
+        toAccount,
+        toNewTokenId,
+        amount: fromAmount,
+        amountInAtomicUnit: fromAmountAtomic,
+        quoteId,
+      })
+      .catch((error: Error) => {
+        this.handleError({
+          error,
+          step: StepError.PAYLOAD,
+          customErrorType: CustomErrorType.SWAP,
+        });
+        throw error;
       });
-      throw error;
-    });
 
-    // Step 3: Send payload
+    //
+    // STEP 4 — Create transaction on device
+    //
     const transaction = await this.walletAPIDecorator
       .createTransaction(
         {
@@ -241,20 +231,28 @@ export class ExchangeSDK {
         CustomErrorType.SWAP,
       )
       .catch(async (error) => {
-        await this.cancelSwapOnError(
-          error,
-          swapId,
-          this.getSwapStep(error),
-          fromAccount,
-          toAccount,
-          device?.modelId,
-          quoteId ? "fixed" : "float",
+        await this.backend.swap.cancel(
+          {
+            provider: this.providerId,
+            swapId: swapId ?? "",
+            swapStep: this.getSwapStep(error),
+            statusCode: error.name,
+            errorMessage: error.message,
+            sourceCurrencyId: fromAccount.currency,
+            targetCurrencyId: toAccount.currency,
+            hardwareWalletType: device?.modelId ?? "",
+            swapType: quoteId ? "fixed" : "float",
+          },
           swapAppVersion,
         );
 
         this.handleError({ error });
         throw error;
       });
+
+    //
+    // STEP 5 — Ask device to sign and broadcast
+    //
     const transactionId = await this.exchangeModule
       .completeSwap({
         provider: this.providerId,
@@ -268,15 +266,24 @@ export class ExchangeSDK {
         tokenCurrency: toNewTokenId,
       })
       .catch(async (error: Error) => {
-        await this.cancelSwapOnError(
-          error,
-          swapId,
-          this.getSwapStep(error),
-          fromAccount,
-          toAccount,
-          device?.modelId,
-          quoteId ? "fixed" : "float",
-        );
+        await this.backend.swap
+          .cancel(
+            {
+              provider: this.providerId,
+              swapId: swapId ?? "",
+              swapStep: this.getSwapStep(error),
+              statusCode: error.name,
+              errorMessage: error.message,
+              sourceCurrencyId: fromAccount.currency,
+              targetCurrencyId: toAccount.currency,
+              hardwareWalletType: device?.modelId ?? "",
+              swapType: quoteId ? "fixed" : "float",
+            },
+            swapAppVersion,
+          )
+          .catch((cancelError: Error) => {
+            this.logger.error(cancelError);
+          });
 
         if (error.name === "DisabledTransactionBroadcastError") {
           throw error;
@@ -292,20 +299,26 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", transactionId);
     this.logger.log("*** End Swap ***");
-    await confirmSwap(
-      {
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        transactionId,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: device?.modelId ?? "",
-      },
-      swapAppVersion,
-    ).catch((error: Error) => {
-      this.logger.error(error);
-      // Do not throw error; let the integrating app know that everything is OK for the swap
-    });
+
+    //
+    // STEP 6 — Confirm with backend
+    //
+    await this.backend.swap
+      .confirm(
+        {
+          provider: this.providerId,
+          swapId: swapId ?? "",
+          transactionId,
+          sourceCurrencyId: fromAccount.currency,
+          targetCurrencyId: toAccount.currency,
+          hardwareWalletType: device?.modelId ?? "",
+        },
+        swapAppVersion,
+      )
+      .catch((error: Error) => {
+        this.logger.error(error);
+        // Do not throw error; let the integrating app know that everything is OK for the swap
+      });
     return { transactionId, swapId };
   }
 
@@ -327,19 +340,21 @@ export class ExchangeSDK {
       rate,
       toFiat,
       ledgerSessionId,
-      getSellPayload,
       type = ProductType.SELL,
     } = info;
 
+    //
+    // STEP 1 — Retrieve account & check funds
+    //
     const { account, currency } =
       await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
-    // Check enough funds
     const initialAtomicAmount = this.convertToAtomicUnit(fromAmount, currency);
-
     this.canSpendAmount(account, initialAtomicAmount);
 
-    // Step 1: Ask for deviceTransactionId
+    //
+    // STEP 2 — Retrieve deviceTransactionId (nonce)
+    //
     const deviceTransactionId = await this.exchangeModule
       .startSell({
         provider: this.providerId,
@@ -353,63 +368,62 @@ export class ExchangeSDK {
 
     this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
 
-    // Step 2: Ask for payload creation
+    //
+    // STEP 3 — Retrieve raw backend payload
+    //
     this.isProductTypeSupported(ExchangeType.SELL, type);
 
-    const {
-      recipientAddress,
-      binaryPayload,
-      signature,
-      amount,
-      sellId: payloadSellId,
-    } = await this.sellPayloadRequest({
-      quoteId,
-      rate,
-      toFiat,
-      amount: fromAmount,
-      getSellPayload,
-      account,
-      deviceTransactionId,
-      initialAtomicAmount,
-      type,
-    });
-    let sellId = payloadSellId;
+    const { payinAddress, providerSig, sellId } = await this.backend.sell
+      .retrievePayload({
+        quoteId: quoteId!,
+        provider: this.providerId,
+        fromCurrency: account.currency,
+        toCurrency: toFiat!,
+        refundAddress: account.address,
+        amountFrom: fromAmount.toNumber(),
+        amountTo: rate! * fromAmount.toNumber(),
+        nonce: deviceTransactionId,
+        type,
+      })
+      .catch((error: Error) => {
+        this.handleError({ error, step: StepError.PAYLOAD });
+        throw error;
+      });
 
-    const sellPayload = await decodeBinarySellPayload(binaryPayload as Buffer);
+    //
+    // STEP 4 — Decode provider payload
+    //
+    const sellPayload = await decodeSellPayload(
+      Buffer.from(providerSig.payload, "base64").toString(),
+    ).catch((error: Error) => this.logger.error(error));
 
-    if (getSellPayload && sellPayload) {
-      const newQuoteId = await postSellPayload(sellPayload, this.providerId);
-      //if provider does not provide as quoteId, use the one from the request(generated by out backend)
-      if (!quoteId) {
-        quoteId = newQuoteId;
-        sellId = newQuoteId;
-      }
-    }
-
-    const fromAmountAtomic = this.convertToAtomicUnit(amount, currency);
-    //TODO: verify that the new amount is the same as initial amount
+    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, currency);
     this.canSpendAmount(account, fromAmountAtomic);
 
     this.logger.log("Payload received:", {
-      recipientAddress,
+      payinAddress,
+      providerSig,
+      sellId,
       amount: fromAmountAtomic,
-      binaryPayload,
-      signature,
     });
 
-    // Step 3: Send payload
+    //
+    // STEP 5 — Create transaction on device
+    //
     const transaction = await this.walletAPIDecorator
       .createTransaction({
-        recipient: recipientAddress,
+        recipient: payinAddress,
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
         payinExtraId: sellPayload?.inExtraId,
       })
       .catch(async (error) => {
-        await this.cancelSellOnError({
-          error,
-          sellId,
+        await this.backend.sell.cancel({
+          provider: this.providerId,
+          sellId: sellId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
           ledgerSessionId,
         });
 
@@ -417,19 +431,24 @@ export class ExchangeSDK {
         throw error;
       });
 
+    //
+    // STEP 6 — Ask device to sign and broadcast
+    //
     const tx = await this.exchangeModule
       .completeSell({
         provider: this.providerId,
         fromAccountId,
         transaction,
-        binaryPayload,
-        signature,
+        binaryPayload: providerSig.payload,
+        signature: providerSig.signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
-        await this.cancelSellOnError({
-          error,
-          sellId,
+        await this.backend.sell.cancel({
+          provider: this.providerId,
+          sellId: sellId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
           ledgerSessionId,
         });
 
@@ -443,14 +462,20 @@ export class ExchangeSDK {
 
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Sell ***");
-    await confirmSell({
-      provider: this.providerId,
-      sellId: sellId ?? "",
-      transactionId: tx,
-      ledgerSessionId,
-    }).catch((error: Error) => {
-      this.logger.error(error);
-    });
+
+    //
+    // STEP 7 — Confirm with backend
+    //
+    await this.backend.sell
+      .confirm({
+        provider: this.providerId,
+        sellId: sellId ?? "",
+        transactionId: tx,
+        ledgerSessionId,
+      })
+      .catch((error: Error) => {
+        this.logger.error(error);
+      });
     return tx;
   }
 
@@ -474,79 +499,104 @@ export class ExchangeSDK {
       toCurrency,
     } = info;
 
+    //
+    // STEP 1 — Retrieve account & check funds
+    //
     const { account, currency } =
       await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
-    // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, currency);
     this.canSpendAmount(account, fromAmountAtomic);
 
-    // Step 1: Ask for deviceTransactionId
+    //
+    // STEP 2 — Retrieve deviceTransactionId (nonce)
+    //
     const deviceTransactionId = await this.exchangeModule
       .startFund({ provider: this.providerId, fromAccountId })
       .catch((error: Error) => {
-        const err = parseError({ error, step: StepError.NONCE });
-        this.logger.error(err as Error);
-        throw err;
+        throw this.handleError({ error, step: StepError.NONCE });
       });
 
-    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
+    this.logger.debug("DeviceTransactionId:", deviceTransactionId);
 
-    // Step 2: Ask for payload creation
+    //
+    // STEP 3 — Retrieve raw backend payload
+    //
     this.isProductTypeSupported(ExchangeType.FUND, type);
 
-    const { recipientAddress, binaryPayload, signature } =
-      await this.fundPayloadRequest({
-        quoteId,
+    const raw = await this.backend.fund
+      .retrievePayload({
+        quoteId: quoteId!,
+        provider: this.providerId,
+        fromCurrency: account.currency,
+        toCurrency: toCurrency ?? account.currency,
+        refundAddress: account.address,
         amountFrom: fromAmount.toNumber(),
-        amountTo: toAmount?.toNumber(),
-        account,
-        deviceTransactionId,
+        amountTo: toAmount ? toAmount.toNumber() : fromAmount.toNumber(),
+        nonce: deviceTransactionId,
         type,
-        toCurrency,
+      })
+      .catch((error: Error) => {
+        this.handleError({ error, step: StepError.PAYLOAD });
+        throw error;
       });
 
-    this.logger.log("Payload received:", {
-      recipientAddress,
-      amount: fromAmountAtomic,
-      binaryPayload,
-      signature,
-    });
+    //
+    // STEP 4 — Decode provider payload
+    //
+    const decodedPayload = await decodeFundPayload(
+      Buffer.from(raw.providerSig.payload, "base64").toString(),
+    ).catch((error: Error) => this.logger.error(error));
 
-    // Step 3: Send payload
-    const fundPayload = await decodeBinaryFundPayload(binaryPayload as Buffer);
+    const payload = {
+      binaryPayload: raw.providerSig.payload,
+      signature: raw.providerSig.signature,
+      recipientAddress: raw.payinAddress,
+      payinExtraId: decodedPayload?.payinExtraId,
+    };
+
+    this.logger.log("Fund SDK Payload:", payload);
+
+    //
+    // STEP 5 — Create transaction on device
+    //
     const transaction = await this.walletAPIDecorator
       .createTransaction({
-        recipient: recipientAddress,
+        recipient: payload.recipientAddress,
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
-        payinExtraId: fundPayload?.payinExtraId,
+        payinExtraId: payload.payinExtraId,
       })
       .catch(async (error) => {
-        await this.cancelFundOnError({
-          error,
-          quoteId,
+        await this.backend.fund.cancel({
+          provider: this.providerId,
+          quoteId: quoteId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
         });
-
         this.handleError({ error });
         throw error;
       });
 
+    //
+    // STEP 6 — Ask device to sign and broadcast
+    //
     const tx = await this.exchangeModule
       .completeFund({
         provider: this.providerId,
         fromAccountId,
         transaction,
-        //TODO: Remove any type cast after updating types for completeFund in LL
-        binaryPayload: binaryPayload as any,
-        signature: binaryPayload as any,
+        binaryPayload: payload.binaryPayload,
+        signature: payload.signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
-        await this.cancelFundOnError({
-          error,
-          quoteId,
+        await this.backend.fund.cancel({
+          provider: this.providerId,
+          quoteId: quoteId ?? "",
+          statusCode: error.name,
+          errorMessage: error.message,
         });
 
         if (error.name === "DisabledTransactionBroadcastError") {
@@ -557,17 +607,24 @@ export class ExchangeSDK {
         throw error;
       });
 
-    this.logger.log("Transaction sent:", tx);
+    this.logger.log("Fund transaction completed:", tx);
+
+    //
+    // STEP 7 — Confirm with backend
+    //
+    await this.backend.fund
+      .confirm({
+        provider: this.providerId,
+        quoteId: quoteId ?? "",
+        transactionId: tx,
+      })
+      .catch((error: Error) => this.logger.error(error));
+
     this.logger.log("*** End Fund ***");
-    await confirmFund({
-      provider: this.providerId,
-      quoteId: quoteId ?? "",
-      transactionId: tx,
-    }).catch((error: Error) => {
-      this.logger.error(error);
-    });
+
     return tx;
   }
+
   /*
    * Ask for token approval
    * @param {TokenApprovalInfo} info - Information necessary to create a token approval transaction.
@@ -577,8 +634,7 @@ export class ExchangeSDK {
   async tokenApproval(info: TokenApprovalInfo): Promise<string | void> {
     this.logger.log("*** Start Token Approval ***");
 
-    const { orderId, userAccountId, smartContractAddress, approval, rawTx } =
-      info;
+    const { userAccountId, smartContractAddress, approval, rawTx } = info;
 
     this.logger.log("Payload received from partner:", {
       smartContractAddress,
@@ -608,11 +664,7 @@ export class ExchangeSDK {
         data: dataAsBuffer,
       })
       .catch(async (error: Error) => {
-        await this.cancelTokenApprovalOnError({
-          error,
-          orderId,
-        });
-
+        // TODO: inform backend of token approval cancellation
         if (error.name === "DisabledTransactionBroadcastError") {
           throw error;
         }
@@ -624,14 +676,7 @@ export class ExchangeSDK {
     this.logger.log("Transaction sent:", tx);
     this.logger.log("*** End Token Approval ***");
 
-    await confirmTokenApproval({
-      provider: this.providerId,
-      orderId: orderId ?? "",
-      transactionId: tx,
-    }).catch((error: Error) => {
-      this.logger.error(error);
-    });
-
+    // TODO: inform backend of token approval success
     return tx;
   }
 
@@ -722,7 +767,9 @@ export class ExchangeSDK {
     productType: ProductType,
     customErrorType?: CustomErrorType,
   ): void {
-    if (!supportedProductsByExchangeType[exchangeType][productType]) {
+    const productConfig = exchangeProductConfig[exchangeType]?.[productType];
+
+    if (!productConfig) {
       const err = parseError({
         error: new Error("Product not supported"),
         step: StepError.PRODUCT_SUPPORT,
@@ -768,210 +815,5 @@ export class ExchangeSDK {
     }
 
     return "UNKNOWN_STEP";
-  }
-
-  private async cancelSwapOnError(
-    error: Error,
-    swapId: string,
-    swapStep: string,
-    fromAccount: Account,
-    toAccount: Account,
-    deviceModelId: string | undefined,
-    swapType: string,
-    swapAppVersion?: string,
-  ) {
-    await cancelSwap(
-      {
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        swapStep: swapStep,
-        statusCode: error.name,
-        errorMessage: error.message,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: deviceModelId ?? "",
-        swapType,
-      },
-      swapAppVersion,
-    ).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
-  }
-
-  private async cancelSellOnError({
-    error,
-    sellId,
-    ledgerSessionId,
-  }: {
-    error: Error;
-    sellId?: string;
-    ledgerSessionId?: string;
-  }) {
-    await cancelSell({
-      provider: this.providerId,
-      sellId: sellId ?? "",
-      statusCode: error.name,
-      errorMessage: error.message,
-      ledgerSessionId,
-    }).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
-  }
-
-  /**
-   * Request that our BE speaks to the provider BE to retrieve the payload that will
-   * ultimately be used to create the transaction on the device
-   * @param param0
-   * @returns
-   */
-  private async sellPayloadRequest({
-    account,
-    getSellPayload,
-    quoteId,
-    toFiat,
-    rate,
-    amount,
-    deviceTransactionId,
-    initialAtomicAmount,
-    type,
-  }: {
-    amount: BigNumber;
-    getSellPayload?: GetSellPayload;
-    account: Account;
-    deviceTransactionId: string;
-    initialAtomicAmount: BigNumber;
-    quoteId?: string;
-    rate?: number;
-    toFiat?: string;
-    type: ProductType;
-  }) {
-    let recipientAddress: string;
-    let binaryPayload: Buffer | string;
-    let signature: Buffer | string;
-    let newAmount = amount;
-    let sellId = "";
-
-    if (getSellPayload) {
-      const data = await getSellPayload(
-        deviceTransactionId,
-        account.address,
-        initialAtomicAmount,
-      ).catch((error: Error) => {
-        this.handleError({ error, step: StepError.PAYLOAD });
-        throw error;
-      });
-
-      recipientAddress = data.recipientAddress;
-      newAmount = data.amount;
-      binaryPayload = Buffer.from(data.binaryPayload);
-      signature = Buffer.from(data.signature);
-    } else {
-      const data = await retrieveSellPayload({
-        quoteId: quoteId!,
-        provider: this.providerId,
-        fromCurrency: account.currency,
-        toCurrency: toFiat!,
-        refundAddress: account.address,
-        amountFrom: amount.toNumber(),
-        amountTo: rate! * amount.toNumber(),
-        nonce: deviceTransactionId,
-        type,
-      }).catch((error: Error) => {
-        this.handleError({ error, step: StepError.PAYLOAD });
-        throw error;
-      });
-
-      recipientAddress = data.payinAddress;
-      binaryPayload = data.providerSig.payload;
-      signature = data.providerSig.signature;
-      sellId = data.sellId;
-    }
-
-    return {
-      recipientAddress,
-      binaryPayload,
-      signature,
-      amount: newAmount,
-      sellId,
-    };
-  }
-
-  private async fundPayloadRequest({
-    account,
-    quoteId,
-    amountFrom,
-    amountTo,
-    deviceTransactionId,
-    type,
-    toCurrency,
-  }: {
-    amountFrom: number;
-    account: Account;
-    deviceTransactionId: string;
-    quoteId?: string;
-    type: ProductType;
-    amountTo?: number;
-    toCurrency?: string;
-  }) {
-    const data = await retrieveFundPayload({
-      quoteId: quoteId!,
-      amountFrom,
-      amountTo: amountTo ?? amountFrom,
-      provider: this.providerId,
-      fromCurrency: account.currency,
-      toCurrency: toCurrency ?? account.currency,
-      refundAddress: account.address,
-      nonce: deviceTransactionId,
-      type,
-    }).catch((error: Error) => {
-      this.handleError({ error, step: StepError.PAYLOAD });
-      throw error;
-    });
-
-    const recipientAddress: string = data.payinAddress;
-    const binaryPayload: Buffer | string = Buffer.from(
-      data.providerSig.payload,
-    );
-    const signature: Buffer | string = Buffer.from(data.providerSig.signature);
-
-    return {
-      recipientAddress,
-      binaryPayload,
-      signature,
-    };
-  }
-
-  private async cancelFundOnError({
-    error,
-    quoteId,
-  }: {
-    error: Error;
-    quoteId?: string;
-  }) {
-    await cancelFund({
-      provider: this.providerId,
-      quoteId: quoteId ?? "",
-      statusCode: error.name,
-      errorMessage: error.message,
-    }).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
-  }
-
-  private async cancelTokenApprovalOnError({
-    error,
-    orderId,
-  }: {
-    error: Error;
-    orderId?: string;
-  }) {
-    await cancelTokenApproval({
-      provider: this.providerId,
-      orderId: orderId ?? "",
-      statusCode: error.name,
-      errorMessage: error.message,
-    }).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
   }
 }
