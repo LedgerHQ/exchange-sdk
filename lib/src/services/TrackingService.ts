@@ -13,59 +13,50 @@ const CONTEXT: TrackingContext = {
     version: VERSION,
   },
 };
-export class TrackingService {
-  public client: TrackingSdk;
 
-  private walletAPI: WalletAPIClient;
-  private providerId: string;
-  private optInStatusPromise: Promise<boolean>;
+type CreateTrackingServiceParams = {
+  walletAPI: WalletAPIClient;
+  providerId: string;
+  environment?: "staging" | "preproduction" | "production";
+  providerSessionId?: string;
+};
 
-  constructor({
-    walletAPI,
-    providerId,
+export const createTrackingService = ({
+  walletAPI,
+  providerId,
+  environment,
+  providerSessionId,
+}: CreateTrackingServiceParams) => {
+  const client: TrackingSdk = TrackingSdkFactory.getInstance({
     environment,
     providerSessionId,
-  }: {
-    walletAPI: WalletAPIClient;
-    providerId: string;
-    environment?: "staging" | "preproduction" | "production";
-    providerSessionId?: string;
-  }) {
-    this.walletAPI = walletAPI;
-    this.providerId = providerId;
-    this.client = TrackingSdkFactory.getInstance({
-      environment,
-      providerSessionId,
-    });
-    this.optInStatusPromise = this.fetchOptInStatus();
-    this.updateUserId();
-  }
+  });
 
-  fetchOptInStatus() {
-    return this.walletAPI.wallet.info().then((info) => info.tracking);
-  }
+  const optInStatusPromise: Promise<boolean> = walletAPI.wallet
+    .info()
+    .then((info) => info.tracking);
 
-  private async getLedgerOptInStatus(): Promise<boolean> {
-    return this.optInStatusPromise;
-  }
+  const getLedgerOptInStatus = async (): Promise<boolean> => {
+    return optInStatusPromise;
+  };
 
-  async updateUserId() {
-    const optInStatus = await this.getLedgerOptInStatus();
+  const updateUserId = async (): Promise<void> => {
+    const optInStatus = await getLedgerOptInStatus();
 
     if (!optInStatus) {
       return;
     }
 
-    this.walletAPI.wallet.userId().then((userId) => {
-      this.client.identify(userId);
+    walletAPI.wallet.userId().then((userId) => {
+      client.identify(userId);
     });
-  }
+  };
 
-  async trackEvent(
+  const trackEvent = async (
     eventName: Parameters<TrackingSdk["trackEvent"]>[0],
     properties: Parameters<TrackingSdk["trackEvent"]>[1],
-  ): ReturnType<TrackingSdk["trackEvent"]> {
-    const optInStatus = await this.getLedgerOptInStatus();
+  ): ReturnType<TrackingSdk["trackEvent"]> => {
+    const optInStatus = await getLedgerOptInStatus();
 
     if (!optInStatus) {
       return;
@@ -73,16 +64,16 @@ export class TrackingService {
 
     const enhancedProperties = {
       ...properties,
-      providerId: this.providerId,
+      providerId,
     };
-    return this.client.trackEvent(eventName, enhancedProperties, CONTEXT);
-  }
+    return client.trackEvent(eventName, enhancedProperties, CONTEXT);
+  };
 
-  async trackPage(
+  const trackPage = async (
     pageName: Parameters<TrackingSdk["trackPage"]>[0],
     properties: Parameters<TrackingSdk["trackPage"]>[1],
-  ): ReturnType<TrackingSdk["trackPage"]> {
-    const optInStatus = await this.getLedgerOptInStatus();
+  ): ReturnType<TrackingSdk["trackPage"]> => {
+    const optInStatus = await getLedgerOptInStatus();
 
     if (!optInStatus) {
       return;
@@ -90,8 +81,17 @@ export class TrackingService {
 
     const enhancedProperties = {
       ...properties,
-      providerId: this.providerId,
+      providerId: providerId,
     };
-    return this.client.trackPage(pageName, enhancedProperties, CONTEXT);
-  }
-}
+    return client.trackPage(pageName, enhancedProperties, CONTEXT);
+  };
+
+  void updateUserId();
+
+  return {
+    client,
+    trackEvent,
+    trackPage,
+    updateUserId,
+  };
+};
