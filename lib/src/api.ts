@@ -173,7 +173,6 @@ export async function retrieveSellPayload(data: SellRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
-  console.log(">> request", request);
   const pathname =
     supportedProductsByExchangeType[ExchangeType.SELL][data.type];
   const res = await sellAxiosClient.post(pathname!, request);
