@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   test:
-    runs-on: ledgerhq-shared-medium
+    runs-on: ledgerhq-shared-small
 
     steps:
       - uses: actions/checkout@v4
