@@ -2,9 +2,13 @@ name: Tests
 
 on: pull_request
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   test:
-    runs-on: ledgerhq-shared-small
+    runs-on: ledgerhq-shared-medium
 
     steps:
       - uses: actions/checkout@v4
