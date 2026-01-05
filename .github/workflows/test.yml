@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ledgerhq-shared-medium
+    runs-on: public-ledgerhq-shared-small
 
     steps:
       - uses: actions/checkout@v4
