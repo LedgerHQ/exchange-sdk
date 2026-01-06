@@ -77,4 +77,21 @@ export class TrackingService {
     };
     return this.client.trackEvent(eventName, enhancedProperties, CONTEXT);
   }
+
+  async trackPage(
+    pageName: Parameters<TrackingSdk["trackPage"]>[0],
+    properties: Parameters<TrackingSdk["trackPage"]>[1],
+  ): ReturnType<TrackingSdk["trackPage"]> {
+    const optInStatus = await this.getLedgerOptInStatus();
+
+    if (!optInStatus) {
+      return;
+    }
+
+    const enhancedProperties = {
+      ...properties,
+      providerId: this.providerId,
+    };
+    return this.client.trackPage(pageName, enhancedProperties, CONTEXT);
+  }
 }

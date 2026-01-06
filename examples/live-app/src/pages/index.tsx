@@ -10,6 +10,7 @@ import { SellForm } from "@/components/SellForm";
 import { TokenApprovalForm } from "@/components/TokenApprovalForm";
 import { CloseApp } from "@/components/CloseApp";
 import { TrackEvent } from "@/components/TrackEvent";
+import { TrackPage } from "@/components/TrackPage";
 
 export default function Home() {
   return (
@@ -44,6 +45,7 @@ export default function Home() {
               <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
                 <CloseApp />
                 <TrackEvent />
+                <TrackPage />
               </SimpleGrid>
             </Stack>
           </AppShell.Main>
