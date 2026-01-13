@@ -7,10 +7,10 @@ Although both make real network requests, they serve very different purposes and
 
 ## Test Suites Overview
 
-| Folder          | Purpose                                            |
-| --------------- | -------------------------------------------------- |
-| `flows`         | Validate full user flows using mocked dependencies |
-| `backend-smoke` | Verify requests reach the real backend             |
+| Folder                | Purpose                                            | Commands (from lib directory)  |
+| --------------------- | -------------------------------------------------- | ------------------------------ |
+| `flows`               | Validate full user flows using mocked dependencies | `test:e2e:flows`               |
+| `backendConnectivity` | Verify requests reach the real backend             | `test:e2e:backendConnectivity` |
 
 ---
 
