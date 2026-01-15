@@ -1,16 +1,7 @@
-import {
-  cancelFund,
-  confirmFund,
-  retrieveFundPayload,
-  setBackendUrl,
-} from "../../src/api";
+import { cancelFund, confirmFund, retrieveFundPayload } from "../../src/api";
 import { ProductType } from "../../src/sdk.types";
 
 describe("Api >> Fund", () => {
-  beforeEach(() => {
-    setBackendUrl("https://exchange-tx-manager.aws.stg.ldg-tech.com/");
-  });
-
   describe("retrieveFundPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {

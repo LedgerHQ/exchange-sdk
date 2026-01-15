@@ -3,15 +3,10 @@ import {
   confirmSell,
   postSellPayload,
   retrieveSellPayload,
-  setBackendUrl,
 } from "../../src/api";
 import { ProductType } from "../../src/sdk.types";
 
 describe("Api >> Sell", () => {
-  beforeEach(() => {
-    setBackendUrl("https://exchange-tx-manager.aws.stg.ldg-tech.com/");
-  });
-
   describe("retrieveSellPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {

@@ -15,6 +15,7 @@
     "clean": "git clean -fdX",
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test",
+    "test:ci": "pnpm --filter=exchange-sdk test:ci",
     "format": "pnpm exec prettier --write lib/src examples"
   },
   "devDependencies": {

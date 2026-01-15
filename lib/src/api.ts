@@ -228,8 +228,6 @@ export async function postSellPayload(
     const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
       sellPayload;
 
-    console.log(">> here");
-
     const amountTo = decodeAmount(outAmount as Uint8Array);
     const amountFrom = decodeAmount(inAmount as UDecimal);
 
@@ -252,8 +250,6 @@ export async function postSellPayload(
       "/exchange/sell/v1/forgeTransaction/offRamp",
       payload,
     );
-
-    console.log(">> res", res);
 
     return res.data?.sellId;
   } catch (e) {
@@ -305,6 +301,7 @@ export async function retrieveFundPayload(data: FundRequestPayload) {
     amountTo: data.amountTo,
     nonce: data.nonce,
   };
+
   const pathname =
     supportedProductsByExchangeType[ExchangeType.FUND][data.type];
   const res = await fundAxiosClient.post(pathname!, request);
