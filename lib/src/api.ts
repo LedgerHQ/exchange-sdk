@@ -25,7 +25,7 @@ import {
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 import { VERSION } from "./version";
 
-const SWAP_BACKEND_URL = "https://swap.ledger.com/v5/swap";
+const SWAP_BACKEND_URL = "https://swap.ledger.com/";
 const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
 
@@ -88,7 +88,7 @@ export async function retrieveSwapPayload(
     amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
     rateId: data.quoteId,
   };
-  const res = await swapAxiosClient.post("", request);
+  const res = await swapAxiosClient.post("v5/swap", request);
 
   return parseSwapBackendInfo(res.data);
 }
@@ -100,7 +100,7 @@ export async function confirmSwap(
   const headers = swapAppVersion
     ? { "x-swap-app-version": swapAppVersion }
     : undefined;
-  await swapAxiosClient.post("accepted", payload, { headers });
+  await swapAxiosClient.post("v5/swap/accepted", payload, { headers });
 }
 
 export async function cancelSwap(
@@ -110,7 +110,7 @@ export async function cancelSwap(
   const headers = swapAppVersion
     ? { "x-swap-app-version": swapAppVersion }
     : undefined;
-  await swapAxiosClient.post("cancelled", payload, { headers });
+  await swapAxiosClient.post("v5/swap/cancelled", payload, { headers });
 }
 
 function parseSwapBackendInfo(response: SwapBackendResponse): {

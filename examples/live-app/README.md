@@ -32,7 +32,7 @@ pnpm dev
 
 ## 🧪 Running in Simulator Mode
 
-If you want to test the app without the Ledger Wallet:
+Simulator mode requires a running instance of [swap-wiremock](https://github.com/LedgerHQ/swap-wiremock). This contains mock api endpoints required for all the flows within exchange sdk. Once this is running in one terminal open a new terminal and run the command:
 
 ```bash
 pnpm dev:simulator

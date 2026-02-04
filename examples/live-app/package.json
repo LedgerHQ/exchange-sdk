@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:simulator": "NEXT_PUBLIC_SIMULATOR_MODE=1 next dev",
+    "dev:simulator": "NODE_TLS_REJECT_UNAUTHORIZED=0 NEXT_PUBLIC_SIMULATOR_MODE=1 next dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"

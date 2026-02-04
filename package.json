@@ -7,15 +7,14 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "dev:sell": "pnpm turbo run dev --filter=exchange-sdk-sell-example",
-    "dev:swap": "pnpm turbo run dev --filter=exchange-sdk-swap-example",
     "dev:live-app": "pnpm turbo run dev --filter=exchange-sdk-live-app-example",
     "dev:live-app:simulator": "pnpm turbo run dev:simulator --filter=exchange-sdk-live-app-example",
     "dev:lib": "pnpm turbo run dev --filter=@ledgerhq/exchange-sdk",
     "clean": "git clean -fdX",
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test",
-    "test:ci": "pnpm --filter=exchange-sdk test:ci",
+    "test:e2e": "pnpm --filter=exchange-sdk test:e2e",
+    "test:unit": "pnpm --filter=exchange-sdk test:unit",
     "format": "pnpm exec prettier --write lib/src examples"
   },
   "devDependencies": {

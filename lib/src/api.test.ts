@@ -80,7 +80,7 @@ describe("Swap", () => {
         amountFromInSmallestDenomination: 1908000000000,
         rateId: "978400",
       };
-      expect(mockPost.mock.calls[0][0]).toEqual("");
+      expect(mockPost.mock.calls[0][0]).toEqual("v5/swap");
       expect(mockPost.mock.calls[0][1]).toEqual(expectedRequest);
     });
 
@@ -130,7 +130,7 @@ describe("Swap", () => {
       });
 
       // THEN
-      expect(mockPost.mock.calls[0][0]).toEqual("accepted");
+      expect(mockPost.mock.calls[0][0]).toEqual("v5/swap/accepted");
     });
   });
 
@@ -147,7 +147,7 @@ describe("Swap", () => {
       });
 
       // THEN
-      expect(mockPost.mock.calls[0][0]).toEqual("cancelled");
+      expect(mockPost.mock.calls[0][0]).toEqual("v5/swap/cancelled");
     });
   });
 

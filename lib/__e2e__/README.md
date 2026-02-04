@@ -23,7 +23,7 @@ The tests in the `flows` folder validate complete user journeys such as:
 ### How these tests work
 
 - **Mock Backend API**  
-  These tests run against a mock backend API that returns controlled, predictable responses.
+  These tests run against a mock backend API [(swap wiremock)](https://github.com/LedgerHQ/swap-wiremock) that returns controlled, predictable responses.
 
   The real backend is not suitable for flow testing, as it will always error regardless of the request payload.  
   Using a mock backend allows us to:
@@ -31,8 +31,6 @@ The tests in the `flows` folder validate complete user journeys such as:
   - Make real HTTP requests
   - Control response data
   - Reliably test full flows end-to-end
-
-  _Please Note_ we are restricted by what endpoints have been mocked
 
 - **Wallet API Simulator**  
   A simulator is used for the `wallet-api`, which mimics responses from a Ledger device.  

@@ -1,6 +1,9 @@
-name: Tests
+name: Unit Tests
 
-on: pull_request
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -23,4 +26,4 @@ jobs:
         run: "pnpm i"
 
       - name: "Test"
-        run: "pnpm test:ci"
+        run: "pnpm test:unit"
