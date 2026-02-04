@@ -6,7 +6,7 @@ import {
 } from "../utils/wiremockHelpers";
 import { createMockedSdk } from "../utils/createMockedSdk";
 
-describe("ExchangeSDK.sell", () => {
+describe("ExchangeSDK.fund", () => {
   let sdk: ExchangeSDK;
 
   beforeEach(async () => {
@@ -42,8 +42,8 @@ describe("ExchangeSDK.sell", () => {
       fromCurrency: "bitcoin",
       toCurrency: "bitcoin",
       refundAddress: "11111a11-1aaa-111a-1aa1-aa11aa11aa11",
-      amountFrom: 1e-8,
-      amountTo: 1e-8,
+      amountFrom: 0.00000001,
+      amountTo: 0.00000001,
       nonce: "b3f1df21-9016-4bba-b0ea-46b1a9b1b84c",
     });
 
