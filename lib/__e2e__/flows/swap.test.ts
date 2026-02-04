@@ -8,7 +8,7 @@ import {
 } from "../utils/wiremockHelpers";
 import { createMockedSdk } from "../utils/createMockedSdk";
 
-describe("ExchangeSDK.sell", () => {
+describe("ExchangeSDK.swap", () => {
   let sdk: ExchangeSDK;
 
   beforeEach(async () => {
