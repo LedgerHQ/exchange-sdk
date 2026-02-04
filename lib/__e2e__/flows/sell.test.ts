@@ -19,7 +19,7 @@ describe("ExchangeSDK.sell", () => {
 
     sdk = new ExchangeSDK("transak", {
       transport,
-      customUrl: "https://exchange-tx-manager-e2e.aws.stg.ldg-tech.com",
+      customUrl: "https://127.0.0.1:8443",
     });
   });
 

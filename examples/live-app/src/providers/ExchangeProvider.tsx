@@ -26,7 +26,11 @@ export function ExchangeProvider({ children }: ExchangeProviderProps) {
     }
 
     setSdk(
-      new ExchangeSDK(PROVIDER_ID, { transport, environment: "preproduction" }),
+      new ExchangeSDK(PROVIDER_ID, {
+        transport,
+        environment: "preproduction",
+        customUrl: "https://127.0.0.1:8443",
+      }),
     );
   }, []);
   return (

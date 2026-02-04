@@ -11,7 +11,15 @@ jobs:
     runs-on: public-ledgerhq-shared-small
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exchange-sdk
+        uses: actions/checkout@v4
+
+      - name: Checkout swap-wiremock
+        uses: actions/checkout@v4
+        with:
+          repository: LedgerHQ/swap-wiremock
+          path: swap-wiremock
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9.4.0
