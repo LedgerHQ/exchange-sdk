@@ -1,6 +1,9 @@
-name: Tests
+name: e2e Tests
 
-on: pull_request
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
 
 permissions:
   contents: write
