@@ -1,6 +1,6 @@
 name: Tests
 
-on: workflow_dispatch
+on: pull_request
 
 permissions:
   contents: write
