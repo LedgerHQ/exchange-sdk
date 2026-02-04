@@ -19,6 +19,7 @@ jobs:
         with:
           repository: LedgerHQ/swap-wiremock
           path: swap-wiremock
+          ssh-key: ${{ secrets.SWAP_WIREMOCK_DEPLOY_KEY }}
 
       - uses: pnpm/action-setup@v4
         with:
