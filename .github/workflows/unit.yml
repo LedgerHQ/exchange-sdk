@@ -26,4 +26,4 @@ jobs:
         run: "pnpm i"
 
       - name: "Test"
-        run: "pnpm test:lib"
+        run: "pnpm test:unit"

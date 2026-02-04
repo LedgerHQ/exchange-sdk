@@ -17,7 +17,7 @@ describe("ExchangeSDK.fund", () => {
     await resetWireMockRequests();
   });
 
-  it("should return a transactionId and swapId", async () => {
+  it("should return a transactionId", async () => {
     const result = await sdk.fund({
       fromAccountId: "account-btc-1",
       fromAmount: new BigNumber(0.00000001),

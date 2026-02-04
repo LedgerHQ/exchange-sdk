@@ -14,7 +14,7 @@
     "lint": "turbo lint",
     "test": "pnpm --filter=exchange-sdk test",
     "test:e2e": "pnpm --filter=exchange-sdk test:e2e",
-    "test:unit": "pnpm --filter=exchange-sdk test:ci",
+    "test:unit": "pnpm --filter=exchange-sdk test:unit",
     "format": "pnpm exec prettier --write lib/src examples"
   },
   "devDependencies": {
