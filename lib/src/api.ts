@@ -276,7 +276,6 @@ export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
 
 export async function confirmFund(data: ConfirmFundRequest) {
   const { quoteId, ...payload } = data;
-  console.log(">> bash", `/history/webhook/v1/transaction/${quoteId}/accepted`);
   await sellAxiosClient.post(
     `/history/webhook/v1/transaction/${quoteId}/accepted`,
     payload,
