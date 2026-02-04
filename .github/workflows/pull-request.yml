@@ -1,0 +1,29 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: public-ledgerhq-shared-small
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.4.0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: "Install dependencies"
+        run: "pnpm i"
+
+      - name: "Test"
+        run: "pnpm test:lib"

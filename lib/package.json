@@ -14,10 +14,8 @@
     "clean": "rm -rf node_modules lib",
     "lint": "eslint --cache --ext .ts \"src\"",
     "test": "jest",
-    "test:ci": "pnpm run test:lib && pnpm run test:e2e:backendConnectivity",
-    "test:lib": "jest lib/src",
-    "test:e2e:backendConnectivity": "jest lib/__e2e__/backendConnectivity",
-    "test:e2e:flows": "jest lib/__e2e__/flows"
+    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest lib/__e2e__",
+    "test:unit": "jest lib/src"
   },
   "dependencies": {
     "@ledgerhq/hw-app-exchange": "0.14.0-nightly.2",
