@@ -55,8 +55,8 @@ importers:
         specifier: workspace:*
         version: link:../../lib
       '@ledgerhq/tracking-sdk':
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: ^1.5.0
+        version: 1.5.0
       '@ledgerhq/wallet-api-client':
         specifier: ^1.12.0
         version: 1.12.0(@ton/crypto@3.3.0)
@@ -229,8 +229,8 @@ importers:
         specifier: 0.14.0-nightly.2
         version: 0.14.0-nightly.2(rxjs@7.8.1)
       '@ledgerhq/tracking-sdk':
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^1.5.0
+        version: 1.5.0
       axios:
         specifier: ^1.3.4
         version: 1.3.4
@@ -1218,11 +1218,8 @@ packages:
   '@ledgerhq/logs@6.13.0':
     resolution: {integrity: sha512-4+qRW2Pc8V+btL0QEmdB2X+uyx0kOWMWE1/LWsq5sZy3Q5tpi4eItJS6mB0XL3wGW59RQ+8bchNQQ1OW/va8Og==}
 
-  '@ledgerhq/tracking-sdk@1.3.0':
-    resolution: {integrity: sha512-BhQRfv0VlutiTJY87ig9B+9zu4oq0GlejQosyp0LzMhBKEYQiUJ6JB21L5027MPYR9ouqVr59Z7DTC8OSD2MHg==}
-
-  '@ledgerhq/tracking-sdk@1.4.0':
-    resolution: {integrity: sha512-zwVWJbgc+LuyIOVzM4bS4TgBFQNr9T1iSBCkX8rHgm5Ue7SjrUkDZ6MR5t7zuUFIqH49Zo0sQMFodAQBEkoBQQ==}
+  '@ledgerhq/tracking-sdk@1.5.0':
+    resolution: {integrity: sha512-kPzPuT62r1o4nN2cxMgPZ4UM70AI1rFHtAPKKoHj1cPDLXqnfqODNRlQA93yoIlSM11y4La6ofeupXsVlY6q5Q==}
 
   '@ledgerhq/types-cryptoassets@7.26.0':
     resolution: {integrity: sha512-OPp2tZYe/Xh34NhSNm4hHSxtO3xc5o1ULald6Kd9Fvclzz2JdJMnaFvvRy+BT8SXN0rUImLJ+Xx65XULfjnvbA==}
@@ -4945,6 +4942,10 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   uuid@2.0.1:
     resolution: {integrity: sha512-nWg9+Oa3qD2CQzHIP4qKUqwNfzKn8P0LtFhotaCTFchsV7ZfDhAybeip/HZVeMIpZi9JgY1E3nUlwaCmZT1sEg==}
     deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
@@ -6281,19 +6282,11 @@ snapshots:
 
   '@ledgerhq/logs@6.13.0': {}
 
-  '@ledgerhq/tracking-sdk@1.3.0':
+  '@ledgerhq/tracking-sdk@1.5.0':
     dependencies:
       '@segment/analytics-next': 1.81.1
       firebase: 12.6.0
-      zod: 4.1.12
-    transitivePeerDependencies:
-      - '@react-native-async-storage/async-storage'
-      - encoding
-
-  '@ledgerhq/tracking-sdk@1.4.0':
-    dependencies:
-      '@segment/analytics-next': 1.81.1
-      firebase: 12.6.0
+      uuid: 13.0.0
       zod: 4.1.12
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
@@ -11114,6 +11107,8 @@ snapshots:
   uuid@11.0.3: {}
 
   uuid@11.1.0: {}
+
+  uuid@13.0.0: {}
 
   uuid@2.0.1: {}
 
