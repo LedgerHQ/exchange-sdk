@@ -1,7 +1,5 @@
 import BigNumber from "bignumber.js";
 import { ExchangeSDK } from "../../src";
-import { profiles } from "@ledgerhq/wallet-api-simulator";
-import { SimulatorProfile } from "@ledgerhq/wallet-api-simulator/lib/types";
 import {
   resetWireMockRequests,
   findRequestPayloads,
@@ -19,13 +17,12 @@ describe("ExchangeSDK.sell", () => {
     await resetWireMockRequests();
   });
 
-  it("should return a transaction", async () => {
-    const result = await sdk.sell({
+  it("should return a transactionId and swapId", async () => {
+    const result = await sdk.fund({
       fromAccountId: "account-btc-1",
       fromAmount: new BigNumber(0.00000001),
       quoteId: "88c80c6b-c8a8-4af5-b594-e4454323d06c",
-      toFiat: "EUR",
-      rate: 1,
+      feeStrategy: "medium",
     });
 
     expect(result).toBe("MOCK_TRANSACTION_HASH");
@@ -33,10 +30,9 @@ describe("ExchangeSDK.sell", () => {
     /**
      * Verify the requests sent to the backend
      */
-
     const remitPayloads = await findRequestPayloads(
       "POST",
-      "/exchange/v1/sell/onramp_offramp/remit",
+      "/exchange/v1/fund/card/remit",
     );
 
     expect(remitPayloads).toHaveLength(1);
@@ -44,7 +40,7 @@ describe("ExchangeSDK.sell", () => {
       quoteId: "88c80c6b-c8a8-4af5-b594-e4454323d06c",
       provider: "transak",
       fromCurrency: "bitcoin",
-      toCurrency: "EUR",
+      toCurrency: "bitcoin",
       refundAddress: "11111a11-1aaa-111a-1aa1-aa11aa11aa11",
       amountFrom: 1e-8,
       amountTo: 1e-8,
@@ -53,7 +49,7 @@ describe("ExchangeSDK.sell", () => {
 
     const confirmPayloads = await findRequestPayloads(
       "POST",
-      "/history/webhook/v1/transaction/mock-generic-sell-id-001/accepted",
+      "/history/webhook/v1/transaction/88c80c6b-c8a8-4af5-b594-e4454323d06c/accepted",
     );
 
     expect(confirmPayloads).toHaveLength(1);
