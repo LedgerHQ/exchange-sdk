@@ -24,9 +24,46 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9.4.0
+
       - uses: actions/setup-node@v3
         with:
           node-version: "18.x"
+
+      ##########################################
+      # Install mkcert + generate local root CA
+      ##########################################
+      - name: Install mkcert
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3-tools
+          curl -L https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64 \
+            -o mkcert
+          chmod +x mkcert
+          sudo mv mkcert /usr/local/bin/
+          mkcert -install
+
+      - name: Generate certificates
+        working-directory: swap-wiremock
+        run: |
+          chmod +x ./setup-certs.sh
+          ./setup-certs.sh
+
+      ##########################################
+      # Start Wiremock mock backend
+      ##########################################
+      - name: Start mock backend (Wiremock)
+        working-directory: swap-wiremock
+        run: docker compose up -d
+      - name: Wait for mock backend
+        run: |
+          for i in {1..30}; do
+            if curl -sk https://127.0.0.1:8443/v5/health > /dev/null; then
+              echo "Mock backend ready!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Mock backend did not start in time" && exit 1
 
       - name: "Install dependencies"
         run: "pnpm i"
