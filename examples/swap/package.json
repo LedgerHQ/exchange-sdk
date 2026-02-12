@@ -14,7 +14,7 @@
     "@ledgerhq/wallet-api-client": "^1.7.1",
     "@ledgerhq/wallet-api-exchange-module": "^0.10.0",
     "bignumber.js": "^9.1.2",
-    "next": "^13.4.1",
+    "next": "^15.5.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
