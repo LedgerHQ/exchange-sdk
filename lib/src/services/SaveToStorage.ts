@@ -2,6 +2,7 @@ import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
 import { EventMappingTable, CardProvider } from "./SaveToStorage.types";
 
 const STORAGE_NAMESPACE = "v4_card_integration_state";
+const SHARED_STORE_KEY = "exchange_sdk";
 
 const CARD_INTEGRATION_MAPPING: EventMappingTable = {
   page_view: {
@@ -47,7 +48,10 @@ export const createSaveToStorageService = ({
       return;
     }
 
-    const currentValue = await walletAPI.storage.get(STORAGE_NAMESPACE);
+    const currentValue = await walletAPI.storage.get(
+      STORAGE_NAMESPACE,
+      SHARED_STORE_KEY,
+    );
     const parsedValue = currentValue ? JSON.parse(currentValue) : {};
 
     const providerState = parsedValue[providerId] || {
@@ -59,7 +63,11 @@ export const createSaveToStorageService = ({
 
     parsedValue[providerId] = providerState;
 
-    await walletAPI.storage.set(STORAGE_NAMESPACE, JSON.stringify(parsedValue));
+    await walletAPI.storage.set(
+      STORAGE_NAMESPACE,
+      JSON.stringify(parsedValue),
+      SHARED_STORE_KEY,
+    );
   };
 
   return {

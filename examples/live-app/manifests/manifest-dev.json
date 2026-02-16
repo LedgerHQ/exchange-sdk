@@ -42,5 +42,7 @@
     "custom.exchange.complete",
     "custom.close"
   ],
+  "featureFlags": ["lwmWallet40"],
+  "storage": ["exchange_sdk"],
   "domains": ["https://*", "http://*"]
 }
