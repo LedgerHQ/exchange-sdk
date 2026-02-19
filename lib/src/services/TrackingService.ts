@@ -7,6 +7,14 @@ import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
 
 import { VERSION } from "../version";
 
+type TrackEventFn = TrackingSdk["trackEvent"];
+type TrackPageFn = TrackingSdk["trackPage"];
+
+export type TrackEvent = Parameters<TrackEventFn>[0];
+export type TrackEventProperties = Parameters<TrackEventFn>[1];
+export type TrackPage = Parameters<TrackPageFn>[0];
+export type TrackPageProperties = Parameters<TrackPageFn>[1];
+
 const CONTEXT: TrackingContext = {
   app: {
     name: "exchange-sdk",
@@ -62,8 +70,8 @@ export class TrackingService {
   }
 
   async trackEvent(
-    eventName: Parameters<TrackingSdk["trackEvent"]>[0],
-    properties: Parameters<TrackingSdk["trackEvent"]>[1],
+    eventName: TrackEvent,
+    properties: TrackEventProperties,
   ): ReturnType<TrackingSdk["trackEvent"]> {
     const optInStatus = await this.getLedgerOptInStatus();
 
@@ -79,8 +87,8 @@ export class TrackingService {
   }
 
   async trackPage(
-    pageName: Parameters<TrackingSdk["trackPage"]>[0],
-    properties: Parameters<TrackingSdk["trackPage"]>[1],
+    pageName: TrackPage,
+    properties: TrackPageProperties,
   ): ReturnType<TrackingSdk["trackPage"]> {
     const optInStatus = await this.getLedgerOptInStatus();
 
