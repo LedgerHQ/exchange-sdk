@@ -8,7 +8,7 @@ import {
 } from "../utils/wiremockHelpers";
 import { createMockedSdk } from "../utils/createMockedSdk";
 
-describe("ExchangeSDK.sell", () => {
+describe("ExchangeSDK.swap", () => {
   let sdk: ExchangeSDK;
 
   beforeEach(async () => {
@@ -19,46 +19,51 @@ describe("ExchangeSDK.sell", () => {
     await resetWireMockRequests();
   });
 
-  it("should return a transaction", async () => {
-    const result = await sdk.sell({
+  it("should return a transactionId and swapId", async () => {
+    const result = await sdk.swap({
       fromAccountId: "account-btc-1",
+      toAccountId: "account-eth-1",
       fromAmount: new BigNumber(0.00000001),
       quoteId: "88c80c6b-c8a8-4af5-b594-e4454323d06c",
-      toFiat: "EUR",
+      feeStrategy: "medium",
       rate: 1,
     });
 
-    expect(result).toBe("MOCK_TRANSACTION_HASH");
+    expect(result).toStrictEqual({
+      swapId: "mock-swap-id-001",
+      transactionId: "MOCK_TRANSACTION_HASH",
+    });
 
     /**
      * Verify the requests sent to the backend
      */
-
-    const remitPayloads = await findRequestPayloads(
-      "POST",
-      "/exchange/v1/sell/onramp_offramp/remit",
-    );
+    const remitPayloads = await findRequestPayloads("POST", "/v5/swap");
 
     expect(remitPayloads).toHaveLength(1);
     expect(remitPayloads[0]).toStrictEqual({
-      quoteId: "88c80c6b-c8a8-4af5-b594-e4454323d06c",
       provider: "transak",
-      fromCurrency: "bitcoin",
-      toCurrency: "EUR",
+      deviceTransactionId: "b3f1df21-9016-4bba-b0ea-46b1a9b1b84c",
+      from: "bitcoin",
+      to: "ethereum",
+      address: "11111a11-1aaa-111a-1aa1-aa11aa11aa11",
       refundAddress: "11111a11-1aaa-111a-1aa1-aa11aa11aa11",
-      amountFrom: 0.00000001,
-      amountTo: 0.00000001,
-      nonce: "b3f1df21-9016-4bba-b0ea-46b1a9b1b84c",
+      amountFrom: "1e-8",
+      amountFromInSmallestDenomination: 1,
+      rateId: "88c80c6b-c8a8-4af5-b594-e4454323d06c",
     });
 
     const confirmPayloads = await findRequestPayloads(
       "POST",
-      "/history/webhook/v1/transaction/mock-generic-sell-id-001/accepted",
+      "/v5/swap/accepted",
     );
 
     expect(confirmPayloads).toHaveLength(1);
     expect(confirmPayloads[0]).toStrictEqual({
       provider: "transak",
+      hardwareWalletType: "",
+      sourceCurrencyId: "bitcoin",
+      swapId: "mock-swap-id-001",
+      targetCurrencyId: "ethereum",
       transactionId: "MOCK_TRANSACTION_HASH",
     });
   });
