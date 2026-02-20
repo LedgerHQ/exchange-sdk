@@ -1,8 +1,10 @@
 import BigNumber from "bignumber.js";
-import { confirmSwap, retrieveSwapPayload } from "../../src/api";
 import { profiles } from "@ledgerhq/wallet-api-simulator";
+import { createBackendService } from "../../src/services/BackendService";
 
 describe("Api >> Swap", () => {
+  const backend = createBackendService("staging");
+
   describe("retrieveSwapPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {
@@ -15,9 +17,11 @@ describe("Api >> Swap", () => {
         amountInAtomicUnit: new BigNumber(1),
       };
 
-      await expect(retrieveSwapPayload(payload)).rejects.toMatchObject({
-        response: { status: 400 },
-      });
+      await expect(backend.swap.retrievePayload(payload)).rejects.toMatchObject(
+        {
+          response: { status: 400 },
+        },
+      );
     });
   });
 
@@ -29,7 +33,7 @@ describe("Api >> Swap", () => {
         transactionId: "xxx",
       };
 
-      await expect(confirmSwap(payload)).rejects.toMatchObject({
+      await expect(backend.swap.confirm(payload)).rejects.toMatchObject({
         response: { status: 400 },
       });
     });

@@ -1,12 +1,6 @@
 import { Account } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
-import { ExchangeType, ProductType } from "./sdk.types";
-
-export type SupportedProductsByExchangeType = {
-  [key in ExchangeType]: Partial<{
-    [key in ProductType]: string;
-  }>;
-};
+import { ProductType } from "../sdk.types";
 
 /**
  * SWAP *
@@ -157,20 +151,3 @@ export interface FundResponsePayload {
     signature: string;
   };
 }
-
-/**
- * TOKEN APROVAL *
- **/
-
-export type ConfirmTokenApprovalRequest = {
-  provider: string;
-  orderId: string;
-  transactionId: string;
-};
-
-export type CancelTokenApprovalRequest = {
-  provider: string;
-  orderId: string;
-  statusCode?: string;
-  errorMessage?: string;
-};

@@ -1,5 +1,4 @@
 import BigNumber from "bignumber.js";
-import { GetSwapPayload } from "./sdk";
 
 export type FeeStrategy = "slow" | "medium" | "fast" | "custom";
 
@@ -35,7 +34,6 @@ export type SwapInfo = {
   rate: number;
   toNewTokenId?: string;
   swapAppVersion?: string;
-  getSwapPayload?: GetSwapPayload;
 };
 
 /**
