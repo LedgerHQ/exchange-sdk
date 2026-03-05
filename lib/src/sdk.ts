@@ -189,7 +189,7 @@ export class ExchangeSDK {
     //
     // STEP 3 — Retrieve raw backend payload
     //
-    const SwapRequestPayload: SwapRequestPayload = {
+    const swapRemitRequest: SwapRequestPayload = {
       provider: this.providerId,
       deviceTransactionId,
       from: fromAccount.currency,
@@ -208,7 +208,7 @@ export class ExchangeSDK {
       payinExtraId,
       extraTransactionParameters,
     } = await this.backend.swap
-      .retrievePayload(SwapRequestPayload)
+      .retrievePayload(swapRemitRequest)
       .catch((error: Error) => {
         this.handleError({
           error,

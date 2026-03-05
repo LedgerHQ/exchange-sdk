@@ -298,35 +298,6 @@ describe("sell", () => {
   });
   it("sends back the 'transactionId' from the WalletAPI", async () => {
     // GIVEN
-    const mockSellPayload = jest.fn();
-    mockSellPayload.mockResolvedValue({
-      recipientAddress: "0xfff",
-      amount: new BigNumber("1.907"),
-      binaryPayload: Buffer.from(""),
-      signature: Buffer.from(""),
-    });
-    const sellData: SellInfo = {
-      quoteId: "quoteId",
-      fromAccountId: "id-1",
-      fromAmount: new BigNumber("1.908"),
-      feeStrategy: "slow" as FeeStrategy,
-      getSellPayload: mockSellPayload,
-    };
-
-    // WHEN
-    const transactionId = await sdk.sell(sellData);
-
-    // THEN
-    expect(mockStartExchange).toBeCalled();
-    expect(mockAccountList).toBeCalled();
-    expect(mockCompleteSwap).not.toBeCalled();
-    expect(mockCompleteFund).not.toBeCalled();
-    expect(mockCompleteSell).toBeCalled();
-    expect(transactionId).toEqual("TransactionId");
-  });
-
-  it("handles the scenario when no getSellPayload is provided", async () => {
-    // GIVEN
     const sellData: SellInfo = {
       quoteId: "quoteId",
       fromAccountId: "id-1",

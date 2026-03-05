@@ -48,21 +48,8 @@ export type SellInfo = {
   ledgerSessionId?: string;
   rate?: number;
   customFeeConfig?: { [key: string]: BigNumber };
-  getSellPayload?: GetSellPayload;
   type?: ProductType;
 };
-
-export type GetSellPayload = (
-  nonce: string,
-  sellAddress: string,
-  amount: BigNumber,
-) => Promise<{
-  recipientAddress: string;
-  amount: BigNumber;
-  binaryPayload: string;
-  signature: Buffer;
-  sellId: string;
-}>;
 
 /**
  * Fund information required to request a user's fund transaction.
