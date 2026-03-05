@@ -16,8 +16,8 @@ import {
   FundResponsePayload,
   SellRequestPayload,
   SellResponsePayload,
-  SwapPayloadRequestData,
   SwapPayloadResponse,
+  SwapRequestPayload,
 } from "./BackendService.types";
 import { VERSION } from "../version";
 import { ExchangeType, ProductType } from "../sdk.types";
@@ -41,16 +41,29 @@ const createSwapBackend = (client: AxiosInstance) => {
       : undefined;
 
   return {
-    retrievePayload: async (req: SwapPayloadRequestData) => {
-      const res = await client.post<SwapPayloadResponse>("", req);
+    retrievePayload: async (req: SwapRequestPayload) => {
+      const endpoint = getEndpoint(ExchangeType.SWAP, ProductType.SWAP);
+      const res = await client.post<SwapPayloadResponse>(endpoint, req);
       return res.data;
     },
 
-    confirm: (payload: ConfirmSwapRequest, swapAppVersion?: string) =>
-      client.post("accepted", payload, withVersionHeader(swapAppVersion)),
+    confirm: (payload: ConfirmSwapRequest, swapAppVersion?: string) => {
+      const endpoint = getEndpoint(ExchangeType.SWAP, ProductType.SWAP);
+      return client.post(
+        `${endpoint}/accepted`,
+        payload,
+        withVersionHeader(swapAppVersion),
+      );
+    },
 
-    cancel: (payload: CancelSwapRequest, swapAppVersion?: string) =>
-      client.post("cancelled", payload, withVersionHeader(swapAppVersion)),
+    cancel: (payload: CancelSwapRequest, swapAppVersion?: string) => {
+      const endpoint = getEndpoint(ExchangeType.SWAP, ProductType.SWAP);
+      return client.post(
+        `${endpoint}/cancelled`,
+        payload,
+        withVersionHeader(swapAppVersion),
+      );
+    },
   };
 };
 

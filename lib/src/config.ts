@@ -4,17 +4,17 @@ export type Environment = "production" | "staging" | "preproduction";
 
 export const BACKEND_CONFIG = {
   production: {
-    swap: "https://swap.ledger.com/v5/swap",
+    swap: "https://swap.ledger.com/",
     sell: "https://exchange-tx-manager.aws.prd.ldg-tech.com/",
     fund: "https://exchange-tx-manager.aws.prd.ldg-tech.com/",
   },
   staging: {
-    swap: "https://swap-stg.ledger-test.com/v5/swap",
+    swap: "https://swap-stg.ledger-test.com/",
     sell: "https://exchange-tx-manager.aws.stg.ldg-tech.com/",
     fund: "https://exchange-tx-manager.aws.stg.ldg-tech.com/",
   },
   preproduction: {
-    swap: "https://swap-ppr.ledger-test.com",
+    swap: "https://swap-ppr.ledger-test.com/",
     sell: "https://exchange-tx-manager.aws.ppr.ldg-tech.com/",
     fund: "https://exchange-tx-manager.aws.ppr.ldg-tech.com/",
   },
@@ -49,6 +49,12 @@ export const exchangeProductConfig: ExchangeProductConfig = {
   [ExchangeType.FUND]: {
     [ProductType.CARD]: {
       endpoint: "exchange/v1/fund/card/remit",
+    },
+  },
+
+  [ExchangeType.SWAP]: {
+    [ProductType.SWAP]: {
+      endpoint: "v5/swap",
     },
   },
 };

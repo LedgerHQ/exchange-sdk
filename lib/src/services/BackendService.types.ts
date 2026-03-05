@@ -6,16 +6,18 @@ import { ProductType } from "../sdk.types";
  * SWAP *
  **/
 
-export type SwapPayloadRequestData = {
+export type SwapRequestPayload = {
   provider: string;
   deviceTransactionId: string;
-  fromAccount: Account;
-  toAccount: Account;
-  amount: BigNumber;
-  amountInAtomicUnit: BigNumber;
-  quoteId?: string;
-  toNewTokenId?: string;
+  from: string;
+  to: string;
+  address: string;
+  refundAddress: string;
+  amountFrom: string;
+  amountFromInSmallestDenomination: number;
+  rateId?: string;
 };
+
 export type SwapPayloadResponse = {
   binaryPayload: string;
   signature: string;

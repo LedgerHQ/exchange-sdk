@@ -34,6 +34,7 @@ import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { createTrackingService } from "./services/TrackingService";
 import { createBackendService } from "./services/BackendService";
+import type { SwapRequestPayload } from "./services/BackendService.types";
 import {
   decodeFundPayload,
   decodeSellPayload,
@@ -188,6 +189,17 @@ export class ExchangeSDK {
     //
     // STEP 3 — Retrieve raw backend payload
     //
+    const SwapRequestPayload: SwapRequestPayload = {
+      provider: this.providerId,
+      deviceTransactionId,
+      from: fromAccount.currency,
+      to: toNewTokenId ?? toAccount.currency,
+      address: toAccount.address,
+      refundAddress: fromAccount.address,
+      amountFrom: fromAmount.toString(),
+      amountFromInSmallestDenomination: Number(fromAmountAtomic),
+      rateId: quoteId,
+    };
     const {
       binaryPayload,
       signature,
@@ -196,16 +208,7 @@ export class ExchangeSDK {
       payinExtraId,
       extraTransactionParameters,
     } = await this.backend.swap
-      .retrievePayload({
-        provider: this.providerId,
-        deviceTransactionId,
-        fromAccount,
-        toAccount,
-        toNewTokenId,
-        amount: fromAmount,
-        amountInAtomicUnit: fromAmountAtomic,
-        quoteId,
-      })
+      .retrievePayload(SwapRequestPayload)
       .catch((error: Error) => {
         this.handleError({
           error,

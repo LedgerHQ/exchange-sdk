@@ -91,13 +91,24 @@ describe("BackendService", () => {
       } as any);
     });
 
-    it("retrievePayload posts to ''", async () => {
+    it("retrievePayload posts to 'v5/swap'", async () => {
       postMock.mockResolvedValue({ data: { ok: true } });
 
       const backend = createBackendService("staging").swap;
-      const result = await backend.retrievePayload({ foo: 1 } as any);
+      const request = {
+        provider: "transak",
+        deviceTransactionId: "tx-1",
+        from: "bitcoin",
+        to: "ethereum",
+        address: "addr-to",
+        refundAddress: "addr-from",
+        amountFrom: "1e-8",
+        amountFromInSmallestDenomination: 1,
+        rateId: "quote-123",
+      };
+      const result = await backend.retrievePayload(request);
 
-      expect(postMock).toHaveBeenCalledWith("", { foo: 1 });
+      expect(postMock).toHaveBeenCalledWith("v5/swap", request);
       expect(result).toEqual({ ok: true });
     });
 
@@ -107,7 +118,7 @@ describe("BackendService", () => {
       backend.confirm({ foo: 1 } as any, "2.0.0");
 
       expect(postMock).toHaveBeenCalledWith(
-        "accepted",
+        "v5/swap/accepted",
         { foo: 1 },
         { headers: { "x-swap-app-version": "2.0.0" } },
       );
@@ -118,7 +129,11 @@ describe("BackendService", () => {
 
       backend.cancel({ bar: 2 } as any);
 
-      expect(postMock).toHaveBeenCalledWith("cancelled", { bar: 2 }, undefined);
+      expect(postMock).toHaveBeenCalledWith(
+        "v5/swap/cancelled",
+        { bar: 2 },
+        undefined,
+      );
     });
   });
 

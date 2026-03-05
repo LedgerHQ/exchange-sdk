@@ -14,7 +14,7 @@
     "clean": "rm -rf node_modules lib",
     "lint": "eslint --cache --ext .ts \"src\"",
     "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest",
-    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest lib/__e2e__",
+    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest lib/__e2e__ --runInBand",
     "test:unit": "jest lib/src"
   },
   "dependencies": {

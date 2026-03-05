@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-import { profiles } from "@ledgerhq/wallet-api-simulator";
 import { createBackendService } from "../../src/services/BackendService";
 
 describe("Api >> Swap", () => {
@@ -8,13 +6,15 @@ describe("Api >> Swap", () => {
   describe("retrieveSwapPayload", () => {
     it("should reject when an invalid payload is passed", async () => {
       const payload = {
-        quoteId: "example-quote-id",
         provider: "",
         deviceTransactionId: "xxx",
-        fromAccount: profiles.STANDARD.accounts[0],
-        toAccount: profiles.STANDARD.accounts[0],
-        amount: new BigNumber(1),
-        amountInAtomicUnit: new BigNumber(1),
+        from: "bitcoin",
+        to: "ethereum",
+        address: "0xinvalid",
+        refundAddress: "0xinvalid",
+        amountFrom: "1",
+        amountFromInSmallestDenomination: 1,
+        rateId: "example-quote-id",
       };
 
       await expect(backend.swap.retrievePayload(payload)).rejects.toMatchObject(
