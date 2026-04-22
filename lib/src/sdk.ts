@@ -538,9 +538,8 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         transaction,
-        //TODO: Remove any type cast after updating types for completeFund in LL
-        binaryPayload: binaryPayload as any,
-        signature: binaryPayload as any,
+        binaryPayload: binaryPayload,
+        signature: signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
