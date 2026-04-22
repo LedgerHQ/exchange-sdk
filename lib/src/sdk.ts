@@ -928,10 +928,8 @@ export class ExchangeSDK {
     });
 
     const recipientAddress: string = data.payinAddress;
-    const binaryPayload: Buffer | string = Buffer.from(
-      data.providerSig.payload,
-    );
-    const signature: Buffer | string = Buffer.from(data.providerSig.signature);
+    const binaryPayload = data.providerSig.payload;
+    const signature = data.providerSig.signature;
 
     return {
       recipientAddress,
