@@ -24,7 +24,7 @@ import {
 } from "./api";
 import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
-import { CompleteExchangeError } from "./error/SwapError";
+import { CompleteExchangeError } from "./error/ExchangeSdkError";
 import {
   IgnoredSignatureStepError,
   PayinExtraIdError,

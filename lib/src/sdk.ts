@@ -26,7 +26,7 @@ import {
   confirmTokenApproval,
   supportedProductsByExchangeType,
 } from "./api";
-import { CompleteExchangeError } from "./error/SwapError";
+import { CompleteExchangeError } from "./error/ExchangeSdkError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
 import walletApiDecorator, {
