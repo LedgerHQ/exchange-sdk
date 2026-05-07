@@ -1,18 +1,3 @@
-import {
-  IgnoredSignatureStepError,
-  ListAccountError,
-  ListCurrencyError,
-  NonceStepError,
-  NotEnoughFunds,
-  PayinExtraIdError,
-  PayloadStepError,
-  ProductTypeNotSupportedError,
-  RequestAccountError,
-  UnsupportedTokenTypeNotSupportedError,
-  SignatureStepError,
-  SignError,
-  UnknownAccountError,
-} from "./SwapError";
 import ExchangeSdkError, { ExchangeSdkErrorType } from "./ExchangeSdkError";
 import { DrawerClosedError } from "./LedgerLiveError";
 
@@ -32,37 +17,19 @@ export enum StepError {
   UNSUPPORTED_TOKEN = "UnsupportedTokenTypeStepError",
 }
 
-export enum CustomErrorType {
-  SWAP = "swap",
-}
-
 export type ParseError = {
   error: Error;
   step?: StepError;
-  customErrorType?: CustomErrorType;
 };
 
-export const parseError = ({ error, step, customErrorType }: ParseError) => {
-  if (error instanceof Error && error.name === "DrawerClosedError") {
-    return new DrawerClosedError(error);
-  }
-
-  switch (customErrorType) {
-    case "swap":
-      return step ? new SwapErrors[step](error) : error;
-    default:
-      const genericError = step && GenericErrors[step];
-      return genericError ? new genericError(error) : error;
-  }
-};
 type ErrorConstructor = (new (err?: Error) => ExchangeSdkErrorType) | undefined;
 
-const GenericErrors: Record<StepError, ErrorConstructor> = {
+const ErrorMap: Record<StepError, ErrorConstructor> = {
   [StepError.NONCE]: ExchangeSdkError.NonceStepError,
   [StepError.PAYLOAD]: ExchangeSdkError.PayloadStepError,
   [StepError.SIGNATURE]: ExchangeSdkError.SignatureStepError,
+  [StepError.IGNORED_SIGNATURE]: ExchangeSdkError.IgnoredSignatureStepError,
   [StepError.CHECK_FUNDS]: ExchangeSdkError.NotEnoughFunds,
-  [StepError.IGNORED_SIGNATURE]: undefined,
   [StepError.LIST_ACCOUNT]: ExchangeSdkError.ListAccountError,
   [StepError.LIST_CURRENCY]: ExchangeSdkError.ListCurrencyError,
   [StepError.REQUEST_ACCOUNT]: ExchangeSdkError.RequestAccountError,
@@ -74,18 +41,11 @@ const GenericErrors: Record<StepError, ErrorConstructor> = {
     ExchangeSdkError.UnsupportedTokenTypeNotSupportedError,
 };
 
-const SwapErrors: Record<StepError, new (err?: Error) => Error | undefined> = {
-  [StepError.NONCE]: NonceStepError,
-  [StepError.PAYLOAD]: PayloadStepError,
-  [StepError.SIGNATURE]: SignatureStepError,
-  [StepError.CHECK_FUNDS]: NotEnoughFunds,
-  [StepError.IGNORED_SIGNATURE]: IgnoredSignatureStepError,
-  [StepError.LIST_ACCOUNT]: ListAccountError,
-  [StepError.LIST_CURRENCY]: ListCurrencyError,
-  [StepError.REQUEST_ACCOUNT]: RequestAccountError,
-  [StepError.UNKNOWN_ACCOUNT]: UnknownAccountError,
-  [StepError.PAYIN_EXTRA_ID]: PayinExtraIdError,
-  [StepError.PRODUCT_SUPPORT]: ProductTypeNotSupportedError,
-  [StepError.SIGN]: SignError,
-  [StepError.UNSUPPORTED_TOKEN]: UnsupportedTokenTypeNotSupportedError,
+export const parseError = ({ error, step }: ParseError) => {
+  if (error instanceof Error && error.name === "DrawerClosedError") {
+    return new DrawerClosedError(error);
+  }
+
+  const Ctor = step && ErrorMap[step];
+  return Ctor ? new Ctor(error) : error;
 };

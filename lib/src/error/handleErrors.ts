@@ -1,20 +1,18 @@
 import { WalletAPIClient } from "@ledgerhq/wallet-api-client";
-import { SwapError } from "./SwapError";
+import { ExchangeBaseError } from "./ExchangeSdkError";
 
 /**
- * Display error on LL if LL did not do it. Then throw error back to the live app in case they need to react to it
- * swap003 is a special case where we don't want to display the error on LL as they should handle it themselves
- * Some errors are tagged as handled to know they're expected and user input related
- * @param walletAPI
- * @param error
+ * Display error on LL if LL did not do it. Then throw error back to the live app in case they need to react to it.
+ * exchange008 (IgnoredSignatureStepError) is a special case where we don't want to display the error on LL
+ * as they should handle it themselves.
+ * Some errors are tagged as handled to know they're expected and user input related.
  */
-export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
-  const { message, cause } = error as {
-    message: string;
-    cause: {
-      swapCode: string;
-      name: string;
-      message: string;
+export function handleErrors(walletAPI: WalletAPIClient<any>, error: unknown) {
+  const exchangeError = error as {
+    message?: string;
+    cause?: {
+      exchangeErrorCode?: string;
+      name?: string;
     };
   };
 
@@ -27,16 +25,17 @@ export function handleErrors(walletAPI: WalletAPIClient<any>, error: any) {
   const ignoredMessages = new Set(["User refused"]);
 
   if (
-    ignoredMessages.has(message) ||
-    (cause && ignoredErrorNames.has(cause.name))
+    ignoredMessages.has(exchangeError.message ?? "") ||
+    (exchangeError.cause && ignoredErrorNames.has(exchangeError.cause.name ?? ""))
   ) {
-    throw { ...error, handled: true }; // retry ready
+    // Preserve the prototype chain — mutate rather than spread
+    (error as Record<string, unknown>).handled = true;
+    throw error;
   }
-  // Log and throw to Ledger Live if not ignored
+
   if (
-    error instanceof SwapError &&
-    cause &&
-    cause.swapCode !== "swap003Ignored"
+    error instanceof ExchangeBaseError &&
+    exchangeError.cause?.exchangeErrorCode !== "exchange008"
   ) {
     walletAPI.custom.exchange.throwExchangeErrorToLedgerLive({ error });
   }

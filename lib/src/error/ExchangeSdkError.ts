@@ -42,6 +42,13 @@ export class SignatureStepError extends ExchangeBaseError {
     this.name = "SignatureStepError";
   }
 }
+
+export class IgnoredSignatureStepError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange008", nestedError);
+    this.name = "IgnoredSignatureStepError";
+  }
+}
 export class NotEnoughFunds extends ExchangeBaseError {
   constructor() {
     super("exchange004");
@@ -110,6 +117,7 @@ export type ExchangeSdkErrorType =
   | NonceStepError
   | PayloadStepError
   | SignatureStepError
+  | IgnoredSignatureStepError
   | NotEnoughFunds
   | ListAccountError
   | ListCurrencyError
@@ -125,6 +133,7 @@ export default {
   NonceStepError,
   PayloadStepError,
   SignatureStepError,
+  IgnoredSignatureStepError,
   NotEnoughFunds,
   ListAccountError,
   ListCurrencyError,

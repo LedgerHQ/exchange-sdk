@@ -6,7 +6,6 @@ import {
   WalletAPIClient,
 } from "@ledgerhq/wallet-api-client";
 import BigNumber from "bignumber.js";
-import { CustomErrorType } from "./error/parser";
 
 export type UserAccount = {
   account: Account;
@@ -18,7 +17,6 @@ export type TransactionWithCustomFee = TransactionCommon & {
     [key: string]: BigNumber;
   };
   payinExtraId?: string;
-  customErrorType?: CustomErrorType;
   extraTransactionParameters?: string;
 };
 
@@ -40,12 +38,6 @@ export type CreateTransactionArg = {
 
 export type WalletApiDecorator = {
   walletClient: WalletAPIClient;
-  retrieveUserAccount: (
-    accountId: string,
-    customErrorType?: CustomErrorType,
-  ) => Promise<UserAccount>;
-  createTransaction: (
-    arg: CreateTransactionArg,
-    customErrorType?: CustomErrorType,
-  ) => Promise<Transaction>;
+  retrieveUserAccount: (accountId: string) => Promise<UserAccount>;
+  createTransaction: (arg: CreateTransactionArg) => Promise<Transaction>;
 };

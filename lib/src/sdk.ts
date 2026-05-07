@@ -34,7 +34,6 @@ import walletApiDecorator, {
   getCustomModule,
 } from "./wallet-api";
 import {
-  CustomErrorType,
   ParseError,
   parseError,
   StepError,
@@ -135,8 +134,8 @@ export class ExchangeSDK {
     });
   }
 
-  private handleError({ error, step, customErrorType }: ParseError) {
-    const err = parseError({ error, step, customErrorType });
+  private handleError({ error, step }: ParseError) {
+    const err = parseError({ error, step });
     handleErrors(this.walletAPI, err);
   }
 
@@ -164,20 +163,14 @@ export class ExchangeSDK {
     } = info;
 
     const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator.retrieveUserAccount(
-        fromAccountId,
-        CustomErrorType.SWAP,
-      );
+      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
 
     const { account: toAccount } =
-      await this.walletAPIDecorator.retrieveUserAccount(
-        toAccountId,
-        CustomErrorType.SWAP,
-      );
+      await this.walletAPIDecorator.retrieveUserAccount(toAccountId);
 
     // Check enough funds
     const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
-    this.canSpendAmount(fromAccount, fromAmountAtomic, CustomErrorType.SWAP);
+    this.canSpendAmount(fromAccount, fromAmountAtomic);
 
     // Step 1: Ask for deviceTransactionId
     const { transactionId: deviceTransactionId, device } =
@@ -193,7 +186,6 @@ export class ExchangeSDK {
           const err = parseError({
             error,
             step: StepError.NONCE,
-            customErrorType: CustomErrorType.SWAP,
           });
           this.logger.error(err as Error);
           throw err;
@@ -222,7 +214,6 @@ export class ExchangeSDK {
       this.handleError({
         error,
         step: StepError.PAYLOAD,
-        customErrorType: CustomErrorType.SWAP,
       });
       throw error;
     });
@@ -238,7 +229,6 @@ export class ExchangeSDK {
           payinExtraId,
           extraTransactionParameters,
         },
-        CustomErrorType.SWAP,
       )
       .catch(async (error) => {
         await this.cancelSwapOnError(
@@ -285,7 +275,6 @@ export class ExchangeSDK {
         this.handleError({
           error,
           step: StepError.IGNORED_SIGNATURE,
-          customErrorType: CustomErrorType.SWAP,
         });
         throw error;
       });
@@ -700,13 +689,11 @@ export class ExchangeSDK {
   private canSpendAmount(
     account: Account,
     amount: BigNumber,
-    customErrorType?: CustomErrorType,
   ): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
       const err = parseError({
         error: new Error("Not enough funds"),
         step: StepError.CHECK_FUNDS,
-        customErrorType,
       });
       this.logger.error(err as Error);
       throw err;
@@ -719,13 +706,11 @@ export class ExchangeSDK {
   private isProductTypeSupported(
     exchangeType: ExchangeType,
     productType: ProductType,
-    customErrorType?: CustomErrorType,
   ): void {
     if (!supportedProductsByExchangeType[exchangeType][productType]) {
       const err = parseError({
         error: new Error("Product not supported"),
         step: StepError.PRODUCT_SUPPORT,
-        customErrorType,
       });
       this.logger.error(err as Error);
       throw err;
