@@ -538,9 +538,8 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         transaction,
-        //TODO: Remove any type cast after updating types for completeFund in LL
-        binaryPayload: binaryPayload as any,
-        signature: binaryPayload as any,
+        binaryPayload,
+        signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
@@ -929,10 +928,8 @@ export class ExchangeSDK {
     });
 
     const recipientAddress: string = data.payinAddress;
-    const binaryPayload: Buffer | string = Buffer.from(
-      data.providerSig.payload,
-    );
-    const signature: Buffer | string = Buffer.from(data.providerSig.signature);
+    const binaryPayload = data.providerSig.payload;
+    const signature = data.providerSig.signature;
 
     return {
       recipientAddress,

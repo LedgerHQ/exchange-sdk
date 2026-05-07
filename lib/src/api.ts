@@ -26,8 +26,8 @@ import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 import { VERSION } from "./version";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/";
-const SELL_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
-const FUND_BACKEND_URL = "https://exchange-tx-manager.aws.prd.ldg-tech.com/";
+const SELL_BACKEND_URL = "https://exchange-tx-manager.ledger.com/";
+const FUND_BACKEND_URL = "https://exchange-tx-manager.ledger.com/";
 
 const createClientWithVersionInterceptor = (baseURL: string): AxiosInstance => {
   const client = axios.create({ baseURL });
