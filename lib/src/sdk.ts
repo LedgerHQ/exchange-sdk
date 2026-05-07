@@ -538,8 +538,8 @@ export class ExchangeSDK {
         provider: this.providerId,
         fromAccountId,
         transaction,
-        binaryPayload: binaryPayload,
-        signature: signature,
+        binaryPayload,
+        signature,
         feeStrategy,
       })
       .catch(async (error: Error) => {
