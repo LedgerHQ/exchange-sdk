@@ -18,7 +18,7 @@ import {
 import BigNumber from "bignumber.js";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { handleErrors } from "./error/handleErrors";
-import { CustomErrorType, parseError, StepError } from "./error/parser";
+import { parseError, StepError } from "./error/parser";
 import {
   CreateTransactionArg,
   TransactionStrategyFunction,
@@ -68,16 +68,11 @@ export default function walletApiDecorator(
 
   async function retrieveUserAccount(
     accountId: string,
-    customErrorType?: CustomErrorType,
   ): Promise<UserAccount> {
     const allAccounts = await walletAPI.account
       .list()
       .catch(async (error: Error) => {
-        const err = parseError({
-          error,
-          step: StepError.LIST_ACCOUNT,
-          customErrorType,
-        });
+        const err = parseError({ error, step: StepError.LIST_ACCOUNT });
         throw err;
       });
     const account = allAccounts.find((value) => value.id === accountId);
@@ -85,7 +80,6 @@ export default function walletApiDecorator(
       const err = parseError({
         error: new Error("Unknown accountId"),
         step: StepError.UNKNOWN_ACCOUNT,
-        customErrorType,
       });
       handleErrors(walletAPI, err);
       throw err;
@@ -96,11 +90,7 @@ export default function walletApiDecorator(
         currencyIds: [account.currency],
       })
       .catch(async (error: Error) => {
-        const err = parseError({
-          error,
-          step: StepError.LIST_CURRENCY,
-          customErrorType,
-        });
+        const err = parseError({ error, step: StepError.LIST_CURRENCY });
         handleErrors(walletAPI, err);
         throw err;
       });
@@ -108,7 +98,6 @@ export default function walletApiDecorator(
       const err = parseError({
         error: new Error("Unknown fromCurrency"),
         step: StepError.LIST_CURRENCY,
-        customErrorType,
       });
       handleErrors(walletAPI, err);
       throw err;
@@ -129,7 +118,6 @@ export default function walletApiDecorator(
       payinExtraId,
       extraTransactionParameters,
     }: CreateTransactionArg,
-    customErrorType?: CustomErrorType,
   ): Promise<Transaction> {
     let family: Transaction["family"];
     if (currency.type === "TokenCurrency") {
@@ -159,7 +147,6 @@ export default function walletApiDecorator(
       customFeeConfig,
       payinExtraId,
       extraTransactionParameters,
-      customErrorType,
     });
   }
 
@@ -230,13 +217,11 @@ export function stellarTransaction({
   recipient,
   customFeeConfig,
   payinExtraId,
-  customErrorType,
 }: TransactionWithCustomFee): StellarTransaction {
   if (!payinExtraId)
     throw parseError({
       error: new Error("Missing payinExtraId"),
       step: StepError.PAYIN_EXTRA_ID,
-      customErrorType,
     });
 
   return {

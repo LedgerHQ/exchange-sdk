@@ -24,11 +24,13 @@ import {
 } from "./api";
 import { ExchangeSDK } from "./sdk";
 import { getCustomModule } from "./wallet-api";
+import { CompleteExchangeError } from "./error/ExchangeSdkError";
 import {
-  CompleteExchangeError,
   IgnoredSignatureStepError,
   PayinExtraIdError,
-} from "./error/SwapError";
+  RequestAccountError,
+  SignError,
+} from "./error/ExchangeSdkError";
 import {
   FeeStrategy,
   FundInfo,
@@ -36,7 +38,6 @@ import {
   SellInfo,
   TokenApprovalInfo,
 } from "./sdk.types";
-import { RequestAccountError, SignError } from "./error/ExchangeSdkError";
 
 jest.mock("./api");
 
@@ -130,6 +131,9 @@ beforeEach(() => {
   mockCompleteSwap.mockClear();
   mockCompleteSell.mockClear();
   mockCompleteFund.mockClear();
+  (cancelSwap as jest.Mock).mockClear();
+  (cancelSell as jest.Mock).mockClear();
+  (cancelFund as jest.Mock).mockClear();
 });
 
 describe("swap", () => {
@@ -254,7 +258,7 @@ describe("swap", () => {
       {
         provider: "provider-id",
         swapId: "swap-id",
-        statusCode: "SignatureStepError",
+        statusCode: "IgnoredSignatureStepError",
         errorMessage: "error message",
         sourceCurrencyId: "currency-id-1",
         targetCurrencyId: "currency-id-2",

@@ -10,8 +10,7 @@ import {
   stellarTransaction,
   withoutGasLimitTransaction,
 } from "./wallet-api";
-import { PayinExtraIdError } from "./error/SwapError";
-import { CustomErrorType } from "./error/parser";
+import { PayinExtraIdError } from "./error/ExchangeSdkError";
 
 describe("defaultTransaction function", () => {
   it("creates a Transaction with correct properties", () => {
@@ -74,7 +73,6 @@ describe("stellarTransaction function", () => {
         amount: new BigNumber("1.908"),
         recipient: "ADDRESS",
         customFeeConfig: {},
-        customErrorType: CustomErrorType.SWAP,
       }),
     ).toThrowError(PayinExtraIdError);
   });

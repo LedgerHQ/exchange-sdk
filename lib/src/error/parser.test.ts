@@ -1,39 +1,36 @@
 import { ExchangeBaseError } from "./ExchangeSdkError";
-import { CustomErrorType, parseError, StepError } from "./parser";
-import { SwapError } from "./SwapError";
+import { parseError, StepError } from "./parser";
 
 describe("parseError", () => {
   const mockDownstreamError = new Error("error message");
 
   it.each(Object.values(StepError))(
-    "%s - returns generic error when customErrorType is not passed in",
+    "%s - returns an ExchangeBaseError with an exchangeErrorCode",
     (step) => {
       const error = parseError({
         error: mockDownstreamError,
         step,
-      }) as ExchangeBaseError;
+      });
 
-      if (error?.cause?.exchangeErrorCode) {
-        expect(error.cause.exchangeErrorCode).toContain("exchange");
+      if (error instanceof ExchangeBaseError) {
+        expect(error.cause.exchangeErrorCode).toMatch(/^exchange\d+$/);
       } else {
+        // IGNORED_SIGNATURE maps to IgnoredSignatureStepError which IS an ExchangeBaseError,
+        // so reaching here means the step has no mapping — which is intentional for none.
         expect(error).toBe(mockDownstreamError);
       }
     },
   );
-  it.each(Object.values(StepError))(
-    "%s - returns custom swap error when customErrorType is 'swap'",
-    (step) => {
-      const error = parseError({
-        error: mockDownstreamError,
-        step,
-        customErrorType: CustomErrorType.SWAP,
-      }) as SwapError;
 
-      if (error?.cause?.swapCode) {
-        expect(error.cause.swapCode).toContain("swap");
-      } else {
-        expect(error).toBe(mockDownstreamError);
-      }
-    },
-  );
+  it("returns the original error when no step is provided", () => {
+    const error = parseError({ error: mockDownstreamError });
+    expect(error).toBe(mockDownstreamError);
+  });
+
+  it("wraps a DrawerClosedError by name regardless of step", () => {
+    const drawerError = new Error("closed");
+    drawerError.name = "DrawerClosedError";
+    const result = parseError({ error: drawerError, step: StepError.NONCE });
+    expect(result.name).toBe("DrawerClosedError");
+  });
 });

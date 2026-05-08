@@ -42,6 +42,13 @@ export class SignatureStepError extends ExchangeBaseError {
     this.name = "SignatureStepError";
   }
 }
+
+export class IgnoredSignatureStepError extends ExchangeBaseError {
+  constructor(nestedError?: Error) {
+    super("exchange008", nestedError);
+    this.name = "IgnoredSignatureStepError";
+  }
+}
 export class NotEnoughFunds extends ExchangeBaseError {
   constructor() {
     super("exchange004");
@@ -105,11 +112,32 @@ export class SignError extends ExchangeBaseError {
   }
 }
 
+export type CompleteExchangeStep =
+  | "INIT"
+  | "SET_PARTNER_KEY"
+  | "CHECK_PARTNER"
+  | "PROCESS_TRANSACTION"
+  | "CHECK_TRANSACTION_SIGNATURE"
+  | "CHECK_PAYOUT_ADDRESS"
+  | "CHECK_REFUND_ADDRESS"
+  | "SIGN_COIN_TRANSACTION";
+
+export class CompleteExchangeError extends Error {
+  step: CompleteExchangeStep;
+
+  constructor(step: CompleteExchangeStep, message?: string) {
+    super(message);
+    this.name = "CompleteExchangeError";
+    this.step = step;
+  }
+}
+
 export type ExchangeSdkErrorType =
   | ExchangeBaseError
   | NonceStepError
   | PayloadStepError
   | SignatureStepError
+  | IgnoredSignatureStepError
   | NotEnoughFunds
   | ListAccountError
   | ListCurrencyError
@@ -125,6 +153,7 @@ export default {
   NonceStepError,
   PayloadStepError,
   SignatureStepError,
+  IgnoredSignatureStepError,
   NotEnoughFunds,
   ListAccountError,
   ListCurrencyError,
