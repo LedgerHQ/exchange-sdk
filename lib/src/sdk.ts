@@ -2,22 +2,18 @@ import BigNumber from "bignumber.js";
 import {
   Account,
   Currency,
-  MessageSign,
   Transport,
   WalletAPIClient,
   WindowMessageTransport,
   defaultLogger,
 } from "@ledgerhq/wallet-api-client";
 import {
-  cancelSwap,
-  confirmSwap,
   cancelSell,
   confirmSell,
   decodeBinarySellPayload,
   decodeBinaryFundPayload,
   postSellPayload,
   retrieveSellPayload,
-  retrieveSwapPayload,
   setBackendUrl,
   retrieveFundPayload,
   cancelFund,
@@ -26,7 +22,6 @@ import {
   confirmTokenApproval,
   supportedProductsByExchangeType,
 } from "./api";
-import { CompleteExchangeError } from "./error/ExchangeSdkError";
 import { handleErrors } from "./error/handleErrors";
 import { Logger } from "./log";
 import walletApiDecorator, {
@@ -45,17 +40,14 @@ import {
   GetSellPayload,
   ProductType,
   SellInfo,
-  SwapInfo,
   TokenApprovalInfo,
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
 import { TrackingService } from "./services/TrackingService";
 
-export type GetSwapPayload = typeof retrieveSwapPayload;
-
 /**
- * ExchangeSDK allows you to send a swap request to a Ledger Device through a Ledger Live request.
+ * ExchangeSDK allows you to send exchange requests to a Ledger Device through a Ledger Live request.
  * Under the hood, it relies on {@link https://github.com/LedgerHQ/wallet-api WalletAPI}.
  */
 export class ExchangeSDK {
@@ -137,165 +129,6 @@ export class ExchangeSDK {
   private handleError({ error, step }: ParseError) {
     const err = parseError({ error, step });
     handleErrors(this.walletAPI, err);
-  }
-
-  /**
-   * Ask user to validate a swap transaction.
-   * @param {SwapInfo} info - Information necessary to create a swap transaction.
-   * @return {Promise<{transactionId: string, swapId: string}>} Promise of the hash of the sent transaction.
-   * @throws {ExchangeError}
-   */
-  async swap(
-    info: SwapInfo,
-  ): Promise<{ transactionId: string; swapId: string }> {
-    this.logger.log("*** Start Swap ***");
-
-    const {
-      fromAccountId,
-      toAccountId,
-      fromAmount,
-      feeStrategy,
-      customFeeConfig = {},
-      quoteId,
-      toNewTokenId,
-      swapAppVersion,
-      getSwapPayload,
-    } = info;
-
-    const { account: fromAccount, currency: fromCurrency } =
-      await this.walletAPIDecorator.retrieveUserAccount(fromAccountId);
-
-    const { account: toAccount } =
-      await this.walletAPIDecorator.retrieveUserAccount(toAccountId);
-
-    // Check enough funds
-    const fromAmountAtomic = this.convertToAtomicUnit(fromAmount, fromCurrency);
-    this.canSpendAmount(fromAccount, fromAmountAtomic);
-
-    // Step 1: Ask for deviceTransactionId
-    const { transactionId: deviceTransactionId, device } =
-      await this.exchangeModule
-        .startSwap({
-          exchangeType: ExchangeType.SWAP,
-          provider: this.providerId,
-          fromAccountId,
-          toAccountId,
-          tokenCurrency: toNewTokenId || "",
-        })
-        .catch((error: Error) => {
-          const err = parseError({
-            error,
-            step: StepError.NONCE,
-          });
-          this.logger.error(err as Error);
-          throw err;
-        });
-    this.logger.debug("DeviceTransactionId retrieved:", deviceTransactionId);
-
-    // Step 2: Ask for payload creation
-    const payloadRequest = getSwapPayload ?? retrieveSwapPayload;
-    const {
-      binaryPayload,
-      signature,
-      payinAddress,
-      swapId,
-      payinExtraId,
-      extraTransactionParameters,
-    } = await payloadRequest({
-      provider: this.providerId,
-      deviceTransactionId,
-      fromAccount,
-      toAccount,
-      toNewTokenId,
-      amount: fromAmount,
-      amountInAtomicUnit: fromAmountAtomic,
-      quoteId,
-    }).catch((error: Error) => {
-      this.handleError({
-        error,
-        step: StepError.PAYLOAD,
-      });
-      throw error;
-    });
-
-    // Step 3: Send payload
-    const transaction = await this.walletAPIDecorator
-      .createTransaction(
-        {
-          recipient: payinAddress,
-          amount: fromAmountAtomic,
-          currency: fromCurrency,
-          customFeeConfig,
-          payinExtraId,
-          extraTransactionParameters,
-        },
-      )
-      .catch(async (error) => {
-        await this.cancelSwapOnError(
-          error,
-          swapId,
-          this.getSwapStep(error),
-          fromAccount,
-          toAccount,
-          device?.modelId,
-          quoteId ? "fixed" : "float",
-          swapAppVersion,
-        );
-
-        this.handleError({ error });
-        throw error;
-      });
-    const transactionId = await this.exchangeModule
-      .completeSwap({
-        provider: this.providerId,
-        fromAccountId,
-        toAccountId, // This attribute will point to the parent account when the token is new.
-        swapId,
-        transaction,
-        binaryPayload,
-        signature,
-        feeStrategy,
-        tokenCurrency: toNewTokenId,
-      })
-      .catch(async (error: Error) => {
-        await this.cancelSwapOnError(
-          error,
-          swapId,
-          this.getSwapStep(error),
-          fromAccount,
-          toAccount,
-          device?.modelId,
-          quoteId ? "fixed" : "float",
-        );
-
-        if (error.name === "DisabledTransactionBroadcastError") {
-          throw error;
-        }
-
-        this.handleError({
-          error,
-          step: StepError.IGNORED_SIGNATURE,
-        });
-        throw error;
-      });
-
-    this.logger.log("Transaction sent:", transactionId);
-    this.logger.log("*** End Swap ***");
-    await confirmSwap(
-      {
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        transactionId,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: device?.modelId ?? "",
-      },
-      swapAppVersion,
-    ).catch((error: Error) => {
-      this.logger.error(error);
-      // Do not throw error; let the integrating app know that everything is OK for the swap
-    });
-    return { transactionId, swapId };
   }
 
   /**
@@ -631,7 +464,7 @@ export class ExchangeSDK {
   }: {
     message: Buffer;
     currencyIds: string[];
-    options?: MessageSign["params"]["options"];
+    options?: { hwAppId?: string; dependencies?: string[] };
     meta?: Record<string, unknown>;
   }): Promise<{
     account: {
@@ -742,44 +575,6 @@ export class ExchangeSDK {
       throw new Error("Unable to convert amount to atomic unit");
     }
     return convertedNumber;
-  }
-
-  private getSwapStep(error: Error): string {
-    if ((error as CompleteExchangeError).step) {
-      return (error as CompleteExchangeError).step;
-    } else if (error.name === "DisabledTransactionBroadcastError") {
-      return "SIGN_COIN_TRANSACTION";
-    }
-
-    return "UNKNOWN_STEP";
-  }
-
-  private async cancelSwapOnError(
-    error: Error,
-    swapId: string,
-    swapStep: string,
-    fromAccount: Account,
-    toAccount: Account,
-    deviceModelId: string | undefined,
-    swapType: string,
-    swapAppVersion?: string,
-  ) {
-    await cancelSwap(
-      {
-        provider: this.providerId,
-        swapId: swapId ?? "",
-        swapStep: swapStep,
-        statusCode: error.name,
-        errorMessage: error.message,
-        sourceCurrencyId: fromAccount.currency,
-        targetCurrencyId: toAccount.currency,
-        hardwareWalletType: deviceModelId ?? "",
-        swapType,
-      },
-      swapAppVersion,
-    ).catch((cancelError: Error) => {
-      this.logger.error(cancelError);
-    });
   }
 
   private async cancelSellOnError({

@@ -5,7 +5,6 @@ import { ExchangeProvider } from "@/providers/ExchangeProvider";
 import { FundForm } from "@/components/FundForm";
 import { AppShell, Grid, Group, SimpleGrid, Stack, Title } from "@mantine/core";
 import { RequestAndSignForAccount } from "@/components/RequestAndSignForAccountForm";
-import { SwapForm } from "@/components/SwapForm";
 import { SellForm } from "@/components/SellForm";
 import { TokenApprovalForm } from "@/components/TokenApprovalForm";
 import { CloseApp } from "@/components/CloseApp";
@@ -36,8 +35,7 @@ export default function Home() {
                 <FundForm />
                 <RequestAndSignForAccount />
                 <TokenApprovalForm />
-                <SwapForm />
-                <SellForm />
+<SellForm />
               </SimpleGrid>
             </Stack>
             <Stack mt="xl">

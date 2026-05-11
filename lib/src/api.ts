@@ -7,25 +7,19 @@ import { ExchangeType, ProductType } from "./sdk.types";
 import {
   CancelFundRequest,
   CancelSellRequest,
-  CancelSwapRequest,
   CancelTokenApprovalRequest,
   ConfirmFundRequest,
   ConfirmSellRequest,
-  ConfirmSwapRequest,
   ConfirmTokenApprovalRequest,
   FundRequestPayload,
   FundResponsePayload,
   SellRequestPayload,
   SellResponsePayload,
   SupportedProductsByExchangeType,
-  SwapBackendResponse,
-  SwapPayloadRequestData,
-  SwapPayloadResponse,
 } from "./api.types";
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 import { VERSION } from "./version";
 
-const SWAP_BACKEND_URL = "https://swap.ledger.com/";
 const SELL_BACKEND_URL = "https://exchange-tx-manager.ledger.com/";
 const FUND_BACKEND_URL = "https://exchange-tx-manager.ledger.com/";
 
@@ -41,7 +35,6 @@ const createClientWithVersionInterceptor = (baseURL: string): AxiosInstance => {
   return client;
 };
 
-let swapAxiosClient = createClientWithVersionInterceptor(SWAP_BACKEND_URL);
 let sellAxiosClient = createClientWithVersionInterceptor(SELL_BACKEND_URL);
 let fundAxiosClient = createClientWithVersionInterceptor(FUND_BACKEND_URL);
 
@@ -50,7 +43,6 @@ let fundAxiosClient = createClientWithVersionInterceptor(FUND_BACKEND_URL);
  */
 export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
   {
-    [ExchangeType.SWAP]: {},
     [ExchangeType.SELL]: {
       [ProductType.CARD]: "exchange/v1/sell/card/remit",
       [ProductType.SELL]: "exchange/v1/sell/onramp_offramp/remit",
@@ -65,70 +57,8 @@ export const supportedProductsByExchangeType: SupportedProductsByExchangeType =
  * @param {string} url
  */
 export function setBackendUrl(url: string) {
-  swapAxiosClient = createClientWithVersionInterceptor(url);
   sellAxiosClient = createClientWithVersionInterceptor(url);
   fundAxiosClient = createClientWithVersionInterceptor(url);
-}
-
-/**
- * SWAP *
- **/
-
-export async function retrieveSwapPayload(
-  data: SwapPayloadRequestData,
-): Promise<SwapPayloadResponse> {
-  const request = {
-    provider: data.provider,
-    deviceTransactionId: data.deviceTransactionId,
-    from: data.fromAccount.currency,
-    to: data.toNewTokenId || data.toAccount.currency,
-    address: data.toAccount.address,
-    refundAddress: data.fromAccount.address,
-    amountFrom: data.amount.toString(),
-    amountFromInSmallestDenomination: Number(data.amountInAtomicUnit),
-    rateId: data.quoteId,
-  };
-  const res = await swapAxiosClient.post("v5/swap", request);
-
-  return parseSwapBackendInfo(res.data);
-}
-
-export async function confirmSwap(
-  payload: ConfirmSwapRequest,
-  swapAppVersion?: string,
-) {
-  const headers = swapAppVersion
-    ? { "x-swap-app-version": swapAppVersion }
-    : undefined;
-  await swapAxiosClient.post("v5/swap/accepted", payload, { headers });
-}
-
-export async function cancelSwap(
-  payload: CancelSwapRequest,
-  swapAppVersion?: string,
-) {
-  const headers = swapAppVersion
-    ? { "x-swap-app-version": swapAppVersion }
-    : undefined;
-  await swapAxiosClient.post("v5/swap/cancelled", payload, { headers });
-}
-
-function parseSwapBackendInfo(response: SwapBackendResponse): {
-  binaryPayload: string;
-  signature: string;
-  payinAddress: string;
-  swapId: string;
-  payinExtraId?: string;
-  extraTransactionParameters?: string;
-} {
-  return {
-    binaryPayload: response.binaryPayload,
-    signature: response.signature,
-    payinAddress: response.payinAddress,
-    swapId: response.swapId,
-    payinExtraId: response.payinExtraId,
-    extraTransactionParameters: response.extraTransactionParameters,
-  };
 }
 
 /**
