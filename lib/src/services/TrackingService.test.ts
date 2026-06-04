@@ -1,22 +1,36 @@
-import { TrackingSdkFactory } from "@ledgerhq/tracking-sdk";
+import { AnalyticsBrowser } from "@segment/analytics-next";
 import { TrackingService } from "./TrackingService";
 import { VERSION } from "../version";
 
+jest.mock("@segment/analytics-next", () => ({
+  AnalyticsBrowser: {
+    load: jest.fn(),
+  },
+}));
+
+const FAKE_SESSION_ID = "session-abc";
+
+function makeBackend(sessionId: string | null = FAKE_SESSION_ID) {
+  return {
+    getLedgerSessionId: jest.fn().mockResolvedValue(sessionId),
+  } as any;
+}
+
 describe("TrackingService", () => {
+  const mockTrack = jest.fn();
+  const mockPage = jest.fn();
   const mockIdentify = jest.fn();
-  const mockTrackEvent = jest.fn();
-  const fakeClient = {
-    identify: mockIdentify,
-    trackEvent: mockTrackEvent,
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // TrackingSdkFactory is mocked in jest.setup.ts
-    (TrackingSdkFactory as any).getInstance.mockReturnValue(fakeClient);
+    (AnalyticsBrowser.load as jest.Mock).mockReturnValue({
+      track: mockTrack,
+      page: mockPage,
+      identify: mockIdentify,
+    });
   });
 
-  it("initializes client calls identify with userId", async () => {
+  it("calls identify with userId on init", async () => {
     const walletAPI = {
       wallet: {
         userId: jest.fn().mockResolvedValue("user-123"),
@@ -24,23 +38,19 @@ describe("TrackingService", () => {
       },
     } as any;
 
-    const trackingService = new TrackingService({
+    new TrackingService({
       walletAPI,
       providerId: "provider-xyz",
+      backend: makeBackend(),
     });
 
-    expect((TrackingSdkFactory as any).getInstance).toHaveBeenCalled();
-
-    // wait for the promise in updateUserId to resolve
     await new Promise((r) => setImmediate(r));
 
     expect(walletAPI.wallet.userId).toHaveBeenCalled();
-    expect(walletAPI.wallet.info).toHaveBeenCalled();
     expect(mockIdentify).toHaveBeenCalledWith("user-123");
-    expect(trackingService.client).toBe(fakeClient);
   });
 
-  it("initializes client with provided environment", async () => {
+  it("initializes Segment with the correct write key for environment", () => {
     const walletAPI = {
       wallet: {
         userId: jest.fn().mockResolvedValue("u"),
@@ -52,15 +62,36 @@ describe("TrackingService", () => {
       walletAPI,
       environment: "production",
       providerId: "provider-xyz",
+      backend: makeBackend(),
     });
 
-    expect((TrackingSdkFactory as any).getInstance).toHaveBeenCalledWith({
-      environment: "production",
-    });
+    expect(AnalyticsBrowser.load).toHaveBeenCalledWith(
+      { writeKey: "AEwlp5SusSLvhC6J3SmNgCnScCxnffAt" },
+      { disableClientPersistence: true },
+    );
   });
 
-  it("trackEvent forwards event, properties and context and returns client's result", async () => {
-    mockTrackEvent.mockReturnValue("ok");
+  it("requests ledger session ID from BackendService on init", () => {
+    const walletAPI = {
+      wallet: {
+        userId: jest.fn().mockResolvedValue("u"),
+        info: jest.fn().mockResolvedValue({ tracking: true }),
+      },
+    } as any;
+    const backend = makeBackend();
+
+    new TrackingService({
+      walletAPI,
+      providerId: "provider-xyz",
+      backend,
+      providerSessionId: "prov-session-1",
+    });
+
+    expect(backend.getLedgerSessionId).toHaveBeenCalledWith("prov-session-1");
+  });
+
+  it("trackEvent forwards event with enriched properties and context", async () => {
+    mockTrack.mockResolvedValue("ok");
     const walletAPI = {
       wallet: {
         userId: jest.fn().mockResolvedValue("u"),
@@ -71,15 +102,16 @@ describe("TrackingService", () => {
     const trackingService = new TrackingService({
       walletAPI,
       providerId: "provider-xyz",
-    });
-    // @ts-expect-error event name or params do not matter for this test
-    const result = await trackingService.trackEvent("my-event", {
-      a: 1,
+      backend: makeBackend(),
     });
 
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      "my-event",
-      { a: 1, providerId: "provider-xyz" },
+    const result = await trackingService.trackEvent("exchange_sdk_initialized", {
+      providerId: "provider-xyz",
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      "exchange_sdk_initialized",
+      { providerId: "provider-xyz", ledgerSessionId: FAKE_SESSION_ID },
       { app: { name: "exchange-sdk", version: VERSION } },
     );
     expect(result).toBe("ok");
@@ -96,12 +128,14 @@ describe("TrackingService", () => {
     const trackingService = new TrackingService({
       walletAPI,
       providerId: "provider-xyz",
+      backend: makeBackend(),
     });
 
-    // @ts-expect-error event name or params do not matter for this test
-    const result = await trackingService.trackEvent("my-event", { a: 1 });
+    const result = await trackingService.trackEvent("exchange_sdk_initialized", {
+      providerId: "provider-xyz",
+    });
 
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
   });
 });

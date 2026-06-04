@@ -50,6 +50,7 @@ import {
 } from "./sdk.types";
 import { WalletApiDecorator } from "./wallet-api.types";
 import { ExchangeModule } from "@ledgerhq/wallet-api-exchange-module";
+import { BackendService } from "./services/BackendService";
 import { TrackingService } from "./services/TrackingService";
 
 export type GetSwapPayload = typeof retrieveSwapPayload;
@@ -61,6 +62,7 @@ export type GetSwapPayload = typeof retrieveSwapPayload;
 export class ExchangeSDK {
   readonly providerId: string;
 
+  public backend: BackendService;
   public tracking: TrackingService;
 
   private walletAPIDecorator: WalletApiDecorator;
@@ -122,9 +124,12 @@ export class ExchangeSDK {
       setBackendUrl(customUrl);
     }
 
+    this.backend = new BackendService({ environment });
+
     this.tracking = new TrackingService({
       walletAPI: this.walletAPI,
       providerId: this.providerId,
+      backend: this.backend,
       environment,
       providerSessionId: options?.providerSessionId,
     });
