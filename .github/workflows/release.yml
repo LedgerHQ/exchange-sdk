@@ -65,9 +65,9 @@ jobs:
       - name: Set current JFrog registry version in package.json
         working-directory: ./lib
         run: |
-          JFROG_VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
           NPM_VERSION=$(npm show $PACKAGE_NAME version --registry https://registry.npmjs.org 2>/dev/null || echo "")
-          VERSION="${JFROG_VERSION:-$NPM_VERSION}"
+          JFROG_VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
+          VERSION="${NPM_VERSION:-$JFROG_VERSION}"
           if [ -z "$VERSION" ]; then
             echo "Could not determine current version from JFrog or npm" && exit 1
           fi
