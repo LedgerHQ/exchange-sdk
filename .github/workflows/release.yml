@@ -62,14 +62,12 @@ jobs:
           echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> "$NPM_RC"
           echo "NPM_CONFIG_USERCONFIG=$NPM_RC" >> "$GITHUB_ENV"
 
-      - name: Set current JFrog registry version in package.json
+      - name: Set current version in package.json
         working-directory: ./lib
         run: |
-          JFROG_VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
-          NPM_VERSION=$(npm show $PACKAGE_NAME version --registry https://registry.npmjs.org 2>/dev/null || echo "")
-          VERSION="${JFROG_VERSION:-$NPM_VERSION}"
+          VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
           if [ -z "$VERSION" ]; then
-            echo "Could not determine current version from JFrog or npm" && exit 1
+            echo "Could not determine current version from JFrog" && exit 1
           fi
           jq --arg v "$VERSION" '.version=$v' package.json > tmp && mv tmp package.json
 
