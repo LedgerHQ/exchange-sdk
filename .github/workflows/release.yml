@@ -56,9 +56,9 @@ jobs:
 
       - name: Configure npm authentication
         run: |
-          echo "@ledgerhq:registry=https://${{ env.NPM_REGISTRY }}/" > .npmrc
-          echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ steps.jfrog-login.outputs.oidc-token }}" >> .npmrc
-          echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> .npmrc
+          echo "@ledgerhq:registry=https://${{ env.NPM_REGISTRY }}/" >> $NPM_CONFIG_USERCONFIG
+          echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ steps.jfrog-login.outputs.oidc-token }}" >> $NPM_CONFIG_USERCONFIG
+          echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> $NPM_CONFIG_USERCONFIG
 
       - name: Set current JFrog registry version in package.json
         working-directory: ./lib
