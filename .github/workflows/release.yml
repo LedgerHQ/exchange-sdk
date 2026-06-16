@@ -12,6 +12,10 @@ on:
           - "minor"
           - "patch"
           - "prerelease"
+      base_version:
+        description: override the base version to bump from (e.g. 1.15.0) — leave blank to use the JFrog registry version
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -62,14 +66,15 @@ jobs:
           echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> "$NPM_RC"
           echo "NPM_CONFIG_USERCONFIG=$NPM_RC" >> "$GITHUB_ENV"
 
-      - name: Set current JFrog registry version in package.json
+      - name: Set current version in package.json
         working-directory: ./lib
         run: |
-          NPM_VERSION=$(npm show $PACKAGE_NAME version --registry https://registry.npmjs.org 2>/dev/null || echo "")
-          JFROG_VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
-          VERSION="${NPM_VERSION:-$JFROG_VERSION}"
+          VERSION="${{ inputs.base_version }}"
           if [ -z "$VERSION" ]; then
-            echo "Could not determine current version from JFrog or npm" && exit 1
+            VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Could not determine current version — provide base_version input or publish to JFrog first" && exit 1
           fi
           jq --arg v "$VERSION" '.version=$v' package.json > tmp && mv tmp package.json
 
