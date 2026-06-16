@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "repository": "git@github.com:LedgerHQ/exchange-sdk.git",
-  "types": "./dist/types",
+  "types": "./dist/types/src",
   "main": "./dist",
   "files": [
     "dist"

@@ -57,21 +57,6 @@ const exchangeSDK = new ExchangeSDK(providerId);
 
 Here are the primary methods you will use to build your integration.
 
-### Swap
-
-Full documentation on the [developer portal](https://developers.ledger.com/docs/ledger-live/exchange/swap/providers-liveapp)
-
-```js copy
-exchangeSDK.swap({
-  quoteId: "1234",
-  fromAccountId: "07AB5930-C73A-433F-A2FA-920640AF3A02",
-  toAccountId: "76A239EB-1C2A-4237-B942-CA87472106EB",
-  fromAmount: "12.3",
-  feeStrategy: "SLOW",
-  rate: 0.7555,
-});
-```
-
 ### Sell
 
 Full documentation on the [developer portal](https://developers.ledger.com/docs/ledger-live/exchange/sell/providers-liveapp)
