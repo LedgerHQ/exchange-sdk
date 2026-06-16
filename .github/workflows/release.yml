@@ -12,10 +12,6 @@ on:
           - "minor"
           - "patch"
           - "prerelease"
-      base_version:
-        description: override the base version to bump from (e.g. 1.15.0) — leave blank to use the JFrog registry version
-        required: false
-        type: string
 
 permissions:
   contents: write
@@ -69,12 +65,9 @@ jobs:
       - name: Set current version in package.json
         working-directory: ./lib
         run: |
-          VERSION="${{ inputs.base_version }}"
+          VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
           if [ -z "$VERSION" ]; then
-            VERSION=$(pnpm show $PACKAGE_NAME version 2>/dev/null || echo "")
-          fi
-          if [ -z "$VERSION" ]; then
-            echo "Could not determine current version — provide base_version input or publish to JFrog first" && exit 1
+            echo "Could not determine current version from JFrog" && exit 1
           fi
           jq --arg v "$VERSION" '.version=$v' package.json > tmp && mv tmp package.json
 
