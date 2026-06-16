@@ -47,6 +47,9 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "Github Bot"
 
+      - name: Install Dependencies
+        run: pnpm --frozen-lockfile --filter exchange-sdk install
+
       - name: Login to JFrog Ledger
         id: jfrog-login
         uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
@@ -56,9 +59,6 @@ jobs:
           echo "@ledgerhq:registry=https://${{ env.NPM_REGISTRY }}/" > .npmrc
           echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ steps.jfrog-login.outputs.oidc-token }}" >> .npmrc
           echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> .npmrc
-
-      - name: Install Dependencies
-        run: pnpm --frozen-lockfile --filter exchange-sdk install
 
       - name: Set current JFrog registry version in package.json
         working-directory: ./lib
