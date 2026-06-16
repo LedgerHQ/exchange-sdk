@@ -13,13 +13,19 @@ on:
           - "patch"
           - "prerelease"
 
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
 env:
   PACKAGE_NAME: "@ledgerhq/exchange-sdk"
+  NPM_REGISTRY: jfrog.ledgerlabs.net/artifactory/api/npm/ptx-npm-prod-public
 
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: public-ledgerhq-shared-small
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +37,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.16
-          registry-url: "https://registry.npmjs.org"
           cache: pnpm
 
       - name: Setup jq
@@ -42,10 +47,20 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "Github Bot"
 
+      - name: Login to JFrog Ledger
+        id: jfrog-login
+        uses: LedgerHQ/actions-security/actions/jfrog-login@actions/jfrog-login-1
+
+      - name: Configure npm authentication
+        run: |
+          echo "@ledgerhq:registry=https://${{ env.NPM_REGISTRY }}/" > .npmrc
+          echo "//${{ env.NPM_REGISTRY }}/:_authToken=${{ steps.jfrog-login.outputs.oidc-token }}" >> .npmrc
+          echo "//${{ env.NPM_REGISTRY }}/:always-auth=true" >> .npmrc
+
       - name: Install Dependencies
         run: pnpm --frozen-lockfile --filter exchange-sdk install
 
-      - name: Set current npm registry version in package.json
+      - name: Set current JFrog registry version in package.json
         working-directory: ./lib
         run: jq --arg v "$(pnpm show $PACKAGE_NAME version)" '.version=$v' package.json > tmp && mv tmp package.json
 
@@ -65,7 +80,7 @@ jobs:
         run: |
           # Get the version from the previous step's output
           VERSION_STRING="${{ steps.get_version.outputs.version }}"
-          FILE_PATH="lib/src/version.ts" 
+          FILE_PATH="lib/src/version.ts"
 
           echo "Updating version in $FILE_PATH to $VERSION_STRING"
           sed -i "s@version: \"1.0.0\",@version: \"$VERSION_STRING\",@" $FILE_PATH
@@ -73,11 +88,8 @@ jobs:
       - name: Build exchange-sdk
         run: pnpm --filter exchange-sdk build
 
-      - name: Publish package to npm registry
-        run: pnpm publish --filter exchange-sdk --access public --no-git-checks
-        env:
-          NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      - name: Publish package to JFrog registry
+        run: pnpm publish --filter exchange-sdk --no-git-checks
 
       - name: Revert git changes and push version tag
         working-directory: ./lib
