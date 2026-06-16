@@ -153,8 +153,8 @@ export interface FundResponsePayload {
   referralFees: number;
   payoutNetworkFees: number;
   providerSig: {
-    payload: Buffer | string;
-    signature: Buffer | string;
+    payload: string;
+    signature: string;
   };
 }
 

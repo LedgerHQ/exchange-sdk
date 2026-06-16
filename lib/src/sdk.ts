@@ -33,11 +33,7 @@ import walletApiDecorator, {
   CustomMethods,
   getCustomModule,
 } from "./wallet-api";
-import {
-  ParseError,
-  parseError,
-  StepError,
-} from "./error/parser";
+import { ParseError, parseError, StepError } from "./error/parser";
 import {
   ExchangeType,
   FeeStrategyEnum,
@@ -220,16 +216,14 @@ export class ExchangeSDK {
 
     // Step 3: Send payload
     const transaction = await this.walletAPIDecorator
-      .createTransaction(
-        {
-          recipient: payinAddress,
-          amount: fromAmountAtomic,
-          currency: fromCurrency,
-          customFeeConfig,
-          payinExtraId,
-          extraTransactionParameters,
-        },
-      )
+      .createTransaction({
+        recipient: payinAddress,
+        amount: fromAmountAtomic,
+        currency: fromCurrency,
+        customFeeConfig,
+        payinExtraId,
+        extraTransactionParameters,
+      })
       .catch(async (error) => {
         await this.cancelSwapOnError(
           error,
@@ -686,10 +680,7 @@ export class ExchangeSDK {
     }
   }
 
-  private canSpendAmount(
-    account: Account,
-    amount: BigNumber,
-  ): void {
+  private canSpendAmount(account: Account, amount: BigNumber): void {
     if (!account.spendableBalance.isGreaterThanOrEqualTo(amount)) {
       const err = parseError({
         error: new Error("Not enough funds"),
@@ -913,7 +904,7 @@ export class ExchangeSDK {
     });
 
     const recipientAddress: string = data.payinAddress;
-    const binaryPayload = data.providerSig.payload;
+    const binaryPayload = Buffer.from(data.providerSig.payload);
     const signature = data.providerSig.signature;
 
     return {
