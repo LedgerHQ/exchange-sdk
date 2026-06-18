@@ -22,6 +22,11 @@ export enum ProductType {
   CARD = "CARD",
 }
 
+type SwapTrackingMeta = {
+  isEmbeddedSwap?: boolean;
+  swapEntryPoint?: string;
+};
+
 /**
  * Swap information required to request a user's swap transaction.
  */
@@ -35,8 +40,7 @@ export type SwapInfo = {
   rate: number;
   toNewTokenId?: string;
   swapAppVersion?: string;
-  swapEntryPoint?: string;
-  isEmbedded?: boolean;
+  meta?: SwapTrackingMeta;
   getSwapPayload?: GetSwapPayload;
 };
 

@@ -180,7 +180,7 @@ describe("swap", () => {
     expect(swapId).toEqual("swap-id");
   });
 
-  it("forwards swapEntryPoint and isEmbedded to startSwap and completeSwap", async () => {
+  it("forwards swapEntryPoint and isEmbeddedSwap to startSwap and completeSwap", async () => {
 
     const currencies: Array<Partial<Currency>> = [
       {
@@ -199,7 +199,7 @@ describe("swap", () => {
       feeStrategy: "slow" as FeeStrategy,
       rate: 1.2,
       swapEntryPoint: "main_page",
-      isEmbedded: true,
+      isEmbeddedSwap: true,
     };
 
     const { transactionId } = await sdk.swap(swapData);
@@ -208,13 +208,13 @@ describe("swap", () => {
     expect(mockStartSwapExchange).toHaveBeenCalledWith(
       expect.objectContaining({
         swapEntryPoint: "main_page",
-        isEmbedded: true,
+        isEmbeddedSwap: true,
       }),
     );
     expect(mockCompleteSwap).toHaveBeenCalledWith(
       expect.objectContaining({
         swapEntryPoint: "main_page",
-        isEmbedded: true,
+        isEmbeddedSwap: true,
       }),
     );
   });
