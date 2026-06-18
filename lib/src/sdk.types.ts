@@ -23,7 +23,7 @@ export enum ProductType {
 }
 
 type SwapTrackingMeta = {
-  isEmbeddedSwap?: boolean;
+  isEmbedded?: boolean;
   swapEntryPoint?: string;
 };
 

@@ -182,7 +182,7 @@ export class ExchangeSDK {
           fromAccountId,
           toAccountId,
           tokenCurrency: toNewTokenId || "",
-          ...meta,
+          meta,
         })
         .catch((error: Error) => {
           const err = parseError({
@@ -258,7 +258,7 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
         tokenCurrency: toNewTokenId,
-        ...meta,
+        meta,
       })
       .catch(async (error: Error) => {
         await this.cancelSwapOnError(
