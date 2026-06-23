@@ -160,7 +160,8 @@ export class ExchangeSDK {
       toNewTokenId,
       swapAppVersion,
       getSwapPayload,
-      meta,
+      isEmbedded,
+      swapEntryPoint,
     } = info;
 
     const { account: fromAccount, currency: fromCurrency } =
@@ -182,7 +183,8 @@ export class ExchangeSDK {
           fromAccountId,
           toAccountId,
           tokenCurrency: toNewTokenId || "",
-          meta,
+          isEmbedded,
+          swapEntryPoint,
         })
         .catch((error: Error) => {
           const err = parseError({
@@ -258,7 +260,8 @@ export class ExchangeSDK {
         signature,
         feeStrategy,
         tokenCurrency: toNewTokenId,
-        meta,
+        isEmbedded,
+        swapEntryPoint,
       })
       .catch(async (error: Error) => {
         await this.cancelSwapOnError(
