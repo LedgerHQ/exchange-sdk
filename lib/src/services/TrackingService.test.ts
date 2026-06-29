@@ -1,12 +1,7 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
 import { TrackingService } from "./TrackingService";
 import { VERSION } from "../version";
-
-jest.mock("@segment/analytics-next", () => ({
-  AnalyticsBrowser: {
-    load: jest.fn(),
-  },
-}));
+import { environmentConfig } from "../config/environment";
 
 const FAKE_SESSION_ID = "session-abc";
 
@@ -66,7 +61,7 @@ describe("TrackingService", () => {
     });
 
     expect(AnalyticsBrowser.load).toHaveBeenCalledWith(
-      { writeKey: "AEwlp5SusSLvhC6J3SmNgCnScCxnffAt" },
+      { writeKey: environmentConfig.production.SEGMENT_WRITE_KEY },
       { disableClientPersistence: true },
     );
   });
@@ -105,9 +100,7 @@ describe("TrackingService", () => {
       backend: makeBackend(),
     });
 
-    const result = await trackingService.trackEvent("exchange_sdk_initialized", {
-      providerId: "provider-xyz",
-    });
+    const result = await trackingService.trackEvent("exchange_sdk_initialized", {});
 
     expect(mockTrack).toHaveBeenCalledWith(
       "exchange_sdk_initialized",
@@ -131,9 +124,7 @@ describe("TrackingService", () => {
       backend: makeBackend(),
     });
 
-    const result = await trackingService.trackEvent("exchange_sdk_initialized", {
-      providerId: "provider-xyz",
-    });
+    const result = await trackingService.trackEvent("exchange_sdk_initialized", {});
 
     expect(mockTrack).not.toHaveBeenCalled();
     expect(result).toBeUndefined();

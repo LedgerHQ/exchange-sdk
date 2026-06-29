@@ -134,9 +134,7 @@ export class ExchangeSDK {
       providerSessionId: options?.providerSessionId,
     });
 
-    this.tracking.trackEvent("exchange_sdk_initialized", {
-      providerId: this.providerId,
-    });
+    this.tracking.trackEvent("exchange_sdk_initialized", {});
   }
 
   private handleError({ error, step }: ParseError) {

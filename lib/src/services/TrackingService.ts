@@ -97,13 +97,13 @@ export class TrackingService {
 
     const ledgerSessionId = await this.ledgerSessionIdPromise;
     const enhancedProperties = {
-      ...properties,
+      ...result.data,
       providerId: this.providerId,
-      ledgerSessionId,
+      ...(ledgerSessionId !== null && { ledgerSessionId }),
     };
 
     try {
-      return this.segment.track(eventName, enhancedProperties, CONTEXT);
+      return await this.segment.track(eventName, enhancedProperties, CONTEXT);
     } catch (error) {
       console.error("[TrackingService] Error sending event", error);
     }
@@ -120,11 +120,11 @@ export class TrackingService {
     const enhancedProperties = {
       ...properties,
       providerId: this.providerId,
-      ledgerSessionId,
+      ...(ledgerSessionId !== null && { ledgerSessionId }),
     };
 
     try {
-      return this.segment.page(pageName, enhancedProperties, CONTEXT);
+      return await this.segment.page(pageName, enhancedProperties, CONTEXT);
     } catch (error) {
       console.error("[TrackingService] Error sending page view", error);
     }

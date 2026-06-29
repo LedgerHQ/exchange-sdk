@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 export const eventSchemas = {
-  exchange_sdk_initialized: z.object({
-    providerId: z.string(),
-  }),
+  exchange_sdk_initialized: z.object({}),
   button_clicked: z.object({
     button: z.string(),
     page: z.string(),
@@ -14,7 +12,7 @@ export const eventSchemas = {
   email_confirmation_success: z.object({}),
   kyc_passed: z.object({}),
   kyc_started: z.object({}),
-  login_succesful: z.object({}),
+  login_successful: z.object({}),
   personal_information_submitted: z.object({}),
   phone_confirmation_success: z.object({}),
   physical_address_submitted: z.object({}),
