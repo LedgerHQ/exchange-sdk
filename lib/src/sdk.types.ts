@@ -35,6 +35,8 @@ export type SwapInfo = {
   rate: number;
   toNewTokenId?: string;
   swapAppVersion?: string;
+  isEmbedded?: boolean;
+  swapEntryPoint?: string;
   getSwapPayload?: GetSwapPayload;
 };
 

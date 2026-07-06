@@ -180,6 +180,45 @@ describe("swap", () => {
     expect(swapId).toEqual("swap-id");
   });
 
+  it("forwards swapEntryPoint and isEmbedded to startSwap and completeSwap", async () => {
+
+    const currencies: Array<Partial<Currency>> = [
+      {
+        id: "currency-id-1",
+        decimals: 4,
+        family: "ethereum",
+      },
+    ];
+    mockCurrenciesList.mockResolvedValue(currencies as any);
+
+    const swapData = {
+      quoteId: "quoteId",
+      fromAccountId: "id-1",
+      toAccountId: "id-2",
+      fromAmount: new BigNumber("1.908"),
+      feeStrategy: "slow" as FeeStrategy,
+      rate: 1.2,
+      swapEntryPoint: "main_page",
+      isEmbedded: true,
+    };
+
+    const { transactionId } = await sdk.swap(swapData);
+
+    expect(transactionId).toEqual("TransactionId");
+    expect(mockStartSwapExchange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        swapEntryPoint: "main_page",
+        isEmbedded: true,
+      }),
+    );
+    expect(mockCompleteSwap).toHaveBeenCalledWith(
+      expect.objectContaining({
+        swapEntryPoint: "main_page",
+        isEmbedded: true,
+      }),
+    );
+  });
+
   it("throws PayinExtraIdError error when no payinExtraId provided for stellar", async () => {
     const currencies: Array<Partial<Currency>> = [
       {
