@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@ledgerhq/wallet-api-client": "^1.14.0",
-    "@ledgerhq/wallet-api-exchange-module": "^0.27.0",
+    "@ledgerhq/wallet-api-exchange-module": "^0.32.0",
     "@ledgerhq/wallet-api-simulator": "^1.2.21",
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-node-resolve": "^15.2.1",

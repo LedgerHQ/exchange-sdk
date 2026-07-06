@@ -138,8 +138,8 @@ importers:
         specifier: ^1.14.0
         version: 1.14.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-exchange-module':
-        specifier: ^0.27.0
-        version: 0.27.0(@ton/crypto@3.3.0)
+        specifier: ^0.32.0
+        version: 0.32.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-simulator':
         specifier: ^1.2.21
         version: 1.2.21(@ton/crypto@3.3.0)(react@19.1.0)
@@ -1156,8 +1156,8 @@ packages:
   '@ledgerhq/wallet-api-exchange-module@0.16.0-nightly.1':
     resolution: {integrity: sha512-O+hXCr32UIuX3z8xAPkRQsPsh+K2InBwDv1bzKHJs7AkVgPJ1QUCf/37V6Iv/4bmLiwB66OHX7MQ0ljH3u1fBQ==}
 
-  '@ledgerhq/wallet-api-exchange-module@0.27.0':
-    resolution: {integrity: sha512-k23pSXJ45TPL92ip4Ca8Q9n3TZ7ocbdfDezko9rk4eiSG7pGLyZu50rY/RKDFEFRDDQJkOD828bFdq/Sfl9D4g==}
+  '@ledgerhq/wallet-api-exchange-module@0.32.0':
+    resolution: {integrity: sha512-AwvPTNYLeAK/QQEU4udsV9dHegpMejf10jwBd086EFTLqm0p3ET2CONlJMxeijWioutSnc3BJSLOLQtjqbULsQ==}
 
   '@ledgerhq/wallet-api-server@1.13.4':
     resolution: {integrity: sha512-AzNVhRcC/aJbHiFl4SS/S/DaGOWiLXJrXFaf5vdtTOxPqwdc568qkduuW8gC0wnc7s/gflxI0XUXpuOlVesh6Q==}
@@ -6105,7 +6105,7 @@ snapshots:
       - '@ton/crypto'
       - encoding
 
-  '@ledgerhq/wallet-api-exchange-module@0.27.0(@ton/crypto@3.3.0)':
+  '@ledgerhq/wallet-api-exchange-module@0.32.0(@ton/crypto@3.3.0)':
     dependencies:
       '@ledgerhq/wallet-api-client': 1.14.0(@ton/crypto@3.3.0)
       '@ledgerhq/wallet-api-core': 1.30.0(@ton/crypto@3.3.0)
