@@ -1,4 +1,5 @@
 import {
+  AleoTransaction,
   CosmosTransaction,
   HederaTransaction,
   CryptoCurrency,
@@ -31,6 +32,7 @@ import { CustomModule } from "@ledgerhq/wallet-api-client";
 const transactionStrategy: {
   [K in Transaction["family"]]: TransactionStrategyFunction;
 } = {
+  aleo: aleoTransaction,
   algorand: defaultTransaction,
   aptos: defaultTransaction,
   bitcoin: bitcoinTransaction,
@@ -351,4 +353,18 @@ export function hederaTransaction({
     ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
     memo: payinExtraId ?? undefined,
   } as HederaTransaction;
+}
+
+export function aleoTransaction({
+  family,
+  amount,
+  recipient,
+  customFeeConfig,
+}: TransactionWithCustomFee): AleoTransaction {
+  return {
+    ...defaultTransaction({ family, amount, recipient, customFeeConfig }),
+    mode: "transfer_public",
+    // Set a default value; completeExchange calls prepareTransaction, which sets fees again.
+    fees: new BigNumber(0),
+  } as AleoTransaction;
 }

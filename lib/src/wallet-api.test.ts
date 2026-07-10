@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import {
+  aleoTransaction,
   cosmosTransaction,
   defaultTransaction,
   elrondTransaction,
@@ -236,6 +237,43 @@ describe("hederaTransaction function", () => {
       amount: new BigNumber("10"),
       recipient: "ADDRESS",
       memo: "MEMO",
+    });
+  });
+});
+
+describe("aleoTransaction function", () => {
+  it('creates an AleoTransaction with mode: "transfer_public" and default fees', () => {
+    const transaction = aleoTransaction({
+      family: "aleo",
+      amount: new BigNumber("12"),
+      recipient: "ADDRESS",
+      customFeeConfig: {},
+    });
+
+    expect(transaction).toEqual({
+      family: "aleo",
+      amount: new BigNumber("12"),
+      recipient: "ADDRESS",
+      mode: "transfer_public",
+      fees: new BigNumber(0),
+    });
+  });
+
+  it("spreads customFeeConfig onto the transaction", () => {
+    const transaction = aleoTransaction({
+      family: "aleo",
+      amount: new BigNumber("3"),
+      recipient: "ADDRESS",
+      customFeeConfig: { fee: new BigNumber("0.5") },
+    });
+
+    expect(transaction).toEqual({
+      family: "aleo",
+      amount: new BigNumber("3"),
+      recipient: "ADDRESS",
+      fee: new BigNumber("0.5"),
+      mode: "transfer_public",
+      fees: new BigNumber(0),
     });
   });
 });
