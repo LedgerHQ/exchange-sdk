@@ -513,7 +513,7 @@ export class ExchangeSDK {
         amount: fromAmountAtomic,
         currency,
         customFeeConfig,
-        payinExtraId: fundPayload?.payinExtraId,
+        payinExtraId: fundPayload?.inExtraId,
       })
       .catch(async (error) => {
         await this.cancelFundOnError({
