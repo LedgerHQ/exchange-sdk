@@ -125,8 +125,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: ^0.22.2
-        version: 0.22.2(rxjs@7.8.2)
+        specifier: ^0.25.0
+        version: 0.25.0(rxjs@7.8.2)
       '@segment/analytics-next':
         specifier: ^1.81.1
         version: 1.81.1
@@ -1073,13 +1073,16 @@ packages:
   '@ledgerhq/cryptoassets@13.27.0':
     resolution: {integrity: sha512-JbKGe43oH6q5QFqv5vzrmY3jSpb6W0sK477iy+55VNU/5QUiZ6w2TBy9hu3tb/GX8zH7/gDh2cLjKNT3d/NLdg==}
 
-  '@ledgerhq/device-management-kit@1.2.0':
-    resolution: {integrity: sha512-h/rQwHU8fpuPRtmIxPfnFgMmjuC3HhiRYZAeLPs3HqpQ4X7VikjKQVWqcu/9rAuiHVs6ET/L4adFuU3jjR/qFQ==}
+  '@ledgerhq/device-management-kit@1.7.1':
+    resolution: {integrity: sha512-O1/H1BWPjrZre+/czkuDcP7fpbjq+PaTwquUtFxEXdVMM+6buvYAtlRUyGR6kjBy/tOsiSKQmHCnOabi/KBozw==}
     peerDependencies:
       rxjs: 7.8.2
 
   '@ledgerhq/devices@8.14.2':
     resolution: {integrity: sha512-T3pnfrsQEC/eJU0XHIqWI6qww+CL1k3NumR2XGWlMz8lVpoZ9HhcuGoCkMevp+8SWmymgyNIIFue3jlNA5KiMw==}
+
+  '@ledgerhq/devices@8.17.0':
+    resolution: {integrity: sha512-l+rrVQEjR1hSWOLD00LFX4zbS8yB1M/Mb6UYPmSHGO7TmE1CFbZ4CmDJC/kZSl3hdrXCJ+YUNpvaLCcSWDwA+Q==}
 
   '@ledgerhq/devices@8.5.0':
     resolution: {integrity: sha512-zDB6Pdk6NYYbYis8cWoLLkL9k/IvjhC3hkuuz2lhpJ2AxIs3/PDMUKoyK4DpjPtRyKk1W1lwsnpc6J1i87r4/Q==}
@@ -1096,8 +1099,11 @@ packages:
   '@ledgerhq/errors@6.34.1':
     resolution: {integrity: sha512-Atkim7yM9bbfWN7OikiE1vbtRLABRz6rDayTHkX0rkPTs6EkMVZSgoNNDGhcYQRlUXrTz9Eko+5ixCLpJQpEWg==}
 
-  '@ledgerhq/hw-app-exchange@0.22.2':
-    resolution: {integrity: sha512-ezH3gWpTDMnhupBzxKRnZMuDf+JsVLDM2R62RrcgqShHGsol/pVtVOp37Ea36jHzmT0oZb9IFgzIyAXefq5YRQ==}
+  '@ledgerhq/errors@7.0.0':
+    resolution: {integrity: sha512-+Q/vykUlNeIxiM+I3cu1B660WLkzlmIsHLTV9QNV5D2/Ocplx3QMg52NYq2X7OAfGQnfH1rQvhn/NrjT+t9wBA==}
+
+  '@ledgerhq/hw-app-exchange@0.25.0':
+    resolution: {integrity: sha512-ZtNhcS2McupmkHGUMlJC1jxeLKDX7RgiVTMTlz84gql+fxmifAwIci0/84EOrJApVt0kmSJF8dj+rohBwartdw==}
 
   '@ledgerhq/hw-transport@6.31.11':
     resolution: {integrity: sha512-vAbZkYSa3ClHyvZxcnfzv8Mf1uaO+huB9a2lTiXP0V8QGYaGLU9CfGMtECvqqRRPEUomhelAzYTI+2UEWrokwg==}
@@ -1107,6 +1113,9 @@ packages:
 
   '@ledgerhq/hw-transport@6.35.2':
     resolution: {integrity: sha512-eSXFFqMDAB2Ra/5uqmlru0cUyc2XDQPEKf4ITWHeMms2fHhETw9lcgAEl61vszkiz0RLUVB4VQsLJjj7O8kCvg==}
+
+  '@ledgerhq/hw-transport@6.35.7':
+    resolution: {integrity: sha512-vVhAVQ56+7A5FY5Mr09HY+bmf3H6TXpwsj+/xbadNkjl//e/YzTWfpXk4eBnj3hwk1PQ9Mn6pKFH0BHjS2BKlg==}
 
   '@ledgerhq/live-config@3.2.0':
     resolution: {integrity: sha512-kBj3YiPU9X7HUHKeEpugMH/aSTNOxapFz7PEDi050MhwPuEf3uBhBEdZHQdz79jtaps1LI/MI4h79q0QQ0+3FA==}
@@ -1880,9 +1889,6 @@ packages:
 
   axios@1.11.0:
     resolution: {integrity: sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==}
-
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
 
   axios@1.3.4:
     resolution: {integrity: sha512-toYm+Bsyl6VC5wSkfkbbNB6ROv7KY93PEBBL6xyDczaIHasAiv4wPqQ/c4RjoQzipxRD2W5g21cOqQulZ7rHwQ==}
@@ -2685,15 +2691,6 @@ packages:
       debug:
         optional: true
 
-  follow-redirects@1.16.0:
-    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-
   for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
 
@@ -2711,10 +2708,6 @@ packages:
 
   form-data@4.0.4:
     resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
-    engines: {node: '>= 6'}
-
-  form-data@4.0.5:
-    resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
     engines: {node: '>= 6'}
 
   fs.realpath@1.0.0:
@@ -2797,7 +2790,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
@@ -3889,9 +3882,6 @@ packages:
     resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==}
     engines: {node: '>=6'}
 
-  punycode@1.4.1:
-    resolution: {integrity: sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==}
-
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -3901,10 +3891,6 @@ packages:
 
   purify-ts@2.1.0:
     resolution: {integrity: sha512-+KNUHV9FxB9BbjadFdvxa+LNJIaqZmSF7CQH5Rv6+f0rBzsxm9FEqrvkALQbWYJobAja2ZCbBDUY7O4fH2znMA==}
-
-  qs@6.14.0:
-    resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
-    engines: {node: '>=0.6'}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -4103,11 +4089,6 @@ packages:
 
   semver@7.6.0:
     resolution: {integrity: sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==}
-    engines: {node: '>=10'}
-    hasBin: true
-
-  semver@7.7.0:
-    resolution: {integrity: sha512-DrfFnPzblFmNrIZzg5RzHegbiRWg7KMR7btwi2yjHwx06zsUbO5g613sVwEV7FTwmzJu+Io0lJe2GJ3LxqpvBQ==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -4592,10 +4573,6 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  url@0.11.4:
-    resolution: {integrity: sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg==}
-    engines: {node: '>= 0.4'}
-
   use-callback-ref@1.3.3:
     resolution: {integrity: sha512-jQL3lRnocaFtu3V00JToYz/4QkNWswxijDaCVNZRiRTO3HQDLsdu1ZtmIUvV4yPp+rvWm5j0y0TG/S61cuijTg==}
     engines: {node: '>=10'}
@@ -4664,7 +4641,7 @@ packages:
 
   uuid@2.0.1:
     resolution: {integrity: sha512-nWg9+Oa3qD2CQzHIP4qKUqwNfzKn8P0LtFhotaCTFchsV7ZfDhAybeip/HZVeMIpZi9JgY1E3nUlwaCmZT1sEg==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
@@ -5889,24 +5866,21 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/device-management-kit@1.2.0(rxjs@7.8.2)':
+  '@ledgerhq/device-management-kit@1.7.1(rxjs@7.8.2)':
     dependencies:
       '@noble/hashes': 1.8.0
       '@sentry/minimal': 6.19.7
-      axios: 1.13.5
       inversify: 7.5.1(reflect-metadata@0.2.2)
       isomorphic-ws: 5.0.0(ws@8.18.3)
       purify-ts: 2.1.0
       reflect-metadata: 0.2.2
       rxjs: 7.8.2
       semver: 7.7.2
-      url: 0.11.4
       uuid: 11.0.3
       ws: 8.18.3
       xstate: 5.19.2
     transitivePeerDependencies:
       - bufferutil
-      - debug
       - utf-8-validate
 
   '@ledgerhq/devices@8.14.2':
@@ -5916,43 +5890,47 @@ snapshots:
       rxjs: 7.8.2
       semver: 7.7.3
 
+  '@ledgerhq/devices@8.17.0':
+    dependencies:
+      semver: 7.7.3
+
   '@ledgerhq/devices@8.5.0':
     dependencies:
       '@ledgerhq/errors': 6.25.0
       '@ledgerhq/logs': 6.13.0
       rxjs: 7.8.1
-      semver: 7.7.2
+      semver: 7.7.3
 
   '@ledgerhq/devices@8.5.1':
     dependencies:
       '@ledgerhq/errors': 6.25.0
       '@ledgerhq/logs': 6.13.0
       rxjs: 7.8.1
-      semver: 7.7.2
+      semver: 7.7.3
 
   '@ledgerhq/devices@8.6.0':
     dependencies:
       '@ledgerhq/errors': 6.25.0
       '@ledgerhq/logs': 6.13.0
       rxjs: 7.8.1
-      semver: 7.7.2
+      semver: 7.7.3
 
   '@ledgerhq/errors@6.25.0': {}
 
   '@ledgerhq/errors@6.34.1': {}
 
-  '@ledgerhq/hw-app-exchange@0.22.2(rxjs@7.8.2)':
+  '@ledgerhq/errors@7.0.0': {}
+
+  '@ledgerhq/hw-app-exchange@0.25.0(rxjs@7.8.2)':
     dependencies:
-      '@ledgerhq/device-management-kit': 1.2.0(rxjs@7.8.2)
-      '@ledgerhq/errors': 6.34.1
-      '@ledgerhq/hw-transport': 6.35.2
+      '@ledgerhq/device-management-kit': 1.7.1(rxjs@7.8.2)
+      '@ledgerhq/hw-transport': 6.35.7
       bignumber.js: 9.1.2
       invariant: 2.2.4
       protobufjs: 7.2.5
       protobufjs-cli: 1.1.2(protobufjs@7.2.5)
     transitivePeerDependencies:
       - bufferutil
-      - debug
       - rxjs
       - utf-8-validate
 
@@ -5974,6 +5952,13 @@ snapshots:
     dependencies:
       '@ledgerhq/devices': 8.14.2
       '@ledgerhq/errors': 6.34.1
+      '@ledgerhq/logs': 6.17.0
+      events: 3.3.0
+
+  '@ledgerhq/hw-transport@6.35.7':
+    dependencies:
+      '@ledgerhq/devices': 8.17.0
+      '@ledgerhq/errors': 7.0.0
       '@ledgerhq/logs': 6.17.0
       events: 3.3.0
 
@@ -6033,7 +6018,7 @@ snapshots:
 
   '@ledgerhq/wallet-api-client@1.12.4(@ton/crypto@3.3.0)':
     dependencies:
-      '@ledgerhq/hw-transport': 6.31.11
+      '@ledgerhq/hw-transport': 6.35.2
       '@ledgerhq/wallet-api-core': 1.26.0(@ton/crypto@3.3.0)
       bignumber.js: 9.1.2
     transitivePeerDependencies:
@@ -7033,14 +7018,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.13.5:
-    dependencies:
-      follow-redirects: 1.16.0
-      form-data: 4.0.5
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   axios@1.3.4:
     dependencies:
       follow-redirects: 1.15.6
@@ -7178,7 +7155,7 @@ snapshots:
 
   c32check@2.0.0:
     dependencies:
-      '@noble/hashes': 1.1.5
+      '@noble/hashes': 1.8.0
       base-x: 4.0.1
 
   cac@6.7.14: {}
@@ -8213,8 +8190,6 @@ snapshots:
 
   follow-redirects@1.15.6: {}
 
-  follow-redirects@1.16.0: {}
-
   for-each@0.3.3:
     dependencies:
       is-callable: 1.2.7
@@ -8235,14 +8210,6 @@ snapshots:
       mime-types: 2.1.35
 
   form-data@4.0.4:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      es-set-tostringtag: 2.1.0
-      hasown: 2.0.2
-      mime-types: 2.1.35
-
-  form-data@4.0.5:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
@@ -8706,7 +8673,7 @@ snapshots:
       '@babel/parser': 7.24.0
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
-      semver: 7.7.2
+      semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
 
@@ -9058,7 +9025,7 @@ snapshots:
       jest-util: 29.7.0
       natural-compare: 1.4.0
       pretty-format: 29.7.0
-      semver: 7.7.0
+      semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
 
@@ -9266,7 +9233,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   make-error@1.3.6: {}
 
@@ -9640,7 +9607,7 @@ snapshots:
       jsdoc: 4.0.3
       minimist: 1.2.8
       protobufjs: 7.2.5
-      semver: 7.7.2
+      semver: 7.7.3
       tmp: 0.2.3
       uglify-js: 3.19.0
 
@@ -9663,8 +9630,6 @@ snapshots:
 
   punycode.js@2.3.1: {}
 
-  punycode@1.4.1: {}
-
   punycode@2.3.1: {}
 
   pure-rand@6.0.4: {}
@@ -9672,10 +9637,6 @@ snapshots:
   purify-ts@2.1.0:
     dependencies:
       '@types/json-schema': 7.0.15
-
-  qs@6.14.0:
-    dependencies:
-      side-channel: 1.1.0
 
   queue-microtask@1.2.3: {}
 
@@ -9911,8 +9872,6 @@ snapshots:
   semver@7.6.0:
     dependencies:
       lru-cache: 6.0.0
-
-  semver@7.7.0: {}
 
   semver@7.7.2: {}
 
@@ -10478,11 +10437,6 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
-
-  url@0.11.4:
-    dependencies:
-      punycode: 1.4.1
-      qs: 6.14.0
 
   use-callback-ref@1.3.3(@types/react@19.1.10)(react@19.1.0):
     dependencies:
