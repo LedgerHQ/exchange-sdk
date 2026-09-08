@@ -32,11 +32,11 @@ describe("Api >> Sell", () => {
       jest.spyOn(console, "log").mockImplementation(() => {});
       const coefficient = new Uint8Array([0x04, 0xd2]);
       const payload = {
-        deviceTransactionId: {},
+        deviceTransactionId: new Uint8Array([0x01, 0x02, 0x03, 0x04]),
         inAddress: "xxx",
-        inAmount: { coefficient, exponent: -2 },
+        inAmount: new Uint8Array(Buffer.from([0x04, 0xd2])),
         inCurrency: "XXX",
-        outAmount: new Uint8Array(Buffer.from([0x49, 0x27, 0xc5, 0x00])),
+        outAmount: { coefficient: new Uint8Array([0x49, 0x27, 0xc5, 0x00]), exponent: -8 },
         outCurrency: "YYY",
         traderEmail: "",
       };

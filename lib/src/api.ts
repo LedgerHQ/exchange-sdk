@@ -232,8 +232,8 @@ export async function postSellPayload(
     const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
       sellPayload;
 
-    const amountTo = decodeAmount(outAmount as Uint8Array);
-    const amountFrom = decodeAmount(inAmount as UDecimal);
+    const amountTo = decodeAmount(outAmount as UDecimal);
+    const amountFrom = decodeAmount(inAmount as Uint8Array);
 
     const payload = {
       quoteId: null,
