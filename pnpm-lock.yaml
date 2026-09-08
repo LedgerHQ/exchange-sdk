@@ -125,8 +125,8 @@ importers:
   lib:
     dependencies:
       '@ledgerhq/hw-app-exchange':
-        specifier: ^0.25.0
-        version: 0.25.0(rxjs@7.8.2)
+        specifier: ^0.26.0
+        version: 0.26.0(rxjs@7.8.2)
       '@segment/analytics-next':
         specifier: ^1.81.1
         version: 1.81.1
@@ -1073,8 +1073,8 @@ packages:
   '@ledgerhq/cryptoassets@13.27.0':
     resolution: {integrity: sha512-JbKGe43oH6q5QFqv5vzrmY3jSpb6W0sK477iy+55VNU/5QUiZ6w2TBy9hu3tb/GX8zH7/gDh2cLjKNT3d/NLdg==}
 
-  '@ledgerhq/device-management-kit@1.7.1':
-    resolution: {integrity: sha512-O1/H1BWPjrZre+/czkuDcP7fpbjq+PaTwquUtFxEXdVMM+6buvYAtlRUyGR6kjBy/tOsiSKQmHCnOabi/KBozw==}
+  '@ledgerhq/device-management-kit@1.8.0':
+    resolution: {integrity: sha512-yRYt4a0/tuYjoYDePBMlhCm3Bej0F/TiVu09Hl5fjO4f64Q6jbI2/YthzRWrgP7CEs93EgN7hxJ0WSErtzvEwA==}
     peerDependencies:
       rxjs: 7.8.2
 
@@ -1102,8 +1102,8 @@ packages:
   '@ledgerhq/errors@7.0.0':
     resolution: {integrity: sha512-+Q/vykUlNeIxiM+I3cu1B660WLkzlmIsHLTV9QNV5D2/Ocplx3QMg52NYq2X7OAfGQnfH1rQvhn/NrjT+t9wBA==}
 
-  '@ledgerhq/hw-app-exchange@0.25.0':
-    resolution: {integrity: sha512-ZtNhcS2McupmkHGUMlJC1jxeLKDX7RgiVTMTlz84gql+fxmifAwIci0/84EOrJApVt0kmSJF8dj+rohBwartdw==}
+  '@ledgerhq/hw-app-exchange@0.26.0':
+    resolution: {integrity: sha512-NBIWwHK1GqGJW95yEmsSZtBS6R6GDgY0doShymNp+y3psc/jl6EXhrTldBp6E69PltDwn8Bj2y85QLCwhbXtOw==}
 
   '@ledgerhq/hw-transport@6.31.11':
     resolution: {integrity: sha512-vAbZkYSa3ClHyvZxcnfzv8Mf1uaO+huB9a2lTiXP0V8QGYaGLU9CfGMtECvqqRRPEUomhelAzYTI+2UEWrokwg==}
@@ -5866,7 +5866,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@ledgerhq/device-management-kit@1.7.1(rxjs@7.8.2)':
+  '@ledgerhq/device-management-kit@1.8.0(rxjs@7.8.2)':
     dependencies:
       '@noble/hashes': 1.8.0
       '@sentry/minimal': 6.19.7
@@ -5921,9 +5921,9 @@ snapshots:
 
   '@ledgerhq/errors@7.0.0': {}
 
-  '@ledgerhq/hw-app-exchange@0.25.0(rxjs@7.8.2)':
+  '@ledgerhq/hw-app-exchange@0.26.0(rxjs@7.8.2)':
     dependencies:
-      '@ledgerhq/device-management-kit': 1.7.1(rxjs@7.8.2)
+      '@ledgerhq/device-management-kit': 1.8.0(rxjs@7.8.2)
       '@ledgerhq/hw-transport': 6.35.7
       bignumber.js: 9.1.2
       invariant: 2.2.4

@@ -24,6 +24,7 @@ import {
 } from "./api.types";
 import { SellPayload } from "@ledgerhq/hw-app-exchange/lib/SellUtils";
 import { VERSION } from "./version";
+import { PayloadStepError } from "./error/ExchangeSdkError";
 
 const SWAP_BACKEND_URL = "https://swap.ledger.com/";
 const SELL_BACKEND_URL = "https://exchange-tx-manager.ledger.com/";
@@ -216,7 +217,10 @@ export async function decodeBinarySellPayload(binaryPayload: Buffer) {
 
     return await decodeSellPayload(bufferPayload);
   } catch (e) {
-    console.log("Error decoding payload", e);
+    // Never swallow this: the payload carries `inExtraId` (XRP destination tag, XLM memo),
+    // so returning `undefined` silently builds a transaction without it, which then fails
+    // much later with an unrelated-looking error from the wallet or the device.
+    throw new PayloadStepError(e as Error);
   }
 }
 
@@ -228,8 +232,8 @@ export async function postSellPayload(
     const { inCurrency, outCurrency, inAddress, inAmount, outAmount } =
       sellPayload;
 
-    const amountTo = decodeAmount(outAmount as Uint8Array);
-    const amountFrom = decodeAmount(inAmount as UDecimal);
+    const amountTo = decodeAmount(outAmount as UDecimal);
+    const amountFrom = decodeAmount(inAmount as Uint8Array);
 
     const payload = {
       quoteId: null,
@@ -270,7 +274,8 @@ export async function decodeBinaryFundPayload(binaryPayload: Buffer) {
 
     return await decodeFundPayload(bufferPayload);
   } catch (e) {
-    console.log("Error decoding payload", e);
+    // See `decodeBinarySellPayload`: a swallowed failure here loses `inExtraId` silently.
+    throw new PayloadStepError(e as Error);
   }
 }
 
